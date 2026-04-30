@@ -146,20 +146,6 @@ export function AssetChart({ data }: AssetChartProps) {
             <Legend
               iconType="plainline"
               wrapperStyle={{ color: "var(--chart-axis)", fontSize: 12 }}
-              payload={[
-                {
-                  value: "평가금액",
-                  type: "plainline",
-                  color: "var(--chart-value)",
-                  id: "value",
-                },
-                {
-                  value: "누적 원금",
-                  type: "plainline",
-                  color: "var(--chart-contribution)",
-                  id: "contributions",
-                },
-              ]}
             />
             <Area
               name="평가금액"
