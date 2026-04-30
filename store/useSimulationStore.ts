@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { SimulationResult } from "@/lib/simulation/types";
 
 export type ContributionPeriod = {
   id: string;
@@ -29,6 +30,7 @@ type SimulationState = {
   initialAmount: number;
   contributionSchedule: ContributionPeriod[];
   options: AdvancedOptions;
+  simulationResult: SimulationResult | null;
 };
 
 export type SimulationStore = SimulationState & {
@@ -46,6 +48,7 @@ export type SimulationStore = SimulationState & {
     patch: Partial<ContributionPeriod>,
   ) => void;
   updateOptions: (patch: Partial<AdvancedOptions>) => void;
+  setSimulationResult: (result: SimulationResult | null) => void;
   reset: () => void;
 };
 
@@ -91,6 +94,7 @@ function createDefaultState(): SimulationState {
       inflationAdjusted: false,
       rebalance: "none",
     },
+    simulationResult: null,
   };
 }
 
@@ -245,11 +249,12 @@ export const useSimulationStore = create<SimulationStore>()(
         })),
       updateOptions: (patch) =>
         set((state) => ({ options: { ...state.options, ...patch } })),
+      setSimulationResult: (result) => set({ simulationResult: result }),
       reset: () => set(createDefaultState()),
     }),
     {
       name: "investment-simulation-store",
-      version: 1,
+      version: 2,
     },
   ),
 );
