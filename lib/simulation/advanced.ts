@@ -12,6 +12,9 @@ import type {
 type SupportedFxCurrency = "USD" | "JPY" | "EUR";
 type Holdings = Map<string, number>;
 
+const INFLATION_RATE = 0.02;
+const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
+
 const supportedFxCurrencies = new Set<string>(["USD", "JPY", "EUR"]);
 
 function isSupportedFxCurrency(currency: string): currency is SupportedFxCurrency {
@@ -370,6 +373,44 @@ function createYearlyBreakdown(
   return yearlyBreakdown;
 }
 
+function yearsFromStart(startDate: string, targetDate: string) {
+  const start = new Date(`${startDate}T00:00:00Z`).getTime();
+  const target = new Date(`${targetDate}T00:00:00Z`).getTime();
+  return Math.max(0, (target - start) / MS_PER_YEAR);
+}
+
+function deflateAmount(amount: number, startDate: string, targetDate: string) {
+  const deflator = Math.pow(1 + INFLATION_RATE, yearsFromStart(startDate, targetDate));
+  return amount / deflator;
+}
+
+function applyInflationAdjustment(
+  input: AdvancedSimulationInput,
+  result: Omit<SimulationResult, "warnings" | "dataIssues">,
+) {
+  const timeSeries = result.timeSeries.map((point) => ({
+    ...point,
+    value: deflateAmount(point.value, input.startDate, point.date),
+    contributions: deflateAmount(point.contributions, input.startDate, point.date),
+  }));
+  const finalValue = deflateAmount(result.finalValue, input.startDate, input.endDate);
+  const totalContributions = deflateAmount(
+    result.totalContributions,
+    input.startDate,
+    input.endDate,
+  );
+  const totalReturn = finalValue - totalContributions;
+
+  return {
+    ...result,
+    finalValue,
+    totalContributions,
+    totalReturn,
+    timeSeries,
+    yearlyBreakdown: createYearlyBreakdown(input, timeSeries),
+  };
+}
+
 export async function simulateAdvanced(
   input: AdvancedSimulationInput,
 ): Promise<SimulationResult> {
@@ -384,10 +425,6 @@ export async function simulateAdvanced(
     warnings.push(
       "Dividend reinvestment is always applied in this version because adj_close prices are used.",
     );
-  }
-
-  if (input.options.inflationAdjusted) {
-    warnings.push("Inflation adjustment is not implemented yet. Nominal values are shown.");
   }
 
   const portfolio = normalizePortfolio(input.portfolio);
@@ -508,7 +545,7 @@ export async function simulateAdvanced(
     dataIssues,
   );
 
-  return {
+  const result = {
     finalValue,
     totalContributions,
     totalReturn,
@@ -517,6 +554,13 @@ export async function simulateAdvanced(
     yearlyBreakdown,
     initialPortfolio,
     finalPortfolio,
+  };
+  const adjustedResult = input.options.inflationAdjusted
+    ? applyInflationAdjustment(input, result)
+    : result;
+
+  return {
+    ...adjustedResult,
     warnings: Array.from(new Set(warnings)),
     dataIssues,
   };

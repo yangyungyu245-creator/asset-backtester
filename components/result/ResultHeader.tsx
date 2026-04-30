@@ -41,6 +41,11 @@ export function ResultHeader({
         <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-600 dark:text-neutral-400">
           {summary}
         </p>
+        {options.inflationAdjusted ? (
+          <p className="mt-2 text-xs font-medium text-info">
+            실질가치 표시 중: 시작 시점 기준, 연 2% 인플레이션을 가정해 환산했습니다.
+          </p>
+        ) : null}
         <div className="mt-4 flex flex-wrap gap-2">
           {badges.map((badge) => (
             <span

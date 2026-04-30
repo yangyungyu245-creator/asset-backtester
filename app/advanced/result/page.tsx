@@ -54,6 +54,7 @@ export default function AdvancedResultPage() {
         startDate={startDate}
         endDate={endDate}
         initialAmount={initialAmount}
+        inflationAdjusted={options.inflationAdjusted}
       />
       <AssetChart data={simulationResult.timeSeries} />
       <PortfolioComparison

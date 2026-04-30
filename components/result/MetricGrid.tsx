@@ -13,6 +13,7 @@ type MetricGridProps = {
   startDate: string;
   endDate: string;
   initialAmount: number;
+  inflationAdjusted?: boolean;
 };
 
 export function MetricGrid({
@@ -20,6 +21,7 @@ export function MetricGrid({
   startDate,
   endDate,
   initialAmount,
+  inflationAdjusted = false,
 }: MetricGridProps) {
   const { years, months } = getMonthSpan(startDate, endDate);
   const returnRate =
@@ -30,18 +32,18 @@ export function MetricGrid({
 
   const metrics = [
     {
-      label: "최종 자산",
+      label: `최종 자산${inflationAdjusted ? " (실질)" : ""}`,
       value: formatCompactKRW(result.finalValue),
       helper: `${years}년 ${months}개월 후`,
       featured: true,
     },
     {
-      label: "총 원금",
+      label: `총 원금${inflationAdjusted ? " (실질)" : ""}`,
       value: formatCompactKRW(result.totalContributions),
       helper: formatContributionBreakdown(initialAmount, result.totalContributions),
     },
     {
-      label: "총 수익",
+      label: `총 수익${inflationAdjusted ? " (실질)" : ""}`,
       value: formatSignedKRW(result.totalReturn),
       helper: formatPercentValue(returnRate),
       tone: result.totalReturn >= 0 ? "positive" : "negative",
