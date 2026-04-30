@@ -12,7 +12,7 @@ type ButtonLinkProps = ComponentPropsWithoutRef<typeof Link> & {
 };
 
 const baseClass =
-  "inline-flex h-11 items-center justify-center rounded-md border border-white/10 bg-neutral-50 px-4 text-sm font-medium text-neutral-950 transition hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-info disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex h-11 items-center justify-center rounded-md border border-neutral-900 bg-neutral-950 px-4 text-sm font-medium text-white transition hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-info disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200";
 
 export function Button(props: ButtonProps | ButtonLinkProps) {
   const className = props.className ? `${baseClass} ${props.className}` : baseClass;

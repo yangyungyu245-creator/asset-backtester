@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { Header } from "@/components/layout/Header";
 
 export const metadata: Metadata = {
   title: "투자 시뮬레이터",
-  description: "과거 데이터 기반 투자 시나리오 백테스트 웹사이트",
+  description: "예금 복리 계산부터 과거 데이터 기반 포트폴리오 백테스트까지 지원합니다.",
 };
 
 export default function RootLayout({

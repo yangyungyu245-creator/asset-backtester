@@ -26,10 +26,10 @@ export function ThemeToggle() {
       type="button"
       aria-label="테마 전환"
       onClick={toggleTheme}
-      className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-white/10 text-sm text-neutral-200 transition hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-info"
+      className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-300 text-sm text-neutral-700 transition hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-info dark:border-white/10 dark:text-neutral-200 dark:hover:bg-white/5"
       title={theme === "dark" ? "라이트 모드" : "다크 모드"}
     >
-      {theme === "dark" ? "☾" : "☀"}
+      {theme === "dark" ? "☀" : "◐"}
     </button>
   );
 }
