@@ -20,6 +20,8 @@ export type SimulationResult = {
   cagr: number;
   timeSeries: SimulationPoint[];
   yearlyBreakdown: YearlyBreakdown[];
+  initialPortfolio: PortfolioSnapshot[];
+  finalPortfolio: PortfolioSnapshot[];
   warnings: string[];
   dataIssues: {
     ticker: string;
@@ -38,11 +40,20 @@ export type PortfolioItem = {
   weight: number;
 };
 
+export type PortfolioSnapshot = {
+  ticker: string;
+  name: string;
+  name_ko: string;
+  shares: number;
+  value: number;
+  weight: number;
+};
+
 export type AdvancedOptions = {
   reinvestDividends: boolean;
   applyExchangeRate: boolean;
   inflationAdjusted: boolean;
-  rebalance: "none" | "quarterly" | "annually";
+  rebalance: "none" | "monthly" | "quarterly" | "annually";
 };
 
 export type AdvancedSimulationInput = {

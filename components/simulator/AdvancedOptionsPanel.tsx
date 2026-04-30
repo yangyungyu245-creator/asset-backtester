@@ -85,6 +85,7 @@ export function AdvancedOptionsPanel({
             className="h-11 rounded-md border border-neutral-300 bg-white px-3 text-sm text-neutral-950 outline-none focus:ring-2 focus:ring-info dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-50"
           >
             <option value="none">없음</option>
+            <option value="monthly">월</option>
             <option value="quarterly">분기</option>
             <option value="annually">연</option>
           </select>

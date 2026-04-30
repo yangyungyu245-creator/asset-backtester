@@ -4,6 +4,7 @@ import { loadMultipleTickers } from "@/lib/data/priceLoader";
 import type {
   AdvancedSimulationInput,
   PortfolioItem,
+  PortfolioSnapshot,
   SimulationResult,
   TickerData,
 } from "@/lib/simulation/types";
@@ -58,6 +59,27 @@ function getContributionForMonth(
   return period?.monthlyAmount ?? 0;
 }
 
+function isRebalanceMonth(
+  yearMonth: string,
+  rebalance: AdvancedSimulationInput["options"]["rebalance"],
+) {
+  if (rebalance === "none") {
+    return false;
+  }
+
+  if (rebalance === "monthly") {
+    return true;
+  }
+
+  const month = Number(yearMonth.slice(5, 7));
+
+  if (rebalance === "quarterly") {
+    return month % 3 === 0;
+  }
+
+  return month === 12;
+}
+
 function getFxRate(
   currency: string,
   date: string,
@@ -101,6 +123,38 @@ function normalizePortfolio(portfolio: PortfolioItem[]) {
     ...item,
     weight: item.weight / weightSum,
   }));
+}
+
+function valueHolding(
+  ticker: string,
+  shares: number,
+  date: string,
+  tickerMap: Map<string, TickerData>,
+  fxMap: Map<SupportedFxCurrency, FxData>,
+  warnings: string[],
+  dataIssues: SimulationResult["dataIssues"],
+) {
+  const tickerData = tickerMap.get(ticker);
+  if (!tickerData) {
+    dataIssues.push({ ticker, issue: "Ticker data was not loaded for valuation." });
+    return null;
+  }
+
+  const price = lookupValue(tickerData.prices, date);
+  if (price === null || price <= 0) {
+    dataIssues.push({ ticker, issue: `No valuation price found on or before ${date}.` });
+    return null;
+  }
+
+  const fxRate = getFxRate(tickerData.currency, date, fxMap, warnings);
+  const localValue = shares * price;
+
+  return {
+    tickerData,
+    price,
+    fxRate,
+    value: tickerData.currency === "KRW" ? localValue : localValue * fxRate,
+  };
 }
 
 function buyPortfolio(
@@ -168,24 +222,111 @@ function evaluateHoldings(
   let value = 0;
 
   for (const [ticker, shares] of Array.from(holdings.entries())) {
-    const tickerData = tickerMap.get(ticker);
+    const holdingValue = valueHolding(
+      ticker,
+      shares,
+      date,
+      tickerMap,
+      fxMap,
+      warnings,
+      dataIssues,
+    );
+
+    value += holdingValue?.value ?? 0;
+  }
+
+  return value;
+}
+
+function createPortfolioSnapshot(
+  date: string,
+  holdings: Holdings,
+  tickerMap: Map<string, TickerData>,
+  fxMap: Map<SupportedFxCurrency, FxData>,
+  warnings: string[],
+  dataIssues: SimulationResult["dataIssues"],
+): PortfolioSnapshot[] {
+  const rows = Array.from(holdings.entries()).flatMap(([ticker, shares]) => {
+    const holdingValue = valueHolding(
+      ticker,
+      shares,
+      date,
+      tickerMap,
+      fxMap,
+      warnings,
+      dataIssues,
+    );
+
+    if (!holdingValue) {
+      return [];
+    }
+
+    return [
+      {
+        ticker,
+        name: holdingValue.tickerData.name,
+        name_ko: holdingValue.tickerData.name_ko,
+        shares,
+        value: holdingValue.value,
+        weight: 0,
+      },
+    ];
+  });
+  const totalValue = rows.reduce((sum, row) => sum + row.value, 0);
+
+  return rows
+    .map((row) => ({
+      ...row,
+      weight: totalValue > 0 ? (row.value / totalValue) * 100 : 0,
+    }))
+    .sort((a, b) => b.value - a.value);
+}
+
+function rebalanceHoldings(
+  date: string,
+  portfolio: ReturnType<typeof normalizePortfolio>,
+  holdings: Holdings,
+  tickerMap: Map<string, TickerData>,
+  fxMap: Map<SupportedFxCurrency, FxData>,
+  warnings: string[],
+  dataIssues: SimulationResult["dataIssues"],
+) {
+  const totalValue = evaluateHoldings(
+    date,
+    holdings,
+    tickerMap,
+    fxMap,
+    warnings,
+    dataIssues,
+  );
+
+  if (totalValue <= 0) {
+    return;
+  }
+
+  for (const item of portfolio) {
+    const tickerData = tickerMap.get(item.ticker);
     if (!tickerData) {
-      dataIssues.push({ ticker, issue: "Ticker data was not loaded for valuation." });
+      dataIssues.push({ ticker: item.ticker, issue: "Ticker data was not loaded." });
       continue;
     }
 
     const price = lookupValue(tickerData.prices, date);
-    if (price === null) {
-      dataIssues.push({ ticker, issue: `No valuation price found on or before ${date}.` });
+    if (price === null || price <= 0) {
+      dataIssues.push({
+        ticker: item.ticker,
+        issue: `No valid price found for rebalance date ${date}.`,
+      });
       continue;
     }
 
     const fxRate = getFxRate(tickerData.currency, date, fxMap, warnings);
-    const localValue = shares * price;
-    value += tickerData.currency === "KRW" ? localValue : localValue * fxRate;
-  }
+    const targetValueKrw = totalValue * item.weight;
+    const targetValueLocal =
+      tickerData.currency === "KRW" ? targetValueKrw : targetValueKrw / fxRate;
 
-  return value;
+    holdings.set(item.ticker, targetValueLocal / price);
+  }
 }
 
 function createYearlyBreakdown(
@@ -245,10 +386,6 @@ export async function simulateAdvanced(
     );
   }
 
-  if (input.options.rebalance !== "none") {
-    warnings.push("Rebalancing is not implemented yet. The simulation used no rebalancing.");
-  }
-
   if (input.options.inflationAdjusted) {
     warnings.push("Inflation adjustment is not implemented yet. Nominal values are shown.");
   }
@@ -289,6 +426,14 @@ export async function simulateAdvanced(
     dataIssues,
     input.endDate,
   );
+  const initialPortfolio = createPortfolioSnapshot(
+    input.startDate,
+    holdings,
+    tickerMap,
+    fxMap,
+    warnings,
+    dataIssues,
+  );
 
   let yearMonth = dateToYearMonth(input.startDate);
   const endYearMonth = dateToYearMonth(input.endDate);
@@ -315,6 +460,19 @@ export async function simulateAdvanced(
     totalContributions += invested;
 
     const valuationDate = yearMonth === endYearMonth ? input.endDate : monthEnd(yearMonth);
+
+    if (isRebalanceMonth(yearMonth, input.options.rebalance)) {
+      rebalanceHoldings(
+        valuationDate,
+        portfolio,
+        holdings,
+        tickerMap,
+        fxMap,
+        warnings,
+        dataIssues,
+      );
+    }
+
     timeSeries.push({
       date: valuationDate,
       value: evaluateHoldings(
@@ -341,6 +499,14 @@ export async function simulateAdvanced(
       ? Math.pow(finalValue / totalContributions, 1 / years) - 1
       : 0;
   const yearlyBreakdown = createYearlyBreakdown(input, timeSeries);
+  const finalPortfolio = createPortfolioSnapshot(
+    input.endDate,
+    holdings,
+    tickerMap,
+    fxMap,
+    warnings,
+    dataIssues,
+  );
 
   return {
     finalValue,
@@ -349,6 +515,8 @@ export async function simulateAdvanced(
     cagr,
     timeSeries,
     yearlyBreakdown,
+    initialPortfolio,
+    finalPortfolio,
     warnings: Array.from(new Set(warnings)),
     dataIssues,
   };

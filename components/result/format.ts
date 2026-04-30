@@ -98,6 +98,7 @@ export function formatContributionBreakdown(
 export function getOptionBadges(options: AdvancedOptions) {
   const rebalanceLabel = {
     none: "리밸런싱 없음",
+    monthly: "월 리밸런싱",
     quarterly: "분기 리밸런싱",
     annually: "연간 리밸런싱",
   }[options.rebalance];

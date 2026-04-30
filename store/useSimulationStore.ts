@@ -20,7 +20,7 @@ export type AdvancedOptions = {
   reinvestDividends: boolean;
   applyExchangeRate: boolean;
   inflationAdjusted: boolean;
-  rebalance: "none" | "quarterly" | "annually";
+  rebalance: "none" | "monthly" | "quarterly" | "annually";
 };
 
 type SimulationState = {
