@@ -12,6 +12,7 @@ import {
   YAxis,
 } from "recharts";
 import type { TooltipProps } from "recharts";
+import type { Props as LegendContentProps } from "recharts/types/component/DefaultLegendContent";
 import type { SimulationPoint } from "@/lib/simulation/types";
 import {
   formatCompactKRW,
@@ -71,6 +72,39 @@ function renderTooltip({ active, payload, label }: TooltipProps<number, string>)
         </p>
       </div>
     </div>
+  );
+}
+
+function renderLegend({ payload }: LegendContentProps) {
+  const entries =
+    payload?.filter((entry) =>
+      entry.dataKey === "value" || entry.dataKey === "contributions",
+    ) ?? [];
+
+  if (entries.length === 0) {
+    return null;
+  }
+
+  return (
+    <ul className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-neutral-500 dark:text-neutral-400">
+      {entries.map((entry) => {
+        const isContribution = entry.dataKey === "contributions";
+
+        return (
+          <li key={String(entry.dataKey)} className="inline-flex items-center gap-2">
+            <span
+              className="inline-block h-0 w-6 border-t-2"
+              style={{
+                borderColor: entry.color,
+                borderTopStyle: isContribution ? "dashed" : "solid",
+              }}
+              aria-hidden="true"
+            />
+            <span>{String(entry.value)}</span>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
@@ -146,6 +180,7 @@ export function AssetChart({ data }: AssetChartProps) {
             <Legend
               iconType="plainline"
               wrapperStyle={{ color: "var(--chart-axis)", fontSize: 12 }}
+              content={renderLegend}
             />
             <Area
               name="평가금액"
