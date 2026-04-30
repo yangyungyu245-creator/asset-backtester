@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "dev:fresh": "rimraf .next && next dev",
-    "build": "next build",
-    "build:fresh": "rimraf .next && next build",
-    "clean": "rimraf .next node_modules/.cache",
-    "start": "next start",
-    "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "dev": "node node_modules/next/dist/bin/next dev",
+    "dev:fresh": "node node_modules/rimraf/dist/esm/bin.mjs .next && node node_modules/next/dist/bin/next dev",
+    "build": "node node_modules/next/dist/bin/next build",
+    "build:fresh": "node node_modules/rimraf/dist/esm/bin.mjs .next && node node_modules/next/dist/bin/next build",
+    "clean": "node node_modules/rimraf/dist/esm/bin.mjs .next node_modules/.cache",
+    "start": "node node_modules/next/dist/bin/next start",
+    "lint": "node node_modules/next/dist/bin/next lint",
+    "typecheck": "node node_modules/typescript/bin/tsc --noEmit"
   },
   "dependencies": {
     "@types/node": "^20.12.12",
