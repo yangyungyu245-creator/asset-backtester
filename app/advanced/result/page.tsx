@@ -7,6 +7,7 @@ import { PortfolioComparison } from "@/components/result/PortfolioComparison";
 import { ResultActions } from "@/components/result/ResultActions";
 import { ResultHeader } from "@/components/result/ResultHeader";
 import { YearlyTable } from "@/components/result/YearlyTable";
+import { AdPlaceholder } from "@/components/simulator/AdPlaceholder";
 import { Button } from "@/components/ui/Button";
 import { useSimulationStore } from "@/store/useSimulationStore";
 
@@ -62,6 +63,7 @@ export default function AdvancedResultPage() {
         finalPortfolio={simulationResult.finalPortfolio ?? []}
         endDate={endDate}
       />
+      <AdPlaceholder />
       <YearlyTable
         rows={simulationResult.yearlyBreakdown}
         initialAmount={initialAmount}
