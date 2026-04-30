@@ -4,7 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:fresh": "rimraf .next && next dev",
     "build": "next build",
+    "build:fresh": "rimraf .next && next build",
+    "clean": "rimraf .next node_modules/.cache",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
@@ -27,5 +30,7 @@
     "zod": "^3.23.8",
     "zustand": "^4.5.2"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "rimraf": "^6.1.3"
+  }
 }
