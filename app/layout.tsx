@@ -4,8 +4,35 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 
 export const metadata: Metadata = {
-  title: "투자 시뮬레이터",
-  description: "예금 복리 계산부터 과거 데이터 기반 포트폴리오 백테스트까지 지원합니다.",
+  metadataBase: new URL("https://investment-simulator.vercel.app"),
+  title: {
+    default: "투자 시뮬레이터",
+    template: "%s | 투자 시뮬레이터",
+  },
+  description:
+    "실제 종목 데이터 기반 투자 시뮬레이션. 적립식 복리, 포트폴리오 백테스트, 기간별 적립액 변경 가능.",
+  keywords: [
+    "투자 시뮬레이터",
+    "복리 계산기",
+    "주식 백테스트",
+    "적립식 투자",
+    "DCA 시뮬레이션",
+  ],
+  openGraph: {
+    title: "투자 시뮬레이터",
+    description:
+      "실제 종목 데이터 기반 투자 시뮬레이션. 적립식 복리와 포트폴리오 백테스트를 한 번에 확인하세요.",
+    type: "website",
+    locale: "ko_KR",
+    siteName: "투자 시뮬레이터",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "투자 시뮬레이터",
+    description:
+      "실제 종목 데이터 기반 투자 시뮬레이션과 적립식 포트폴리오 백테스트.",
+  },
+  robots: "index, follow",
 };
 
 export default function RootLayout({
