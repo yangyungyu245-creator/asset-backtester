@@ -23,6 +23,11 @@ type AssetChartProps = {
   data: SimulationPoint[];
 };
 
+type ChartPoint = SimulationPoint & {
+  downValueSoft: number | null;
+  downValueStrong: number | null;
+};
+
 function formatXAxis(date: string, index: number, dataLength: number) {
   if (dataLength > 36) {
     if (index === 0 || index === dataLength - 1 || date.slice(5, 7) === "12") {
@@ -44,7 +49,7 @@ function formatXAxis(date: string, index: number, dataLength: number) {
 }
 
 function renderTooltip({ active, payload, label }: TooltipProps<number, string>) {
-  const point = payload?.[0]?.payload as SimulationPoint | undefined;
+  const point = payload?.[0]?.payload as ChartPoint | undefined;
 
   if (!active || !point) {
     return null;
@@ -70,6 +75,19 @@ function renderTooltip({ active, payload, label }: TooltipProps<number, string>)
 }
 
 export function AssetChart({ data }: AssetChartProps) {
+  let downStreak = 0;
+  const chartData: ChartPoint[] = data.map((point, index) => {
+    const previous = data[index - 1];
+    const isDown = Boolean(previous && point.value < previous.value);
+    downStreak = isDown ? downStreak + 1 : 0;
+
+    return {
+      ...point,
+      downValueSoft: isDown ? point.value : null,
+      downValueStrong: downStreak >= 3 ? point.value : null,
+    };
+  });
+
   return (
     <section className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a] sm:p-5">
       <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
@@ -85,13 +103,21 @@ export function AssetChart({ data }: AssetChartProps) {
       <div className="h-[280px] w-full md:h-[360px]">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart
-            data={data}
+            data={chartData}
             margin={{ top: 10, right: 12, left: 0, bottom: 0 }}
           >
             <defs>
               <linearGradient id="advancedAssetValue" x1="0" x2="0" y1="0" y2="1">
                 <stop offset="5%" stopColor="var(--chart-value)" stopOpacity={0.35} />
                 <stop offset="95%" stopColor="var(--chart-value)" stopOpacity={0.02} />
+              </linearGradient>
+              <linearGradient id="advancedAssetDrawdownSoft" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="5%" stopColor="var(--chart-down)" stopOpacity={0.22} />
+                <stop offset="95%" stopColor="var(--chart-down)" stopOpacity={0.03} />
+              </linearGradient>
+              <linearGradient id="advancedAssetDrawdownStrong" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="5%" stopColor="var(--chart-down)" stopOpacity={0.2} />
+                <stop offset="95%" stopColor="var(--chart-down)" stopOpacity={0.02} />
               </linearGradient>
             </defs>
             <CartesianGrid
@@ -130,6 +156,30 @@ export function AssetChart({ data }: AssetChartProps) {
               fill="url(#advancedAssetValue)"
               dot={false}
               activeDot={{ r: 4 }}
+            />
+            <Area
+              name="하락 구간"
+              type="monotone"
+              dataKey="downValueSoft"
+              stroke="none"
+              fill="url(#advancedAssetDrawdownSoft)"
+              dot={false}
+              activeDot={false}
+              isAnimationActive={false}
+              connectNulls={false}
+              legendType="none"
+            />
+            <Area
+              name="긴 하락 구간"
+              type="monotone"
+              dataKey="downValueStrong"
+              stroke="none"
+              fill="url(#advancedAssetDrawdownStrong)"
+              dot={false}
+              activeDot={false}
+              isAnimationActive={false}
+              connectNulls={false}
+              legendType="none"
             />
             <Line
               name="누적 원금"

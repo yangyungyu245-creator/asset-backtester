@@ -5,6 +5,7 @@
 :root {
   color-scheme: dark;
   --chart-value: #38bdf8;
+  --chart-down: #ef4444;
   --chart-contribution: #94a3b8;
   --chart-grid: rgba(148, 163, 184, 0.2);
   --chart-axis: #a3a3a3;
@@ -29,6 +30,7 @@ body {
 html.light {
   color-scheme: light;
   --chart-value: #2563eb;
+  --chart-down: #dc2626;
   --chart-contribution: #64748b;
   --chart-grid: rgba(100, 116, 139, 0.22);
   --chart-axis: #737373;
