@@ -3,7 +3,7 @@
 import { AssetChart } from "@/components/result/AssetChart";
 import { DataWarnings } from "@/components/result/DataWarnings";
 import { MetricGrid } from "@/components/result/MetricGrid";
-import { PortfolioDonut } from "@/components/result/PortfolioDonut";
+import { PortfolioComparison } from "@/components/result/PortfolioComparison";
 import { ResultActions } from "@/components/result/ResultActions";
 import { ResultHeader } from "@/components/result/ResultHeader";
 import { YearlyTable } from "@/components/result/YearlyTable";
@@ -56,11 +56,15 @@ export default function AdvancedResultPage() {
         initialAmount={initialAmount}
       />
       <AssetChart data={simulationResult.timeSeries} />
+      <PortfolioComparison
+        initialPortfolio={simulationResult.initialPortfolio ?? []}
+        finalPortfolio={simulationResult.finalPortfolio ?? []}
+        endDate={endDate}
+      />
       <YearlyTable
         rows={simulationResult.yearlyBreakdown}
         initialAmount={initialAmount}
       />
-      <PortfolioDonut tickers={selectedTickers} />
       <DataWarnings
         warnings={simulationResult.warnings}
         dataIssues={simulationResult.dataIssues}
