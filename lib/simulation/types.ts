@@ -6,8 +6,9 @@ export type SimulationPoint = {
 
 export type YearlyBreakdown = {
   year: number;
-  contributions: number;
-  value: number;
+  startValue: number;
+  contributionsThisYear: number;
+  endValue: number;
   yearReturn: number;
   cumReturn: number;
 };
@@ -19,6 +20,38 @@ export type SimulationResult = {
   cagr: number;
   timeSeries: SimulationPoint[];
   yearlyBreakdown: YearlyBreakdown[];
+  warnings: string[];
+  dataIssues: {
+    ticker: string;
+    issue: string;
+  }[];
+};
+
+export type ContributionPeriod = {
+  startYearMonth: string;
+  endYearMonth: string;
+  monthlyAmount: number;
+};
+
+export type PortfolioItem = {
+  ticker: string;
+  weight: number;
+};
+
+export type AdvancedOptions = {
+  reinvestDividends: boolean;
+  applyExchangeRate: boolean;
+  inflationAdjusted: boolean;
+  rebalance: "none" | "quarterly" | "annually";
+};
+
+export type AdvancedSimulationInput = {
+  startDate: string;
+  endDate: string;
+  initialAmount: number;
+  contributionSchedule: ContributionPeriod[];
+  portfolio: PortfolioItem[];
+  options: AdvancedOptions;
 };
 
 export type TickerData = {
