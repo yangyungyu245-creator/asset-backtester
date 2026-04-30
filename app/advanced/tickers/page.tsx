@@ -83,7 +83,7 @@ export default function AdvancedTickersPage() {
       </div>
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-between">
-        <Button asChild href="/advanced/dates" className="border-neutral-300 bg-white text-neutral-800 hover:bg-neutral-100 dark:bg-transparent dark:text-neutral-100 dark:hover:bg-white/5">
+        <Button asChild href="/advanced/dates" variant="outline">
           이전
         </Button>
         <Button
