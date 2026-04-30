@@ -31,6 +31,7 @@ type SimulationState = {
   contributionSchedule: ContributionPeriod[];
   options: AdvancedOptions;
   simulationResult: SimulationResult | null;
+  simulationError: string | null;
 };
 
 export type SimulationStore = SimulationState & {
@@ -48,7 +49,16 @@ export type SimulationStore = SimulationState & {
     patch: Partial<ContributionPeriod>,
   ) => void;
   updateOptions: (patch: Partial<AdvancedOptions>) => void;
+  loadScenario: (scenario: {
+    startDate: string;
+    endDate: string;
+    selectedTickers: SelectedTicker[];
+    initialAmount: number;
+    contributionSchedule: Omit<ContributionPeriod, "id">[];
+    options: AdvancedOptions;
+  }) => void;
   setSimulationResult: (result: SimulationResult | null) => void;
+  setSimulationError: (error: string | null) => void;
   reset: () => void;
 };
 
@@ -95,6 +105,7 @@ function createDefaultState(): SimulationState {
       rebalance: "none",
     },
     simulationResult: null,
+    simulationError: null,
   };
 }
 
@@ -249,7 +260,23 @@ export const useSimulationStore = create<SimulationStore>()(
         })),
       updateOptions: (patch) =>
         set((state) => ({ options: { ...state.options, ...patch } })),
-      setSimulationResult: (result) => set({ simulationResult: result }),
+      loadScenario: (scenario) =>
+        set({
+          startDate: scenario.startDate,
+          endDate: scenario.endDate,
+          selectedTickers: scenario.selectedTickers,
+          initialAmount: scenario.initialAmount,
+          contributionSchedule: scenario.contributionSchedule.map((period, index) => ({
+            ...period,
+            id: `shared-${index}-${period.startYearMonth}`,
+          })),
+          options: scenario.options,
+          simulationResult: null,
+          simulationError: null,
+        }),
+      setSimulationResult: (result) =>
+        set({ simulationResult: result, simulationError: null }),
+      setSimulationError: (error) => set({ simulationError: error }),
       reset: () => set(createDefaultState()),
     }),
     {

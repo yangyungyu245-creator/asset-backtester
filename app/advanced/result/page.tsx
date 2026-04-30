@@ -20,14 +20,38 @@ export default function AdvancedResultPage() {
     contributionSchedule,
     options,
     simulationResult,
+    simulationError,
   } = useSimulationStore();
+
+  if (simulationError) {
+    return (
+      <section className="mx-auto grid max-w-xl gap-5 py-16 text-center">
+        <div>
+          <h1 className="text-2xl font-semibold text-neutral-950 dark:text-neutral-50">
+            시뮬레이션 중 문제가 발생했습니다
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-neutral-600 dark:text-neutral-400">
+            {simulationError}
+          </p>
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+          <Button asChild href="/advanced/loading">
+            다시 시도
+          </Button>
+          <Button asChild href="/advanced/dates" variant="outline">
+            처음으로
+          </Button>
+        </div>
+      </section>
+    );
+  }
 
   if (!simulationResult) {
     return (
       <section className="mx-auto grid max-w-xl gap-5 py-16 text-center">
         <div>
           <h1 className="text-2xl font-semibold text-neutral-950 dark:text-neutral-50">
-            시뮬레이션 결과가 없습니다
+            결과가 없습니다
           </h1>
           <p className="mt-3 text-sm leading-6 text-neutral-600 dark:text-neutral-400">
             날짜와 종목을 선택한 뒤 고급 시뮬레이션을 실행해 주세요.

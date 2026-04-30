@@ -89,6 +89,11 @@ export function TickerSearch({
               인기 종목
             </p>
           ) : null}
+          {results.length === 0 ? (
+            <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-5 text-sm text-neutral-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-400">
+              검색 결과가 없습니다.
+            </div>
+          ) : null}
           {results.map((ticker) => {
             const available = isTickerAvailable(ticker, startDate);
             const selected = selectedSet.has(ticker.ticker);

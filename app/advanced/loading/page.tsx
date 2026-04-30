@@ -22,6 +22,7 @@ export default function AdvancedLoadingPage() {
     contributionSchedule,
     options,
     setSimulationResult,
+    setSimulationError,
   } = useSimulationStore();
   const [countdown, setCountdown] = useState(5);
   const [isSimulating, setIsSimulating] = useState(true);
@@ -78,8 +79,10 @@ export default function AdvancedLoadingPage() {
         }
 
         console.error(error);
-        alert(error instanceof Error ? error.message : "시뮬레이션에 실패했습니다.");
-        router.replace("/advanced/setup");
+        setSimulationError(
+          error instanceof Error ? error.message : "시뮬레이션에 실패했습니다.",
+        );
+        router.replace("/advanced/result");
       } finally {
         if (!cancelled) {
           setIsSimulating(false);
@@ -98,6 +101,7 @@ export default function AdvancedLoadingPage() {
     input,
     router,
     selectedTickers.length,
+    setSimulationError,
     setSimulationResult,
     startDate,
   ]);
