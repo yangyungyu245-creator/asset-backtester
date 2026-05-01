@@ -82,6 +82,7 @@ export function ContributionScheduler({
               onChange={(monthlyAmount) => onUpdate(period.id, { monthlyAmount })}
               min={0}
               max={100_000_000}
+              placeholder="예: 300,000"
               suffix="원"
             />
             <button

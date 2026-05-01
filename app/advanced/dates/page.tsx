@@ -65,7 +65,7 @@ export default function AdvancedDatesPage() {
       </div>
 
       <form
-        className="mt-6 grid gap-5 rounded-lg border border-neutral-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]"
+        className="mt-6 grid min-w-0 gap-5 rounded-lg border border-neutral-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]"
         onSubmit={(event) => {
           event.preventDefault();
           if (validation.valid) {
@@ -73,24 +73,24 @@ export default function AdvancedDatesPage() {
           }
         }}
       >
-        <div className="grid gap-5 sm:grid-cols-2">
-          <label className="text-sm font-medium text-neutral-800 dark:text-neutral-200">
+        <div className="grid min-w-0 gap-5 sm:grid-cols-2">
+          <label className="min-w-0 text-sm font-medium text-neutral-800 dark:text-neutral-200">
             시작 날짜
             <input
               type="date"
               value={startDate}
               onChange={(event) => setStartDate(event.target.value)}
-              className="mt-2 h-11 w-full rounded-md border border-neutral-300 bg-white px-3 text-sm text-neutral-950 outline-none focus:ring-2 focus:ring-info dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-50"
+              className="mt-2 h-11 w-full min-w-0 rounded-md border border-neutral-300 bg-white px-3 text-sm text-neutral-950 outline-none focus:ring-2 focus:ring-info dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-50"
             />
           </label>
-          <label className="text-sm font-medium text-neutral-800 dark:text-neutral-200">
+          <label className="min-w-0 text-sm font-medium text-neutral-800 dark:text-neutral-200">
             종료 날짜
             <input
               type="date"
               max={todayString()}
               value={endDate}
               onChange={(event) => setEndDate(event.target.value)}
-              className="mt-2 h-11 w-full rounded-md border border-neutral-300 bg-white px-3 text-sm text-neutral-950 outline-none focus:ring-2 focus:ring-info dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-50"
+              className="mt-2 h-11 w-full min-w-0 rounded-md border border-neutral-300 bg-white px-3 text-sm text-neutral-950 outline-none focus:ring-2 focus:ring-info dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-50"
             />
           </label>
         </div>

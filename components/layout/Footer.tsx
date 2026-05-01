@@ -6,12 +6,15 @@ export function Footer() {
           <p className="font-semibold text-neutral-800 dark:text-neutral-100">
             투자 시뮬레이터
           </p>
-          <p>실제 종목 데이터 기반 투자 시나리오 계산 도구입니다.</p>
+          <p>실제 종목 데이터를 기반으로 투자 시나리오를 계산하는 도구입니다.</p>
           <p>
-            본 시뮬레이터의 결과는 과거 데이터 기반의 추정이며, 실제 투자 결과를
+            본 시뮬레이션의 결과는 과거 데이터 기반 추정이며, 실제 투자 결과를
             보장하지 않습니다.
           </p>
-          <p>주가 데이터: Yahoo Finance · 실질가치 옵션: 연 2% 인플레이션 가정</p>
+          <p>
+            주가 데이터: Yahoo Finance · 매주 월요일 새벽 3시(KST) 자동 갱신 ·
+            실질가치 옵션: 연 2% 인플레이션 가정
+          </p>
         </div>
         <div className="text-left sm:text-right">
           <p>made by WHY_N.ART</p>

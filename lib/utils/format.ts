@@ -30,7 +30,17 @@ export function formatKRW(amount: number): string {
 }
 
 export function formatInputNumber(value: number): string {
-  return integerFormatter.format(value);
+  if (!Number.isFinite(value)) {
+    return "0";
+  }
+
+  if (Number.isInteger(value)) {
+    return integerFormatter.format(value);
+  }
+
+  return new Intl.NumberFormat("ko-KR", {
+    maximumFractionDigits: 4,
+  }).format(value);
 }
 
 export function parseFormattedNumber(value: string): number {

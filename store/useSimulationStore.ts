@@ -96,7 +96,7 @@ function createDefaultState(): SimulationState {
     startDate,
     endDate,
     selectedTickers: [],
-    initialAmount: 10_000_000,
+    initialAmount: 0,
     contributionSchedule: [createPeriod(startDate, endDate)],
     options: {
       reinvestDividends: true,

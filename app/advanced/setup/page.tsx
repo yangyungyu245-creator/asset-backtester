@@ -100,6 +100,7 @@ export default function AdvancedSetupPage() {
             onChange={setInitialAmount}
             min={0}
             max={10_000_000_000}
+            placeholder="예: 10,000,000"
             suffix="원"
             error={
               initialAmountValid
