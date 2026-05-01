@@ -43,7 +43,7 @@ FX_SERIES = {
 STAGE_ORDER = {
     "pilot": ["pilot"],
     "expanded": ["pilot", "expanded"],
-    "full": ["pilot", "expanded", "full", "phase9"],
+    "full": ["pilot", "expanded", "full", "phase9", "community"],
     "phase9": ["phase9"],
 }
 

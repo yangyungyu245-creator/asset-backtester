@@ -1,9 +1,9 @@
 import type { MetadataRoute } from "next";
 
-const baseUrl = "https://investment-simulator.vercel.app";
+const baseUrl = "https://asset-backtester.vercel.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const routes = ["", "/simple", "/advanced/dates", "/about"];
+  const routes = ["", "/simple", "/advanced/dates", "/request", "/about"];
 
   return routes.map((route) => ({
     url: `${baseUrl}${route}`,

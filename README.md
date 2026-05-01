@@ -13,11 +13,12 @@ https://asset-backtester.vercel.app/
   - 미국 주식/ETF (S&P 500 시총 상위 + 주요 ETF)
   - 한국 주식/ETF (KOSPI 시총 상위 + 주요 ETF)
   - 일본/중국/유럽 주요 종목
-  - 총 300종목 + USD/JPY/EUR 환율
+  - 총 360종목 + USD/JPY/EUR 환율
 - 기간별 적립액 변경 (라이프스테이지 반영)
 - 리밸런싱 (월/분기/연/없음)
 - 시작 vs 최종 포트폴리오 비교
-- 결과 URL 공유
+- 결과 URL 공유 및 PNG 이미지 다운로드
+- 커뮤니티 종목 요청: Google Sheets 저장 후 승인 종목 자동 반영
 
 ## 기술 스택
 
@@ -46,14 +47,22 @@ cd scripts
 pip install -r requirements.txt
 python fetch_data.py --stage pilot     # 10종목
 python fetch_data.py --stage expanded  # 100종목
-python fetch_data.py --stage full      # 300종목
+python fetch_data.py --stage full      # 360종목 + 커뮤니티 승인 종목
 ```
 
 ## 데이터 갱신 정책
 
 - 매주 일요일 18:00 UTC (월요일 03:00 KST)에 GitHub Actions가 자동으로 yfinance에서 최신 데이터 수집
+- 승인된 종목 요청은 Google Sheets CSV를 읽어 `scripts/tickers.json`의 `community` 목록에 자동 추가
 - 데이터 변경 시 자동 commit + Vercel 재배포
 - 수동 갱신: GitHub Actions 탭 → "Update Stock Data" → "Run workflow"
+
+## 종목 요청 설정
+
+- Vercel 환경변수 `GOOGLE_SHEETS_WEBHOOK_URL`: `/request` 페이지 제출을 Google Apps Script 웹앱으로 전달
+- GitHub Actions secret `GOOGLE_SHEETS_REQUEST_CSV_URL`: 관리 시트의 CSV 내보내기 URL
+- 시트 권장 컬럼: `ticker`, `name_ko`, `category`, `status`, `reason`, `contact`, `submittedAt`
+- `status`가 `approved` 또는 `승인`이면 자동 추가, `rejected` 또는 `거부`이면 `public/data/ticker-request-status.json`에 기록
 
 ## 빌드
 

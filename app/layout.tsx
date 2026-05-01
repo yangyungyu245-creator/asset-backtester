@@ -4,7 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://investment-simulator.vercel.app"),
+  metadataBase: new URL("https://asset-backtester.vercel.app"),
   title: {
     default: "투자 시뮬레이터",
     template: "%s | 투자 시뮬레이터",
@@ -25,12 +25,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "ko_KR",
     siteName: "투자 시뮬레이터",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
     title: "투자 시뮬레이터",
     description:
       "실제 종목 데이터 기반 투자 시뮬레이션과 적립식 포트폴리오 백테스트.",
+    images: ["/opengraph-image"],
   },
   robots: "index, follow",
 };
