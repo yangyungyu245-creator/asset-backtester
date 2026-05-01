@@ -15,11 +15,16 @@ import { formatKRW } from "@/lib/utils/format";
 type Phase = "input" | "loading" | "result";
 
 const defaultInput: SimpleSimulationInput = {
-  initialAmount: 10_000_000,
-  monthlyContribution: 300_000,
-  annualRatePercent: 5,
-  years: 20,
+  initialAmount: 0,
+  annualRatePercent: 0,
   compoundFrequency: "monthly",
+  contributionSchedule: [
+    {
+      id: "default-period",
+      durationYears: 10,
+      monthlyAmount: 0,
+    },
+  ],
 };
 
 export default function SimplePage() {
@@ -36,11 +41,10 @@ export default function SimplePage() {
       result.yearlyBreakdown.map((row) => ({
         period: row.year,
         date: `${row.year}년차`,
-        contributions:
-          input.initialAmount + input.monthlyContribution * 12 * row.year,
+        contributions: row.cumulativeContributions,
         value: row.endValue,
       })),
-    [input.initialAmount, input.monthlyContribution, result.yearlyBreakdown],
+    [result.yearlyBreakdown],
   );
 
   if (phase === "loading") {
@@ -118,10 +122,7 @@ export default function SimplePage() {
                         {row.year}년차
                       </td>
                       <td className="px-4 py-3 text-right text-neutral-700 dark:text-neutral-300">
-                        {formatKRW(
-                          input.initialAmount +
-                            input.monthlyContribution * 12 * row.year,
-                        )}
+                        {formatKRW(row.cumulativeContributions)}
                       </td>
                       <td className="px-4 py-3 text-right font-medium text-neutral-950 dark:text-neutral-50">
                         {formatKRW(row.endValue)}

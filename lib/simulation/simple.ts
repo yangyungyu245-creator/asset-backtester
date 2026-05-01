@@ -1,11 +1,12 @@
+import type { SimpleContributionPeriod } from "@/lib/simulation/types";
+
 export type CompoundFrequency = "monthly" | "quarterly" | "annually";
 
 export type SimpleSimulationInput = {
   initialAmount: number;
-  monthlyContribution: number;
   annualRatePercent: number;
-  years: number;
   compoundFrequency: CompoundFrequency;
+  contributionSchedule: SimpleContributionPeriod[];
 };
 
 export type SimpleSimulationResult = {
@@ -25,6 +26,7 @@ export type SimpleSimulationResult = {
     contributions: number;
     interest: number;
     endValue: number;
+    cumulativeContributions: number;
     cumReturn: number;
   }[];
 };
@@ -49,11 +51,12 @@ function formatYearMonth(date: Date) {
 
 export function simulateSimple(input: SimpleSimulationInput): SimpleSimulationResult {
   const monthsPerPeriod = monthsByFrequency[input.compoundFrequency];
-  const periodsPerYear = 12 / monthsPerPeriod;
-  const periodicRate = input.annualRatePercent / 100 / periodsPerYear;
-  const contributionPerPeriod = input.monthlyContribution * monthsPerPeriod;
-  const totalPeriods = input.years * periodsPerYear;
+  const periodicRate = input.annualRatePercent / 100 / (12 / monthsPerPeriod);
   const startDate = new Date();
+  const schedule =
+    input.contributionSchedule.length > 0
+      ? input.contributionSchedule
+      : [{ id: "default", durationYears: 1, monthlyAmount: 0 }];
 
   let value = input.initialAmount;
   let totalContributions = input.initialAmount;
@@ -70,49 +73,60 @@ export function simulateSimple(input: SimpleSimulationInput): SimpleSimulationRe
   let yearStartValue = value;
   let yearContributions = 0;
   let yearInterest = 0;
+  let currentMonth = 0;
 
-  for (let period = 1; period <= totalPeriods; period += 1) {
-    const beforeInterest = value;
-    value *= 1 + periodicRate;
-    const interest = value - beforeInterest;
-    value += contributionPerPeriod;
-    totalContributions += contributionPerPeriod;
+  for (const contributionPeriod of schedule) {
+    const monthsInPeriod = Math.round(contributionPeriod.durationYears * 12);
 
-    yearInterest += interest;
-    yearContributions += contributionPerPeriod;
+    for (let month = 1; month <= monthsInPeriod; month += 1) {
+      currentMonth += 1;
 
-    const date = addMonths(startDate, period * monthsPerPeriod);
-    timeSeries.push({
-      period,
-      date: formatYearMonth(date),
-      contributions: totalContributions,
-      value,
-    });
+      let interest = 0;
+      if (currentMonth % monthsPerPeriod === 0) {
+        const beforeInterest = value;
+        value *= 1 + periodicRate;
+        interest = value - beforeInterest;
+      }
 
-    if (period % periodsPerYear === 0) {
-      const year = period / periodsPerYear;
-      const cumReturn =
-        totalContributions === 0
-          ? 0
-          : ((value - totalContributions) / totalContributions) * 100;
+      value += contributionPeriod.monthlyAmount;
+      totalContributions += contributionPeriod.monthlyAmount;
+      yearInterest += interest;
+      yearContributions += contributionPeriod.monthlyAmount;
 
-      yearlyBreakdown.push({
-        year,
-        startValue: yearStartValue,
-        contributions: yearContributions,
-        interest: yearInterest,
-        endValue: value,
-        cumReturn,
+      const date = addMonths(startDate, currentMonth);
+      timeSeries.push({
+        period: currentMonth,
+        date: formatYearMonth(date),
+        contributions: totalContributions,
+        value,
       });
 
-      yearStartValue = value;
-      yearContributions = 0;
-      yearInterest = 0;
+      if (currentMonth % 12 === 0) {
+        const year = currentMonth / 12;
+        const cumReturn =
+          totalContributions === 0
+            ? 0
+            : ((value - totalContributions) / totalContributions) * 100;
+
+        yearlyBreakdown.push({
+          year,
+          startValue: yearStartValue,
+          contributions: yearContributions,
+          interest: yearInterest,
+          endValue: value,
+          cumulativeContributions: totalContributions,
+          cumReturn,
+        });
+
+        yearStartValue = value;
+        yearContributions = 0;
+        yearInterest = 0;
+      }
     }
   }
 
   const totalReturn = value - totalContributions;
-  const effectiveAnnualRate = (Math.pow(1 + periodicRate, periodsPerYear) - 1) * 100;
+  const effectiveAnnualRate = (Math.pow(1 + periodicRate, 12 / monthsPerPeriod) - 1) * 100;
 
   return {
     finalValue: value,

@@ -35,6 +35,12 @@ export type ContributionPeriod = {
   monthlyAmount: number;
 };
 
+export type SimpleContributionPeriod = {
+  id: string;
+  durationYears: number;
+  monthlyAmount: number;
+};
+
 export type PortfolioItem = {
   ticker: string;
   weight: number;

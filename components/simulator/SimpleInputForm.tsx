@@ -3,20 +3,48 @@
 import { z } from "zod";
 import { NumberInput } from "@/components/ui/NumberInput";
 import { Button } from "@/components/ui/Button";
+import { RangeWithNumber } from "@/components/ui/RangeWithNumber";
 import {
   type CompoundFrequency,
   type SimpleSimulationInput,
-  simulateSimple,
 } from "@/lib/simulation/simple";
-import { formatKRW } from "@/lib/utils/format";
 
-const inputSchema = z.object({
-  initialAmount: z.number().min(0, "0원 이상 입력하세요.").max(1_000_000_000, "최대 100억까지 입력할 수 있습니다."),
-  monthlyContribution: z.number().min(0, "0원 이상 입력하세요.").max(100_000_000, "최대 1억까지 입력할 수 있습니다."),
-  annualRatePercent: z.number().min(-50, "최소 -50%까지 입력할 수 있습니다.").max(100, "최대 100%까지 입력할 수 있습니다."),
-  years: z.number().min(1, "최소 1년 이상 입력하세요.").max(50, "최대 50년까지 입력할 수 있습니다."),
-  compoundFrequency: z.enum(["monthly", "quarterly", "annually"]),
+const periodSchema = z.object({
+  id: z.string(),
+  durationYears: z
+    .number()
+    .min(1, "최소 1년 이상 입력하세요.")
+    .max(50, "구간별 최대 50년까지 입력할 수 있습니다."),
+  monthlyAmount: z
+    .number()
+    .min(0, "0원 이상 입력하세요.")
+    .max(100_000_000, "최대 1억까지 입력할 수 있습니다."),
 });
+
+const inputSchema = z
+  .object({
+    initialAmount: z
+      .number()
+      .min(0, "0원 이상 입력하세요.")
+      .max(1_000_000_000, "최대 10억까지 입력할 수 있습니다."),
+    annualRatePercent: z
+      .number()
+      .min(-50, "최소 -50%까지 입력할 수 있습니다.")
+      .max(100, "최대 100%까지 입력할 수 있습니다."),
+    compoundFrequency: z.enum(["monthly", "quarterly", "annually"]),
+    contributionSchedule: z.array(periodSchema).min(1),
+  })
+  .refine(
+    (value) =>
+      value.contributionSchedule.reduce(
+        (total, period) => total + period.durationYears,
+        0,
+      ) <= 50,
+    {
+      path: ["contributionSchedule"],
+      message: "전체 기간은 최대 50년까지 입력할 수 있습니다.",
+    },
+  );
 
 type SimpleInputFormProps = {
   input: SimpleSimulationInput;
@@ -30,12 +58,23 @@ const frequencyOptions: { value: CompoundFrequency; label: string }[] = [
   { value: "annually", label: "연" },
 ];
 
+function createPeriod() {
+  return {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    durationYears: 1,
+    monthlyAmount: 0,
+  };
+}
+
 export function SimpleInputForm({ input, onChange, onSubmit }: SimpleInputFormProps) {
   const validation = inputSchema.safeParse(input);
   const errors = validation.success
     ? {}
     : validation.error.flatten().fieldErrors;
-  const preview = validation.success ? simulateSimple(input).finalValue : null;
+  const totalYears = input.contributionSchedule.reduce(
+    (total, period) => total + period.durationYears,
+    0,
+  );
 
   const update = <Key extends keyof SimpleSimulationInput>(
     key: Key,
@@ -44,9 +83,36 @@ export function SimpleInputForm({ input, onChange, onSubmit }: SimpleInputFormPr
     onChange({ ...input, [key]: value });
   };
 
+  const updatePeriod = (
+    id: string,
+    patch: Partial<SimpleSimulationInput["contributionSchedule"][number]>,
+  ) => {
+    update(
+      "contributionSchedule",
+      input.contributionSchedule.map((period) =>
+        period.id === id ? { ...period, ...patch } : period,
+      ),
+    );
+  };
+
+  const addPeriod = () => {
+    update("contributionSchedule", [...input.contributionSchedule, createPeriod()]);
+  };
+
+  const removePeriod = (id: string) => {
+    if (input.contributionSchedule.length < 2) {
+      return;
+    }
+
+    update(
+      "contributionSchedule",
+      input.contributionSchedule.filter((period) => period.id !== id),
+    );
+  };
+
   return (
     <form
-      className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]"
+      className="grid gap-6"
       onSubmit={(event) => {
         event.preventDefault();
         if (validation.success) {
@@ -55,6 +121,11 @@ export function SimpleInputForm({ input, onChange, onSubmit }: SimpleInputFormPr
       }}
     >
       <div className="grid gap-5 rounded-lg border border-neutral-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]">
+        <div className="rounded-lg bg-neutral-50 p-4 text-sm leading-6 text-neutral-600 dark:bg-white/[0.03] dark:text-neutral-400">
+          <p>지금부터 {totalYears}년 동안의 적립 시나리오를 시뮬레이션합니다.</p>
+          <p>각 구간별로 다른 월 적립액을 설정할 수 있습니다.</p>
+        </div>
+
         <NumberInput
           id="initialAmount"
           label="초기 투자금"
@@ -62,72 +133,89 @@ export function SimpleInputForm({ input, onChange, onSubmit }: SimpleInputFormPr
           onChange={(value) => update("initialAmount", value)}
           error={errors.initialAmount?.[0]}
           min={0}
-          suffix="원"
-        />
-        <NumberInput
-          id="monthlyContribution"
-          label="월 적립액"
-          value={input.monthlyContribution}
-          onChange={(value) => update("monthlyContribution", value)}
-          error={errors.monthlyContribution?.[0]}
-          min={0}
+          placeholder="예: 10,000,000"
           suffix="원"
         />
 
         <div>
-          <label
-            htmlFor="annualRatePercent"
-            className="text-sm font-medium text-neutral-800 dark:text-neutral-200"
-          >
-            연 수익률
-          </label>
-          <div className="mt-2 flex h-11 items-center rounded-md border border-neutral-300 bg-white px-3 focus-within:ring-2 focus-within:ring-info dark:border-white/10 dark:bg-neutral-950">
-            <input
-              id="annualRatePercent"
-              type="number"
-              step="0.01"
-              value={input.annualRatePercent}
-              onChange={(event) =>
-                update("annualRatePercent", Number(event.target.value))
-              }
-              className="min-w-0 flex-1 bg-transparent text-sm text-neutral-950 outline-none dark:text-neutral-50"
-            />
-            <span className="ml-2 text-sm text-neutral-500 dark:text-neutral-400">
-              %
-            </span>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-sm font-medium text-neutral-800 dark:text-neutral-200">
+                월 적립 일정
+              </h2>
+              <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                예: 1년 100만 → 3년 150만 → 5년 200만
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={addPeriod}
+              className="inline-flex h-10 items-center justify-center rounded-md border border-neutral-300 px-3 text-sm font-medium text-neutral-800 transition hover:bg-neutral-100 dark:border-white/10 dark:text-neutral-100 dark:hover:bg-white/5"
+            >
+              + 구간 추가
+            </button>
           </div>
-          {errors.annualRatePercent?.[0] ? (
-            <p className="mt-1 text-xs text-negative">
-              {errors.annualRatePercent[0]}
+
+          <div className="mt-3 grid gap-3">
+            {input.contributionSchedule.map((period, index) => (
+              <div
+                key={period.id}
+                className="grid gap-4 rounded-lg border border-neutral-200 p-4 dark:border-white/10 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,0.8fr)_auto] lg:items-end"
+              >
+                <RangeWithNumber
+                  id={`durationYears-${period.id}`}
+                  label={`구간 ${index + 1}: 기간`}
+                  value={period.durationYears}
+                  onChange={(durationYears) =>
+                    updatePeriod(period.id, { durationYears })
+                  }
+                  min={1}
+                  max={50}
+                  step={1}
+                  unit="년"
+                />
+                <NumberInput
+                  id={`monthlyAmount-${period.id}`}
+                  label="월 적립액"
+                  value={period.monthlyAmount}
+                  onChange={(monthlyAmount) =>
+                    updatePeriod(period.id, { monthlyAmount })
+                  }
+                  min={0}
+                  max={100_000_000}
+                  placeholder="예: 300,000"
+                  suffix="원"
+                />
+                <button
+                  type="button"
+                  onClick={() => removePeriod(period.id)}
+                  disabled={input.contributionSchedule.length < 2}
+                  className="inline-flex h-11 items-center justify-center rounded-md border border-neutral-300 px-3 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-neutral-200 dark:hover:bg-white/5"
+                >
+                  삭제
+                </button>
+              </div>
+            ))}
+          </div>
+          {errors.contributionSchedule?.[0] ? (
+            <p className="mt-2 text-xs text-negative">
+              {errors.contributionSchedule[0]}
             </p>
           ) : null}
         </div>
 
-        <div>
-          <div className="flex items-center justify-between gap-3">
-            <label
-              htmlFor="years"
-              className="text-sm font-medium text-neutral-800 dark:text-neutral-200"
-            >
-              투자 기간
-            </label>
-            <span className="text-sm font-medium text-neutral-950 dark:text-neutral-50">
-              {input.years}년
-            </span>
-          </div>
-          <input
-            id="years"
-            type="range"
-            min={1}
-            max={50}
-            value={input.years}
-            onChange={(event) => update("years", Number(event.target.value))}
-            className="mt-3 w-full accent-info"
-          />
-          {errors.years?.[0] ? (
-            <p className="mt-1 text-xs text-negative">{errors.years[0]}</p>
-          ) : null}
-        </div>
+        <NumberInput
+          id="annualRatePercent"
+          label="연 수익률"
+          value={input.annualRatePercent}
+          onChange={(value) => update("annualRatePercent", value)}
+          error={errors.annualRatePercent?.[0]}
+          min={-50}
+          max={100}
+          step={0.01}
+          placeholder="예: 5"
+          suffix="%"
+        />
 
         <fieldset>
           <legend className="text-sm font-medium text-neutral-800 dark:text-neutral-200">
@@ -161,19 +249,6 @@ export function SimpleInputForm({ input, onChange, onSubmit }: SimpleInputFormPr
           계산하기
         </Button>
       </div>
-
-      <aside className="rounded-lg border border-neutral-200 bg-neutral-50 p-5 dark:border-white/10 dark:bg-white/[0.03]">
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          예상 최종 자산
-        </p>
-        <p className="mt-3 text-3xl font-semibold text-neutral-950 dark:text-neutral-50">
-          {preview === null ? "-" : formatKRW(preview)}
-        </p>
-        <p className="mt-4 text-sm leading-6 text-neutral-600 dark:text-neutral-400">
-          입력값을 바꾸면 결과가 즉시 갱신됩니다. 실제 세금, 수수료, 상품별 이자
-          지급 방식은 반영하지 않은 단순 복리 계산입니다.
-        </p>
-      </aside>
     </form>
   );
 }
