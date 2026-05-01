@@ -374,7 +374,9 @@ def main() -> None:
         print("Failures:")
         for symbol, message in failures:
             print(f"- {symbol}: {message}")
-        raise SystemExit(1)
+        if len(successes) == 0 and len(skipped) == 0:
+            raise SystemExit(1)
+        print("[warn] Some symbols failed, but available data was updated.")
 
 
 if __name__ == "__main__":

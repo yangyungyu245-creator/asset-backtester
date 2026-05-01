@@ -4,7 +4,7 @@
 
 ## Demo
 
-[Vercel 배포 후 추가 예정]
+https://asset-backtester.vercel.app/
 
 ## 주요 기능
 
@@ -48,6 +48,12 @@ python fetch_data.py --stage pilot     # 10종목
 python fetch_data.py --stage expanded  # 100종목
 python fetch_data.py --stage full      # 300종목
 ```
+
+## 데이터 갱신 정책
+
+- 매주 일요일 18:00 UTC (월요일 03:00 KST)에 GitHub Actions가 자동으로 yfinance에서 최신 데이터 수집
+- 데이터 변경 시 자동 commit + Vercel 재배포
+- 수동 갱신: GitHub Actions 탭 → "Update Stock Data" → "Run workflow"
 
 ## 빌드
 
