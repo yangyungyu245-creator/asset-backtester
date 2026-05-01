@@ -17,7 +17,8 @@ TICKERS_PATH = ROOT_DIR / "scripts" / "tickers.json"
 STAGE_ORDER = {
     "pilot": ["pilot"],
     "expanded": ["pilot", "expanded"],
-    "full": ["pilot", "expanded", "full"],
+    "full": ["pilot", "expanded", "full", "phase9"],
+    "phase9": ["phase9"],
 }
 
 
@@ -25,7 +26,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Validate ticker symbols with yfinance.")
     parser.add_argument(
         "--stage",
-        choices=["pilot", "expanded", "full"],
+        choices=["pilot", "expanded", "full", "phase9"],
         default="full",
         help="Stage to validate. Later stages include earlier stages.",
     )

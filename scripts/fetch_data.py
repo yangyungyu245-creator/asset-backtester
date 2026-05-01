@@ -43,7 +43,8 @@ FX_SERIES = {
 STAGE_ORDER = {
     "pilot": ["pilot"],
     "expanded": ["pilot", "expanded"],
-    "full": ["pilot", "expanded", "full"],
+    "full": ["pilot", "expanded", "full", "phase9"],
+    "phase9": ["phase9"],
 }
 
 
@@ -51,7 +52,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Fetch yfinance data as static JSON.")
     parser.add_argument(
         "--stage",
-        choices=["pilot", "expanded", "full"],
+        choices=["pilot", "expanded", "full", "phase9"],
         default="pilot",
         help="Ticker stage to fetch. Later stages include earlier stages.",
     )
@@ -189,6 +190,8 @@ def infer_exchange(symbol: str, info: dict[str, Any]) -> str:
         return exchange
     if symbol.endswith(".KS"):
         return "KSC"
+    if symbol.endswith(".KQ"):
+        return "KOE"
     return "NASDAQ"
 
 
@@ -196,7 +199,7 @@ def infer_currency(symbol: str, info: dict[str, Any]) -> str:
     currency = info.get("currency")
     if isinstance(currency, str) and currency:
         return currency
-    if symbol.endswith(".KS"):
+    if symbol.endswith(".KS") or symbol.endswith(".KQ"):
         return "KRW"
     return "USD"
 

@@ -71,6 +71,14 @@ export type TickerData = {
   name_ko: string;
   exchange: string;
   currency: string;
+  category?:
+    | "us_stock"
+    | "us_etf"
+    | "kr_stock"
+    | "kr_etf"
+    | "intl_stock"
+    | "intl_etf"
+    | "crypto";
   ipo_date: string;
   data_start: string;
   data_end: string;

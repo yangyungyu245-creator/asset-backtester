@@ -11,7 +11,8 @@ export type TickerMeta = {
     | "kr_stock"
     | "kr_etf"
     | "intl_stock"
-    | "intl_etf";
+    | "intl_etf"
+    | "crypto";
 };
 
 type TickerIndexResponse = {

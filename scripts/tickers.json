@@ -1,308 +1,1808 @@
 {
-  "pilot": [
-    {"ticker": "AAPL", "name_ko": "애플", "category": "us_stock"},
-    {"ticker": "MSFT", "name_ko": "마이크로소프트", "category": "us_stock"},
-    {"ticker": "GOOGL", "name_ko": "알파벳", "category": "us_stock"},
-    {"ticker": "NVDA", "name_ko": "엔비디아", "category": "us_stock"},
-    {"ticker": "TSLA", "name_ko": "테슬라", "category": "us_stock"},
-    {"ticker": "SPY", "name_ko": "S&P 500 ETF", "category": "us_etf"},
-    {"ticker": "QQQ", "name_ko": "나스닥 100 ETF", "category": "us_etf"},
-    {"ticker": "VOO", "name_ko": "뱅가드 S&P 500", "category": "us_etf"},
-    {"ticker": "005930.KS", "name_ko": "삼성전자", "category": "kr_stock"},
-    {"ticker": "000660.KS", "name_ko": "SK하이닉스", "category": "kr_stock"}
-  ],
-  "expanded": [
-    {"ticker": "GOOG", "name_ko": "알파벳 C", "category": "us_stock"},
-    {"ticker": "AMZN", "name_ko": "아마존", "category": "us_stock"},
-    {"ticker": "META", "name_ko": "메타", "category": "us_stock"},
-    {"ticker": "AVGO", "name_ko": "브로드컴", "category": "us_stock"},
-    {"ticker": "ORCL", "name_ko": "오라클", "category": "us_stock"},
-    {"ticker": "TSM", "name_ko": "TSMC ADR", "category": "us_stock"},
-    {"ticker": "AMD", "name_ko": "AMD", "category": "us_stock"},
-    {"ticker": "INTC", "name_ko": "인텔", "category": "us_stock"},
-    {"ticker": "QCOM", "name_ko": "퀄컴", "category": "us_stock"},
-    {"ticker": "ARM", "name_ko": "ARM", "category": "us_stock"},
-    {"ticker": "MU", "name_ko": "마이크론", "category": "us_stock"},
-    {"ticker": "ADI", "name_ko": "아날로그 디바이시스", "category": "us_stock"},
-    {"ticker": "AMAT", "name_ko": "어플라이드 머티어리얼즈", "category": "us_stock"},
-    {"ticker": "LRCX", "name_ko": "램리서치", "category": "us_stock"},
-    {"ticker": "KLAC", "name_ko": "KLA", "category": "us_stock"},
-    {"ticker": "JPM", "name_ko": "JP모건체이스", "category": "us_stock"},
-    {"ticker": "BAC", "name_ko": "뱅크오브아메리카", "category": "us_stock"},
-    {"ticker": "WFC", "name_ko": "웰스파고", "category": "us_stock"},
-    {"ticker": "GS", "name_ko": "골드만삭스", "category": "us_stock"},
-    {"ticker": "MS", "name_ko": "모건스탠리", "category": "us_stock"},
-    {"ticker": "V", "name_ko": "비자", "category": "us_stock"},
-    {"ticker": "MA", "name_ko": "마스터카드", "category": "us_stock"},
-    {"ticker": "BRK-B", "name_ko": "버크셔해서웨이 B", "category": "us_stock"},
-    {"ticker": "AXP", "name_ko": "아메리칸 익스프레스", "category": "us_stock"},
-    {"ticker": "BLK", "name_ko": "블랙록", "category": "us_stock"},
-    {"ticker": "LLY", "name_ko": "일라이 릴리", "category": "us_stock"},
-    {"ticker": "UNH", "name_ko": "유나이티드헬스", "category": "us_stock"},
-    {"ticker": "JNJ", "name_ko": "존슨앤드존슨", "category": "us_stock"},
-    {"ticker": "MRK", "name_ko": "머크", "category": "us_stock"},
-    {"ticker": "ABBV", "name_ko": "애브비", "category": "us_stock"},
-    {"ticker": "PFE", "name_ko": "화이자", "category": "us_stock"},
-    {"ticker": "TMO", "name_ko": "써모 피셔 사이언티픽", "category": "us_stock"},
-    {"ticker": "ABT", "name_ko": "애보트", "category": "us_stock"},
-    {"ticker": "DHR", "name_ko": "다나허", "category": "us_stock"},
-    {"ticker": "WMT", "name_ko": "월마트", "category": "us_stock"},
-    {"ticker": "COST", "name_ko": "코스트코", "category": "us_stock"},
-    {"ticker": "HD", "name_ko": "홈디포", "category": "us_stock"},
-    {"ticker": "PG", "name_ko": "프록터앤드갬블", "category": "us_stock"},
-    {"ticker": "KO", "name_ko": "코카콜라", "category": "us_stock"},
-    {"ticker": "PEP", "name_ko": "펩시코", "category": "us_stock"},
-    {"ticker": "MCD", "name_ko": "맥도날드", "category": "us_stock"},
-    {"ticker": "NKE", "name_ko": "나이키", "category": "us_stock"},
-    {"ticker": "SBUX", "name_ko": "스타벅스", "category": "us_stock"},
-    {"ticker": "DIS", "name_ko": "디즈니", "category": "us_stock"},
-    {"ticker": "XOM", "name_ko": "엑슨모빌", "category": "us_stock"},
-    {"ticker": "VTI", "name_ko": "뱅가드 미국 전체시장 ETF", "category": "us_etf"},
-    {"ticker": "IVV", "name_ko": "아이셰어즈 S&P 500 ETF", "category": "us_etf"},
-    {"ticker": "DIA", "name_ko": "다우존스 ETF", "category": "us_etf"},
-    {"ticker": "IWM", "name_ko": "러셀 2000 ETF", "category": "us_etf"},
-    {"ticker": "VOOG", "name_ko": "뱅가드 S&P 500 성장 ETF", "category": "us_etf"},
-    {"ticker": "VTV", "name_ko": "뱅가드 가치 ETF", "category": "us_etf"},
-    {"ticker": "SCHD", "name_ko": "슈왑 미국 배당 ETF", "category": "us_etf"},
-    {"ticker": "JEPI", "name_ko": "JP모건 인컴 ETF", "category": "us_etf"},
-    {"ticker": "JEPQ", "name_ko": "JP모건 나스닥 인컴 ETF", "category": "us_etf"},
-    {"ticker": "ARKK", "name_ko": "아크 이노베이션 ETF", "category": "us_etf"},
-    {"ticker": "SOXX", "name_ko": "반도체 ETF", "category": "us_etf"},
-    {"ticker": "SMH", "name_ko": "반도체 ETF", "category": "us_etf"},
-    {"ticker": "TLT", "name_ko": "미국 장기채 ETF", "category": "us_etf"},
-    {"ticker": "GLD", "name_ko": "금 ETF", "category": "us_etf"},
-    {"ticker": "BND", "name_ko": "미국 채권 ETF", "category": "us_etf"},
-    {"ticker": "069500.KS", "name_ko": "KODEX 200", "category": "kr_etf"},
-    {"ticker": "360750.KS", "name_ko": "TIGER 미국S&P500", "category": "kr_etf"},
-    {"ticker": "373220.KS", "name_ko": "LG에너지솔루션", "category": "kr_stock"},
-    {"ticker": "207940.KS", "name_ko": "삼성바이오로직스", "category": "kr_stock"},
-    {"ticker": "005380.KS", "name_ko": "현대차", "category": "kr_stock"},
-    {"ticker": "000270.KS", "name_ko": "기아", "category": "kr_stock"},
-    {"ticker": "035420.KS", "name_ko": "NAVER", "category": "kr_stock"},
-    {"ticker": "035720.KS", "name_ko": "카카오", "category": "kr_stock"},
-    {"ticker": "051910.KS", "name_ko": "LG화학", "category": "kr_stock"},
-    {"ticker": "006400.KS", "name_ko": "삼성SDI", "category": "kr_stock"},
-    {"ticker": "068270.KS", "name_ko": "셀트리온", "category": "kr_stock"},
-    {"ticker": "105560.KS", "name_ko": "KB금융", "category": "kr_stock"},
-    {"ticker": "055550.KS", "name_ko": "신한지주", "category": "kr_stock"},
-    {"ticker": "086790.KS", "name_ko": "하나금융지주", "category": "kr_stock"},
-    {"ticker": "138040.KS", "name_ko": "메리츠금융지주", "category": "kr_stock"},
-    {"ticker": "028260.KS", "name_ko": "삼성물산", "category": "kr_stock"},
-    {"ticker": "066570.KS", "name_ko": "LG전자", "category": "kr_stock"},
-    {"ticker": "003670.KS", "name_ko": "포스코퓨처엠", "category": "kr_stock"},
-    {"ticker": "005490.KS", "name_ko": "POSCO홀딩스", "category": "kr_stock"},
-    {"ticker": "012330.KS", "name_ko": "현대모비스", "category": "kr_stock"},
-    {"ticker": "033780.KS", "name_ko": "KT&G", "category": "kr_stock"},
-    {"ticker": "015760.KS", "name_ko": "한국전력", "category": "kr_stock"},
-    {"ticker": "018260.KS", "name_ko": "삼성에스디에스", "category": "kr_stock"},
-    {"ticker": "017670.KS", "name_ko": "SK텔레콤", "category": "kr_stock"},
-    {"ticker": "030200.KS", "name_ko": "KT", "category": "kr_stock"},
-    {"ticker": "032830.KS", "name_ko": "삼성생명", "category": "kr_stock"},
-    {"ticker": "009150.KS", "name_ko": "삼성전기", "category": "kr_stock"},
-    {"ticker": "011200.KS", "name_ko": "HMM", "category": "kr_stock"},
-    {"ticker": "024110.KS", "name_ko": "기업은행", "category": "kr_stock"},
-    {"ticker": "259960.KS", "name_ko": "크래프톤", "category": "kr_stock"}
-  ],
+  "pilot": [],
+  "expanded": [],
   "full": [
-    {"ticker": "CRM", "name_ko": "세일즈포스", "category": "us_stock"},
-    {"ticker": "ADBE", "name_ko": "어도비", "category": "us_stock"},
-    {"ticker": "NOW", "name_ko": "서비스나우", "category": "us_stock"},
-    {"ticker": "INTU", "name_ko": "인튜이트", "category": "us_stock"},
-    {"ticker": "ACN", "name_ko": "액센츄어", "category": "us_stock"},
-    {"ticker": "CSCO", "name_ko": "시스코", "category": "us_stock"},
-    {"ticker": "PANW", "name_ko": "팔로알토 네트웍스", "category": "us_stock"},
-    {"ticker": "CRWD", "name_ko": "크라우드스트라이크", "category": "us_stock"},
-    {"ticker": "NET", "name_ko": "클라우드플레어", "category": "us_stock"},
-    {"ticker": "DDOG", "name_ko": "데이터독", "category": "us_stock"},
-    {"ticker": "IBM", "name_ko": "IBM", "category": "us_stock"},
-    {"ticker": "SHOP", "name_ko": "쇼피파이", "category": "us_stock"},
-    {"ticker": "UBER", "name_ko": "우버", "category": "us_stock"},
-    {"ticker": "PLTR", "name_ko": "팔란티어", "category": "us_stock"},
-    {"ticker": "SNOW", "name_ko": "스노우플레이크", "category": "us_stock"},
-    {"ticker": "MDB", "name_ko": "몽고DB", "category": "us_stock"},
-    {"ticker": "TEAM", "name_ko": "아틀라시안", "category": "us_stock"},
-    {"ticker": "WDAY", "name_ko": "워크데이", "category": "us_stock"},
-    {"ticker": "XYZ", "name_ko": "블록", "category": "us_stock"},
-    {"ticker": "TXN", "name_ko": "텍사스 인스트루먼트", "category": "us_stock"},
-    {"ticker": "NXPI", "name_ko": "NXP", "category": "us_stock"},
-    {"ticker": "MRVL", "name_ko": "마벨", "category": "us_stock"},
-    {"ticker": "ON", "name_ko": "온세미", "category": "us_stock"},
-    {"ticker": "MCHP", "name_ko": "마이크로칩", "category": "us_stock"},
-    {"ticker": "ASML", "name_ko": "ASML ADR", "category": "us_stock"},
-    {"ticker": "ANET", "name_ko": "아리스타 네트웍스", "category": "us_stock"},
-    {"ticker": "DELL", "name_ko": "델", "category": "us_stock"},
-    {"ticker": "HPQ", "name_ko": "HP", "category": "us_stock"},
-    {"ticker": "STX", "name_ko": "씨게이트", "category": "us_stock"},
-    {"ticker": "WDC", "name_ko": "웨스턴디지털", "category": "us_stock"},
-    {"ticker": "GLW", "name_ko": "코닝", "category": "us_stock"},
-    {"ticker": "TEL", "name_ko": "TE 커넥티비티", "category": "us_stock"},
-    {"ticker": "APH", "name_ko": "암페놀", "category": "us_stock"},
-    {"ticker": "MSI", "name_ko": "모토로라 솔루션스", "category": "us_stock"},
-    {"ticker": "CDNS", "name_ko": "케이던스", "category": "us_stock"},
-    {"ticker": "SNPS", "name_ko": "시놉시스", "category": "us_stock"},
-    {"ticker": "MPWR", "name_ko": "모놀리식 파워", "category": "us_stock"},
-    {"ticker": "FICO", "name_ko": "페어아이작", "category": "us_stock"},
-    {"ticker": "ROP", "name_ko": "로퍼 테크놀로지스", "category": "us_stock"},
-    {"ticker": "TJX", "name_ko": "TJX", "category": "us_stock"},
-    {"ticker": "LOW", "name_ko": "로우스", "category": "us_stock"},
-    {"ticker": "BKNG", "name_ko": "부킹홀딩스", "category": "us_stock"},
-    {"ticker": "ABNB", "name_ko": "에어비앤비", "category": "us_stock"},
-    {"ticker": "CMG", "name_ko": "치폴레", "category": "us_stock"},
-    {"ticker": "YUM", "name_ko": "얌브랜즈", "category": "us_stock"},
-    {"ticker": "ELV", "name_ko": "엘리번스 헬스", "category": "us_stock"},
-    {"ticker": "HUM", "name_ko": "휴마나", "category": "us_stock"},
-    {"ticker": "TGT", "name_ko": "타깃", "category": "us_stock"},
-    {"ticker": "ROST", "name_ko": "로스스토어스", "category": "us_stock"},
-    {"ticker": "ORLY", "name_ko": "오라일리 오토모티브", "category": "us_stock"},
-    {"ticker": "AZO", "name_ko": "오토존", "category": "us_stock"},
-    {"ticker": "MAR", "name_ko": "메리어트", "category": "us_stock"},
-    {"ticker": "HLT", "name_ko": "힐튼", "category": "us_stock"},
-    {"ticker": "GM", "name_ko": "제너럴모터스", "category": "us_stock"},
-    {"ticker": "F", "name_ko": "포드", "category": "us_stock"},
-    {"ticker": "NVO", "name_ko": "노보 노디스크 ADR", "category": "us_stock"},
-    {"ticker": "AZN", "name_ko": "아스트라제네카 ADR", "category": "us_stock"},
-    {"ticker": "GSK", "name_ko": "GSK ADR", "category": "us_stock"},
-    {"ticker": "BMY", "name_ko": "브리스톨마이어스스큅", "category": "us_stock"},
-    {"ticker": "AMGN", "name_ko": "암젠", "category": "us_stock"},
-    {"ticker": "GILD", "name_ko": "길리어드", "category": "us_stock"},
-    {"ticker": "REGN", "name_ko": "리제네론", "category": "us_stock"},
-    {"ticker": "VRTX", "name_ko": "버텍스", "category": "us_stock"},
-    {"ticker": "ISRG", "name_ko": "인튜이티브 서지컬", "category": "us_stock"},
-    {"ticker": "CVS", "name_ko": "CVS 헬스", "category": "us_stock"},
-    {"ticker": "SYK", "name_ko": "스트라이커", "category": "us_stock"},
-    {"ticker": "MDT", "name_ko": "메드트로닉", "category": "us_stock"},
-    {"ticker": "BSX", "name_ko": "보스턴 사이언티픽", "category": "us_stock"},
-    {"ticker": "ZTS", "name_ko": "조에티스", "category": "us_stock"},
-    {"ticker": "MCK", "name_ko": "맥케슨", "category": "us_stock"},
-    {"ticker": "CI", "name_ko": "시그나", "category": "us_stock"},
-    {"ticker": "SCHW", "name_ko": "찰스 슈왑", "category": "us_stock"},
-    {"ticker": "CB", "name_ko": "처브", "category": "us_stock"},
-    {"ticker": "PGR", "name_ko": "프로그레시브", "category": "us_stock"},
-    {"ticker": "ICE", "name_ko": "인터컨티넨털 익스체인지", "category": "us_stock"},
-    {"ticker": "SPGI", "name_ko": "S&P 글로벌", "category": "us_stock"},
-    {"ticker": "CME", "name_ko": "CME 그룹", "category": "us_stock"},
-    {"ticker": "USB", "name_ko": "US 뱅코프", "category": "us_stock"},
-    {"ticker": "PNC", "name_ko": "PNC 파이낸셜", "category": "us_stock"},
-    {"ticker": "COF", "name_ko": "캐피털 원", "category": "us_stock"},
-    {"ticker": "AON", "name_ko": "에이온", "category": "us_stock"},
-    {"ticker": "AJG", "name_ko": "아서 갤러거", "category": "us_stock"},
-    {"ticker": "TROW", "name_ko": "티로프라이스", "category": "us_stock"},
-    {"ticker": "BK", "name_ko": "뱅크오브뉴욕멜론", "category": "us_stock"},
-    {"ticker": "MCO", "name_ko": "무디스", "category": "us_stock"},
-    {"ticker": "UNP", "name_ko": "유니온 퍼시픽", "category": "us_stock"},
-    {"ticker": "UPS", "name_ko": "UPS", "category": "us_stock"},
-    {"ticker": "FDX", "name_ko": "페덱스", "category": "us_stock"},
-    {"ticker": "RTX", "name_ko": "RTX", "category": "us_stock"},
-    {"ticker": "LMT", "name_ko": "록히드마틴", "category": "us_stock"},
-    {"ticker": "NOC", "name_ko": "노스럽그러먼", "category": "us_stock"},
-    {"ticker": "GD", "name_ko": "제너럴 다이내믹스", "category": "us_stock"},
-    {"ticker": "DE", "name_ko": "디어", "category": "us_stock"},
-    {"ticker": "EMR", "name_ko": "에머슨", "category": "us_stock"},
-    {"ticker": "ETN", "name_ko": "이튼", "category": "us_stock"},
-    {"ticker": "MMM", "name_ko": "3M", "category": "us_stock"},
-    {"ticker": "CARR", "name_ko": "캐리어 글로벌", "category": "us_stock"},
-    {"ticker": "PCAR", "name_ko": "파카", "category": "us_stock"},
-    {"ticker": "COP", "name_ko": "코노코필립스", "category": "us_stock"},
-    {"ticker": "EOG", "name_ko": "EOG 리소시스", "category": "us_stock"},
-    {"ticker": "XLK", "name_ko": "테크 섹터 ETF", "category": "us_etf"},
-    {"ticker": "XLF", "name_ko": "금융 섹터 ETF", "category": "us_etf"},
-    {"ticker": "XLE", "name_ko": "에너지 섹터 ETF", "category": "us_etf"},
-    {"ticker": "XLV", "name_ko": "헬스케어 섹터 ETF", "category": "us_etf"},
-    {"ticker": "XLY", "name_ko": "임의소비재 섹터 ETF", "category": "us_etf"},
-    {"ticker": "XLI", "name_ko": "산업재 섹터 ETF", "category": "us_etf"},
-    {"ticker": "XLP", "name_ko": "필수소비재 섹터 ETF", "category": "us_etf"},
-    {"ticker": "XLU", "name_ko": "유틸리티 섹터 ETF", "category": "us_etf"},
-    {"ticker": "XLRE", "name_ko": "부동산 섹터 ETF", "category": "us_etf"},
-    {"ticker": "TQQQ", "name_ko": "나스닥 100 3배 ETF", "category": "us_etf"},
-    {"ticker": "SOXL", "name_ko": "반도체 3배 ETF", "category": "us_etf"},
-    {"ticker": "VEA", "name_ko": "선진국 ETF", "category": "us_etf"},
-    {"ticker": "010130.KS", "name_ko": "고려아연", "category": "kr_stock"},
-    {"ticker": "034020.KS", "name_ko": "두산에너빌리티", "category": "kr_stock"},
-    {"ticker": "096770.KS", "name_ko": "SK이노베이션", "category": "kr_stock"},
-    {"ticker": "034730.KS", "name_ko": "SK", "category": "kr_stock"},
-    {"ticker": "316140.KS", "name_ko": "우리금융지주", "category": "kr_stock"},
-    {"ticker": "010950.KS", "name_ko": "S-Oil", "category": "kr_stock"},
-    {"ticker": "086280.KS", "name_ko": "현대글로비스", "category": "kr_stock"},
-    {"ticker": "090430.KS", "name_ko": "아모레퍼시픽", "category": "kr_stock"},
-    {"ticker": "051900.KS", "name_ko": "LG생활건강", "category": "kr_stock"},
-    {"ticker": "003490.KS", "name_ko": "대한항공", "category": "kr_stock"},
-    {"ticker": "000810.KS", "name_ko": "삼성화재", "category": "kr_stock"},
-    {"ticker": "010140.KS", "name_ko": "삼성중공업", "category": "kr_stock"},
-    {"ticker": "009540.KS", "name_ko": "HD한국조선해양", "category": "kr_stock"},
-    {"ticker": "042660.KS", "name_ko": "한화오션", "category": "kr_stock"},
-    {"ticker": "047050.KS", "name_ko": "포스코인터내셔널", "category": "kr_stock"},
-    {"ticker": "267260.KS", "name_ko": "HD현대일렉트릭", "category": "kr_stock"},
-    {"ticker": "064350.KS", "name_ko": "현대로템", "category": "kr_stock"},
-    {"ticker": "329180.KS", "name_ko": "HD현대중공업", "category": "kr_stock"},
-    {"ticker": "180640.KS", "name_ko": "한진칼", "category": "kr_stock"},
-    {"ticker": "036570.KS", "name_ko": "엔씨소프트", "category": "kr_stock"},
-    {"ticker": "042700.KS", "name_ko": "한미반도체", "category": "kr_stock"},
-    {"ticker": "000100.KS", "name_ko": "유한양행", "category": "kr_stock"},
-    {"ticker": "128940.KS", "name_ko": "한미약품", "category": "kr_stock"},
-    {"ticker": "161390.KS", "name_ko": "한국타이어앤테크놀로지", "category": "kr_stock"},
-    {"ticker": "204320.KS", "name_ko": "HL만도", "category": "kr_stock"},
-    {"ticker": "000720.KS", "name_ko": "현대건설", "category": "kr_stock"},
-    {"ticker": "006360.KS", "name_ko": "GS건설", "category": "kr_stock"},
-    {"ticker": "097950.KS", "name_ko": "CJ제일제당", "category": "kr_stock"},
-    {"ticker": "004370.KS", "name_ko": "농심", "category": "kr_stock"},
-    {"ticker": "139480.KS", "name_ko": "이마트", "category": "kr_stock"},
-    {"ticker": "023530.KS", "name_ko": "롯데쇼핑", "category": "kr_stock"},
-    {"ticker": "071050.KS", "name_ko": "한국금융지주", "category": "kr_stock"},
-    {"ticker": "008770.KS", "name_ko": "호텔신라", "category": "kr_stock"},
-    {"ticker": "047810.KS", "name_ko": "한국항공우주", "category": "kr_stock"},
-    {"ticker": "272210.KS", "name_ko": "한화시스템", "category": "kr_stock"},
-    {"ticker": "003550.KS", "name_ko": "LG", "category": "kr_stock"},
-    {"ticker": "011170.KS", "name_ko": "롯데케미칼", "category": "kr_stock"},
-    {"ticker": "010120.KS", "name_ko": "LS ELECTRIC", "category": "kr_stock"},
-    {"ticker": "009830.KS", "name_ko": "한화솔루션", "category": "kr_stock"},
-    {"ticker": "011780.KS", "name_ko": "금호석유", "category": "kr_stock"},
-    {"ticker": "241560.KS", "name_ko": "두산밥캣", "category": "kr_stock"},
-    {"ticker": "271560.KS", "name_ko": "오리온", "category": "kr_stock"},
-    {"ticker": "000120.KS", "name_ko": "CJ대한통운", "category": "kr_stock"},
-    {"ticker": "028050.KS", "name_ko": "삼성E&A", "category": "kr_stock"},
-    {"ticker": "004020.KS", "name_ko": "현대제철", "category": "kr_stock"},
-    {"ticker": "078930.KS", "name_ko": "GS", "category": "kr_stock"},
-    {"ticker": "112610.KS", "name_ko": "씨에스윈드", "category": "kr_stock"},
-    {"ticker": "001040.KS", "name_ko": "CJ", "category": "kr_stock"},
-    {"ticker": "006800.KS", "name_ko": "미래에셋증권", "category": "kr_stock"},
-    {"ticker": "039490.KS", "name_ko": "키움증권", "category": "kr_stock"},
-    {"ticker": "379800.KS", "name_ko": "KODEX 미국S&P500", "category": "kr_etf"},
-    {"ticker": "133690.KS", "name_ko": "TIGER 미국나스닥100", "category": "kr_etf"},
-    {"ticker": "360200.KS", "name_ko": "TIGER 200 IT", "category": "kr_etf"},
-    {"ticker": "091170.KS", "name_ko": "KODEX 은행", "category": "kr_etf"},
-    {"ticker": "091160.KS", "name_ko": "KODEX 반도체", "category": "kr_etf"},
-    {"ticker": "091230.KS", "name_ko": "TIGER 반도체", "category": "kr_etf"},
-    {"ticker": "466920.KS", "name_ko": "SOL 미국S&P500", "category": "kr_etf"},
-    {"ticker": "379810.KS", "name_ko": "KODEX 미국나스닥100TR", "category": "kr_etf"},
-    {"ticker": "305540.KS", "name_ko": "TIGER 2차전지테마", "category": "kr_etf"},
-    {"ticker": "364980.KS", "name_ko": "TIGER KRX2차전지K-뉴딜", "category": "kr_etf"},
-    {"ticker": "091180.KS", "name_ko": "KODEX 자동차", "category": "kr_etf"},
-    {"ticker": "114260.KS", "name_ko": "KODEX 국고채3년", "category": "kr_etf"},
-    {"ticker": "148070.KS", "name_ko": "KOSEF 국고채10년", "category": "kr_etf"},
-    {"ticker": "211900.KS", "name_ko": "KODEX 배당성장", "category": "kr_etf"},
-    {"ticker": "252670.KS", "name_ko": "KODEX 200선물인버스2X", "category": "kr_etf"},
-    {"ticker": "122630.KS", "name_ko": "KODEX 레버리지", "category": "kr_etf"},
-    {"ticker": "102110.KS", "name_ko": "TIGER 200", "category": "kr_etf"},
-    {"ticker": "278530.KS", "name_ko": "KODEX 200TR", "category": "kr_etf"},
-    {"ticker": "7203.T", "name_ko": "도요타", "category": "intl_stock"},
-    {"ticker": "6758.T", "name_ko": "소니", "category": "intl_stock"},
-    {"ticker": "9984.T", "name_ko": "소프트뱅크그룹", "category": "intl_stock"},
-    {"ticker": "6861.T", "name_ko": "키엔스", "category": "intl_stock"},
-    {"ticker": "8306.T", "name_ko": "미쓰비시UFJ", "category": "intl_stock"},
-    {"ticker": "8316.T", "name_ko": "미쓰이스미토모", "category": "intl_stock"},
-    {"ticker": "6098.T", "name_ko": "리쿠르트", "category": "intl_stock"},
-    {"ticker": "7974.T", "name_ko": "닌텐도", "category": "intl_stock"},
-    {"ticker": "BABA", "name_ko": "알리바바 ADR", "category": "intl_stock"},
-    {"ticker": "JD", "name_ko": "징둥 ADR", "category": "intl_stock"},
-    {"ticker": "PDD", "name_ko": "핀둬둬 ADR", "category": "intl_stock"},
-    {"ticker": "BIDU", "name_ko": "바이두 ADR", "category": "intl_stock"},
-    {"ticker": "NIO", "name_ko": "니오 ADR", "category": "intl_stock"},
-    {"ticker": "XPEV", "name_ko": "샤오펑 ADR", "category": "intl_stock"},
-    {"ticker": "INFY", "name_ko": "인포시스 ADR", "category": "intl_stock"},
-    {"ticker": "WIT", "name_ko": "위프로 ADR", "category": "intl_stock"},
-    {"ticker": "ACWI", "name_ko": "전세계 주식 ETF", "category": "intl_etf"},
-    {"ticker": "URTH", "name_ko": "선진국 주식 ETF", "category": "intl_etf"},
-    {"ticker": "VWO", "name_ko": "신흥국 주식 ETF", "category": "intl_etf"},
-    {"ticker": "EEM", "name_ko": "신흥국 주식 ETF", "category": "intl_etf"}
+    {
+      "ticker": "000100.KS",
+      "name_ko": "유한양행",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "000120.KS",
+      "name_ko": "CJ대한통운",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "000270.KS",
+      "name_ko": "기아",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "000660.KS",
+      "name_ko": "SK하이닉스",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "000720.KS",
+      "name_ko": "현대건설",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "000810.KS",
+      "name_ko": "삼성화재",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "001040.KS",
+      "name_ko": "CJ",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "003490.KS",
+      "name_ko": "대한항공",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "003550.KS",
+      "name_ko": "LG",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "003670.KS",
+      "name_ko": "포스코퓨처엠",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "004020.KS",
+      "name_ko": "현대제철",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "004370.KS",
+      "name_ko": "농심",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "005380.KS",
+      "name_ko": "현대차",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "005490.KS",
+      "name_ko": "POSCO홀딩스",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "005930.KS",
+      "name_ko": "삼성전자",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "006360.KS",
+      "name_ko": "GS건설",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "006400.KS",
+      "name_ko": "삼성SDI",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "006800.KS",
+      "name_ko": "미래에셋증권",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "008770.KS",
+      "name_ko": "호텔신라",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "009150.KS",
+      "name_ko": "삼성전기",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "009540.KS",
+      "name_ko": "HD한국조선해양",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "009830.KS",
+      "name_ko": "한화솔루션",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "010120.KS",
+      "name_ko": "LS ELECTRIC",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "010130.KS",
+      "name_ko": "고려아연",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "010140.KS",
+      "name_ko": "삼성중공업",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "010950.KS",
+      "name_ko": "S-Oil",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "011170.KS",
+      "name_ko": "롯데케미칼",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "011200.KS",
+      "name_ko": "HMM",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "011780.KS",
+      "name_ko": "금호석유",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "012330.KS",
+      "name_ko": "현대모비스",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "015760.KS",
+      "name_ko": "한국전력",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "017670.KS",
+      "name_ko": "SK텔레콤",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "018260.KS",
+      "name_ko": "삼성에스디에스",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "023530.KS",
+      "name_ko": "롯데쇼핑",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "024110.KS",
+      "name_ko": "기업은행",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "028050.KS",
+      "name_ko": "삼성E&A",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "028260.KS",
+      "name_ko": "삼성물산",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "030200.KS",
+      "name_ko": "KT",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "032830.KS",
+      "name_ko": "삼성생명",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "033780.KS",
+      "name_ko": "KT&G",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "034020.KS",
+      "name_ko": "두산에너빌리티",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "034730.KS",
+      "name_ko": "SK",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "035420.KS",
+      "name_ko": "NAVER",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "035720.KS",
+      "name_ko": "카카오",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "036570.KS",
+      "name_ko": "엔씨소프트",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "039490.KS",
+      "name_ko": "키움증권",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "042660.KS",
+      "name_ko": "한화오션",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "042700.KS",
+      "name_ko": "한미반도체",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "047050.KS",
+      "name_ko": "포스코인터내셔널",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "047810.KS",
+      "name_ko": "한국항공우주",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "051900.KS",
+      "name_ko": "LG생활건강",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "051910.KS",
+      "name_ko": "LG화학",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "055550.KS",
+      "name_ko": "신한지주",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "064350.KS",
+      "name_ko": "현대로템",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "066570.KS",
+      "name_ko": "LG전자",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "068270.KS",
+      "name_ko": "셀트리온",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "069500.KS",
+      "name_ko": "KODEX 200",
+      "category": "kr_etf"
+    },
+    {
+      "ticker": "071050.KS",
+      "name_ko": "한국금융지주",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "078930.KS",
+      "name_ko": "GS",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "086280.KS",
+      "name_ko": "현대글로비스",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "086790.KS",
+      "name_ko": "하나금융지주",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "090430.KS",
+      "name_ko": "아모레퍼시픽",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "091160.KS",
+      "name_ko": "KODEX 반도체",
+      "category": "kr_etf"
+    },
+    {
+      "ticker": "091170.KS",
+      "name_ko": "KODEX 은행",
+      "category": "kr_etf"
+    },
+    {
+      "ticker": "091180.KS",
+      "name_ko": "KODEX 자동차",
+      "category": "kr_etf"
+    },
+    {
+      "ticker": "091230.KS",
+      "name_ko": "TIGER 반도체",
+      "category": "kr_etf"
+    },
+    {
+      "ticker": "096770.KS",
+      "name_ko": "SK이노베이션",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "097950.KS",
+      "name_ko": "CJ제일제당",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "102110.KS",
+      "name_ko": "TIGER 200",
+      "category": "kr_etf"
+    },
+    {
+      "ticker": "105560.KS",
+      "name_ko": "KB금융",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "112610.KS",
+      "name_ko": "씨에스윈드",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "114260.KS",
+      "name_ko": "KODEX 국고채3년",
+      "category": "kr_etf"
+    },
+    {
+      "ticker": "122630.KS",
+      "name_ko": "KODEX 레버리지",
+      "category": "kr_etf"
+    },
+    {
+      "ticker": "128940.KS",
+      "name_ko": "한미약품",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "133690.KS",
+      "name_ko": "TIGER 미국나스닥100",
+      "category": "kr_etf"
+    },
+    {
+      "ticker": "138040.KS",
+      "name_ko": "메리츠금융지주",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "139480.KS",
+      "name_ko": "이마트",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "148070.KS",
+      "name_ko": "KOSEF 국고채10년",
+      "category": "kr_etf"
+    },
+    {
+      "ticker": "161390.KS",
+      "name_ko": "한국타이어앤테크놀로지",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "180640.KS",
+      "name_ko": "한진칼",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "204320.KS",
+      "name_ko": "HL만도",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "207940.KS",
+      "name_ko": "삼성바이오로직스",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "211900.KS",
+      "name_ko": "KODEX 배당성장",
+      "category": "kr_etf"
+    },
+    {
+      "ticker": "241560.KS",
+      "name_ko": "두산밥캣",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "252670.KS",
+      "name_ko": "KODEX 200선물인버스2X",
+      "category": "kr_etf"
+    },
+    {
+      "ticker": "259960.KS",
+      "name_ko": "크래프톤",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "267260.KS",
+      "name_ko": "HD현대일렉트릭",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "271560.KS",
+      "name_ko": "오리온",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "272210.KS",
+      "name_ko": "한화시스템",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "278530.KS",
+      "name_ko": "KODEX 200TR",
+      "category": "kr_etf"
+    },
+    {
+      "ticker": "305540.KS",
+      "name_ko": "TIGER 2차전지테마",
+      "category": "kr_etf"
+    },
+    {
+      "ticker": "316140.KS",
+      "name_ko": "우리금융지주",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "329180.KS",
+      "name_ko": "HD현대중공업",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "360200.KS",
+      "name_ko": "TIGER 200 IT",
+      "category": "kr_etf"
+    },
+    {
+      "ticker": "360750.KS",
+      "name_ko": "TIGER 미국S&P500",
+      "category": "kr_etf"
+    },
+    {
+      "ticker": "364980.KS",
+      "name_ko": "TIGER KRX2차전지K-뉴딜",
+      "category": "kr_etf"
+    },
+    {
+      "ticker": "373220.KS",
+      "name_ko": "LG에너지솔루션",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "379800.KS",
+      "name_ko": "KODEX 미국S&P500",
+      "category": "kr_etf"
+    },
+    {
+      "ticker": "379810.KS",
+      "name_ko": "KODEX 미국나스닥100TR",
+      "category": "kr_etf"
+    },
+    {
+      "ticker": "466920.KS",
+      "name_ko": "SOL 미국S&P500",
+      "category": "kr_etf"
+    },
+    {
+      "ticker": "6098.T",
+      "name_ko": "리쿠르트",
+      "category": "intl_stock"
+    },
+    {
+      "ticker": "6758.T",
+      "name_ko": "소니",
+      "category": "intl_stock"
+    },
+    {
+      "ticker": "6861.T",
+      "name_ko": "키엔스",
+      "category": "intl_stock"
+    },
+    {
+      "ticker": "7203.T",
+      "name_ko": "도요타",
+      "category": "intl_stock"
+    },
+    {
+      "ticker": "7974.T",
+      "name_ko": "닌텐도",
+      "category": "intl_stock"
+    },
+    {
+      "ticker": "8306.T",
+      "name_ko": "미쓰비시UFJ",
+      "category": "intl_stock"
+    },
+    {
+      "ticker": "8316.T",
+      "name_ko": "미쓰이스미토모",
+      "category": "intl_stock"
+    },
+    {
+      "ticker": "9984.T",
+      "name_ko": "소프트뱅크그룹",
+      "category": "intl_stock"
+    },
+    {
+      "ticker": "AAPL",
+      "name_ko": "애플",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "ABBV",
+      "name_ko": "애브비",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "ABNB",
+      "name_ko": "에어비앤비",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "ABT",
+      "name_ko": "애보트",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "ACN",
+      "name_ko": "액센츄어",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "ACWI",
+      "name_ko": "전세계 주식 ETF",
+      "category": "intl_etf"
+    },
+    {
+      "ticker": "ADBE",
+      "name_ko": "어도비",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "ADI",
+      "name_ko": "아날로그 디바이시스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "AJG",
+      "name_ko": "아서 갤러거",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "AMAT",
+      "name_ko": "어플라이드 머티어리얼즈",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "AMD",
+      "name_ko": "AMD",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "AMGN",
+      "name_ko": "암젠",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "AMZN",
+      "name_ko": "아마존",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "ANET",
+      "name_ko": "아리스타 네트웍스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "AON",
+      "name_ko": "에이온",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "APH",
+      "name_ko": "암페놀",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "ARKK",
+      "name_ko": "아크 이노베이션 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "ARM",
+      "name_ko": "ARM",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "ASML",
+      "name_ko": "ASML ADR",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "AVGO",
+      "name_ko": "브로드컴",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "AXP",
+      "name_ko": "아메리칸 익스프레스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "AZN",
+      "name_ko": "아스트라제네카 ADR",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "AZO",
+      "name_ko": "오토존",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "BABA",
+      "name_ko": "알리바바 ADR",
+      "category": "intl_stock"
+    },
+    {
+      "ticker": "BAC",
+      "name_ko": "뱅크오브아메리카",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "BIDU",
+      "name_ko": "바이두 ADR",
+      "category": "intl_stock"
+    },
+    {
+      "ticker": "BK",
+      "name_ko": "뱅크오브뉴욕멜론",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "BKNG",
+      "name_ko": "부킹홀딩스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "BLK",
+      "name_ko": "블랙록",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "BMY",
+      "name_ko": "브리스톨마이어스스큅",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "BND",
+      "name_ko": "미국 채권 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "BRK-B",
+      "name_ko": "버크셔해서웨이 B",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "BSX",
+      "name_ko": "보스턴 사이언티픽",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "CARR",
+      "name_ko": "캐리어 글로벌",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "CB",
+      "name_ko": "처브",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "CDNS",
+      "name_ko": "케이던스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "CI",
+      "name_ko": "시그나",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "CME",
+      "name_ko": "CME 그룹",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "CMG",
+      "name_ko": "치폴레",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "COF",
+      "name_ko": "캐피털 원",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "COP",
+      "name_ko": "코노코필립스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "COST",
+      "name_ko": "코스트코",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "CRM",
+      "name_ko": "세일즈포스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "CRWD",
+      "name_ko": "크라우드스트라이크",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "CSCO",
+      "name_ko": "시스코",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "CVS",
+      "name_ko": "CVS 헬스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "DDOG",
+      "name_ko": "데이터독",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "DE",
+      "name_ko": "디어",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "DELL",
+      "name_ko": "델",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "DHR",
+      "name_ko": "다나허",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "DIA",
+      "name_ko": "다우존스 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "DIS",
+      "name_ko": "디즈니",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "EEM",
+      "name_ko": "신흥국 주식 ETF",
+      "category": "intl_etf"
+    },
+    {
+      "ticker": "ELV",
+      "name_ko": "엘리번스 헬스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "EMR",
+      "name_ko": "에머슨",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "EOG",
+      "name_ko": "EOG 리소시스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "ETN",
+      "name_ko": "이튼",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "F",
+      "name_ko": "포드",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "FDX",
+      "name_ko": "페덱스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "FICO",
+      "name_ko": "페어아이작",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "GD",
+      "name_ko": "제너럴 다이내믹스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "GILD",
+      "name_ko": "길리어드",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "GLD",
+      "name_ko": "금 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "GLW",
+      "name_ko": "코닝",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "GM",
+      "name_ko": "제너럴모터스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "GOOG",
+      "name_ko": "알파벳 C",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "GOOGL",
+      "name_ko": "알파벳",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "GS",
+      "name_ko": "골드만삭스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "GSK",
+      "name_ko": "GSK ADR",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "HD",
+      "name_ko": "홈디포",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "HLT",
+      "name_ko": "힐튼",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "HPQ",
+      "name_ko": "HP",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "HUM",
+      "name_ko": "휴마나",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "IBM",
+      "name_ko": "IBM",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "ICE",
+      "name_ko": "인터컨티넨털 익스체인지",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "INFY",
+      "name_ko": "인포시스 ADR",
+      "category": "intl_stock"
+    },
+    {
+      "ticker": "INTC",
+      "name_ko": "인텔",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "INTU",
+      "name_ko": "인튜이트",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "ISRG",
+      "name_ko": "인튜이티브 서지컬",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "IVV",
+      "name_ko": "아이셰어즈 S&P 500 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "IWM",
+      "name_ko": "러셀 2000 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "JD",
+      "name_ko": "징둥 ADR",
+      "category": "intl_stock"
+    },
+    {
+      "ticker": "JEPI",
+      "name_ko": "JP모건 인컴 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "JEPQ",
+      "name_ko": "JP모건 나스닥 인컴 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "JNJ",
+      "name_ko": "존슨앤드존슨",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "JPM",
+      "name_ko": "JP모건체이스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "KLAC",
+      "name_ko": "KLA",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "KO",
+      "name_ko": "코카콜라",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "LLY",
+      "name_ko": "일라이 릴리",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "LMT",
+      "name_ko": "록히드마틴",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "LOW",
+      "name_ko": "로우스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "LRCX",
+      "name_ko": "램리서치",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "MA",
+      "name_ko": "마스터카드",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "MAR",
+      "name_ko": "메리어트",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "MCD",
+      "name_ko": "맥도날드",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "MCHP",
+      "name_ko": "마이크로칩",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "MCK",
+      "name_ko": "맥케슨",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "MCO",
+      "name_ko": "무디스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "MDB",
+      "name_ko": "몽고DB",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "MDT",
+      "name_ko": "메드트로닉",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "META",
+      "name_ko": "메타",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "MMM",
+      "name_ko": "3M",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "MPWR",
+      "name_ko": "모놀리식 파워",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "MRK",
+      "name_ko": "머크",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "MRVL",
+      "name_ko": "마벨",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "MS",
+      "name_ko": "모건스탠리",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "MSFT",
+      "name_ko": "마이크로소프트",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "MSI",
+      "name_ko": "모토로라 솔루션스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "MU",
+      "name_ko": "마이크론",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "NET",
+      "name_ko": "클라우드플레어",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "NIO",
+      "name_ko": "니오 ADR",
+      "category": "intl_stock"
+    },
+    {
+      "ticker": "NKE",
+      "name_ko": "나이키",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "NOC",
+      "name_ko": "노스럽그러먼",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "NOW",
+      "name_ko": "서비스나우",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "NVDA",
+      "name_ko": "엔비디아",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "NVO",
+      "name_ko": "노보 노디스크 ADR",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "NXPI",
+      "name_ko": "NXP",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "ON",
+      "name_ko": "온세미",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "ORCL",
+      "name_ko": "오라클",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "ORLY",
+      "name_ko": "오라일리 오토모티브",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "PANW",
+      "name_ko": "팔로알토 네트웍스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "PCAR",
+      "name_ko": "파카",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "PDD",
+      "name_ko": "핀둬둬 ADR",
+      "category": "intl_stock"
+    },
+    {
+      "ticker": "PEP",
+      "name_ko": "펩시코",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "PFE",
+      "name_ko": "화이자",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "PG",
+      "name_ko": "프록터앤드갬블",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "PGR",
+      "name_ko": "프로그레시브",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "PLTR",
+      "name_ko": "팔란티어",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "PNC",
+      "name_ko": "PNC 파이낸셜",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "QCOM",
+      "name_ko": "퀄컴",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "QQQ",
+      "name_ko": "나스닥 100 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "REGN",
+      "name_ko": "리제네론",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "ROP",
+      "name_ko": "로퍼 테크놀로지스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "ROST",
+      "name_ko": "로스스토어스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "RTX",
+      "name_ko": "RTX",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "SBUX",
+      "name_ko": "스타벅스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "SCHD",
+      "name_ko": "슈왑 미국 배당 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "SCHW",
+      "name_ko": "찰스 슈왑",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "SHOP",
+      "name_ko": "쇼피파이",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "SMH",
+      "name_ko": "반도체 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "SNOW",
+      "name_ko": "스노우플레이크",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "SNPS",
+      "name_ko": "시놉시스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "SOXL",
+      "name_ko": "반도체 3배 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "SOXX",
+      "name_ko": "반도체 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "SPGI",
+      "name_ko": "S&P 글로벌",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "SPY",
+      "name_ko": "S&P 500 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "STX",
+      "name_ko": "씨게이트",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "SYK",
+      "name_ko": "스트라이커",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "TEAM",
+      "name_ko": "아틀라시안",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "TEL",
+      "name_ko": "TE 커넥티비티",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "TGT",
+      "name_ko": "타깃",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "TJX",
+      "name_ko": "TJX",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "TLT",
+      "name_ko": "미국 장기채 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "TMO",
+      "name_ko": "써모 피셔 사이언티픽",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "TQQQ",
+      "name_ko": "나스닥 100 3배 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "TROW",
+      "name_ko": "티로프라이스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "TSLA",
+      "name_ko": "테슬라",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "TSM",
+      "name_ko": "TSMC ADR",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "TXN",
+      "name_ko": "텍사스 인스트루먼트",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "UBER",
+      "name_ko": "우버",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "UNH",
+      "name_ko": "유나이티드헬스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "UNP",
+      "name_ko": "유니온 퍼시픽",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "UPS",
+      "name_ko": "UPS",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "URTH",
+      "name_ko": "선진국 주식 ETF",
+      "category": "intl_etf"
+    },
+    {
+      "ticker": "USB",
+      "name_ko": "US 뱅코프",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "V",
+      "name_ko": "비자",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "VEA",
+      "name_ko": "선진국 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "VOO",
+      "name_ko": "뱅가드 S&P 500",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "VOOG",
+      "name_ko": "뱅가드 S&P 500 성장 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "VRTX",
+      "name_ko": "버텍스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "VTI",
+      "name_ko": "뱅가드 미국 전체시장 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "VTV",
+      "name_ko": "뱅가드 가치 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "VWO",
+      "name_ko": "신흥국 주식 ETF",
+      "category": "intl_etf"
+    },
+    {
+      "ticker": "WDAY",
+      "name_ko": "워크데이",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "WDC",
+      "name_ko": "웨스턴디지털",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "WFC",
+      "name_ko": "웰스파고",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "WIT",
+      "name_ko": "위프로 ADR",
+      "category": "intl_stock"
+    },
+    {
+      "ticker": "WMT",
+      "name_ko": "월마트",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "XLE",
+      "name_ko": "에너지 섹터 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "XLF",
+      "name_ko": "금융 섹터 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "XLI",
+      "name_ko": "산업재 섹터 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "XLK",
+      "name_ko": "테크 섹터 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "XLP",
+      "name_ko": "필수소비재 섹터 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "XLRE",
+      "name_ko": "부동산 섹터 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "XLU",
+      "name_ko": "유틸리티 섹터 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "XLV",
+      "name_ko": "헬스케어 섹터 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "XLY",
+      "name_ko": "임의소비재 섹터 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "XOM",
+      "name_ko": "엑슨모빌",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "XPEV",
+      "name_ko": "샤오펑 ADR",
+      "category": "intl_stock"
+    },
+    {
+      "ticker": "XYZ",
+      "name_ko": "블록",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "YUM",
+      "name_ko": "얌브랜즈",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "ZTS",
+      "name_ko": "조에티스",
+      "category": "us_stock"
+    }
+  ],
+  "phase9": [
+    {
+      "ticker": "IONQ",
+      "name_ko": "아이온큐",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "RGTI",
+      "name_ko": "리게티 컴퓨팅",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "QBTS",
+      "name_ko": "디웨이브 퀀텀",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "SOUN",
+      "name_ko": "사운드하운드 AI",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "AI",
+      "name_ko": "C3.ai",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "BBAI",
+      "name_ko": "빅베어.ai",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "COIN",
+      "name_ko": "코인베이스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "MSTR",
+      "name_ko": "마이크로스트래티지",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "IREN",
+      "name_ko": "아이리스 에너지",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "MARA",
+      "name_ko": "마라톤 디지털",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "RIOT",
+      "name_ko": "라이엇 플랫폼스",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "HUT",
+      "name_ko": "헛 8",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "WULF",
+      "name_ko": "테라울프",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "RIVN",
+      "name_ko": "리비안",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "LCID",
+      "name_ko": "루시드",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "CHPT",
+      "name_ko": "차지포인트",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "PLUG",
+      "name_ko": "플러그파워",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "HOOD",
+      "name_ko": "로빈후드",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "SOFI",
+      "name_ko": "소파이",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "AFRM",
+      "name_ko": "어펌",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "UPST",
+      "name_ko": "업스타트",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "RDDT",
+      "name_ko": "레딧",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "SMCI",
+      "name_ko": "슈퍼마이크로컴퓨터",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "DJT",
+      "name_ko": "트럼프 미디어",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "SQQQ",
+      "name_ko": "나스닥100 인버스 3배 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "SOXS",
+      "name_ko": "반도체 인버스 3배 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "TSLL",
+      "name_ko": "테슬라 2배 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "NVDL",
+      "name_ko": "엔비디아 2배 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "BITX",
+      "name_ko": "비트코인 2배 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "TMF",
+      "name_ko": "미국 장기채 3배 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "BITO",
+      "name_ko": "비트코인 선물 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "IBIT",
+      "name_ko": "비트코인 현물 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "ETHA",
+      "name_ko": "이더리움 현물 ETF",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "196170.KQ",
+      "name_ko": "알테오젠",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "028300.KQ",
+      "name_ko": "HLB",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "141080.KQ",
+      "name_ko": "리가켐바이오",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "145020.KQ",
+      "name_ko": "휴젤",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "950140.KQ",
+      "name_ko": "잉글우드랩",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "950130.KQ",
+      "name_ko": "엑세스바이오",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "247540.KQ",
+      "name_ko": "에코프로비엠",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "086520.KQ",
+      "name_ko": "에코프로",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "005070.KS",
+      "name_ko": "코스모신소재",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "058470.KQ",
+      "name_ko": "리노공업",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "240810.KQ",
+      "name_ko": "원익IPS",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "357780.KQ",
+      "name_ko": "솔브레인",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "277810.KQ",
+      "name_ko": "레인보우로보틱스",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "376300.KQ",
+      "name_ko": "디어유",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "053800.KQ",
+      "name_ko": "안랩",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "060280.KQ",
+      "name_ko": "큐렉소",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "263750.KQ",
+      "name_ko": "펄어비스",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "293490.KQ",
+      "name_ko": "카카오게임즈",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "251270.KS",
+      "name_ko": "넷마블",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "112040.KQ",
+      "name_ko": "위메이드",
+      "category": "kr_stock"
+    },
+    {
+      "ticker": "251340.KS",
+      "name_ko": "KODEX 코스닥150선물인버스",
+      "category": "kr_etf"
+    },
+    {
+      "ticker": "233740.KS",
+      "name_ko": "KODEX 코스닥150레버리지",
+      "category": "kr_etf"
+    },
+    {
+      "ticker": "BTC-USD",
+      "name_ko": "비트코인",
+      "category": "crypto"
+    },
+    {
+      "ticker": "ETH-USD",
+      "name_ko": "이더리움",
+      "category": "crypto"
+    },
+    {
+      "ticker": "SOL-USD",
+      "name_ko": "솔라나",
+      "category": "crypto"
+    },
+    {
+      "ticker": "XRP-USD",
+      "name_ko": "리플",
+      "category": "crypto"
+    },
+    {
+      "ticker": "DOGE-USD",
+      "name_ko": "도지코인",
+      "category": "crypto"
+    }
   ]
 }
