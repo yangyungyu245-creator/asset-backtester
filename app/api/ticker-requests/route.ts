@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 const requestSchema = z.object({
   ticker: z
     .string()
@@ -22,6 +25,35 @@ const requestSchema = z.object({
   contact: z.string().trim().max(80).optional().default(""),
 });
 
+const webhookEnvNames = [
+  "GOOGLE_SHEETS_WEBHOOK_URL",
+  "SHEETS_WEBHOOK_URL",
+  "GOOGLE_APPS_SCRIPT_WEBHOOK_URL",
+  "NEXT_PUBLIC_GOOGLE_SHEETS_WEBHOOK_URL",
+] as const;
+
+function normalizeWebhookUrl(value: string | undefined) {
+  const trimmed = value?.trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  return trimmed.replace(/^['"]|['"]$/g, "");
+}
+
+function getWebhookUrl() {
+  for (const name of webhookEnvNames) {
+    const url = normalizeWebhookUrl(process.env[name]);
+
+    if (url) {
+      return url;
+    }
+  }
+
+  return null;
+}
+
 export async function POST(request: Request) {
   const parsed = requestSchema.safeParse(await request.json().catch(() => null));
 
@@ -32,11 +64,14 @@ export async function POST(request: Request) {
     );
   }
 
-  const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
+  const webhookUrl = getWebhookUrl();
 
   if (!webhookUrl) {
     return NextResponse.json(
-      { message: "Google Sheets 저장 URL이 아직 설정되지 않았습니다." },
+      {
+        message:
+          "Google Sheets 저장 URL이 아직 설정되지 않았습니다. Vercel 환경변수 GOOGLE_SHEETS_WEBHOOK_URL을 확인해 주세요.",
+      },
       { status: 503 },
     );
   }
