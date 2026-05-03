@@ -1807,9 +1807,34 @@
   ],
   "community": [
     {
+      "ticker": "AMR",
+      "name_ko": "아메리칸 항공",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "CCL",
+      "name_ko": "카니발 크루즈",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "DAL",
+      "name_ko": "델타 항공",
+      "category": "us_stock"
+    },
+    {
       "ticker": "MAGS",
       "name_ko": "라운드힐 매그니피센트 7 ETF",
       "category": "us_etf"
+    },
+    {
+      "ticker": "QQQM",
+      "name_ko": "나스닥100",
+      "category": "us_etf"
+    },
+    {
+      "ticker": "RCL",
+      "name_ko": "로얄 캐리비안",
+      "category": "us_stock"
     },
     {
       "ticker": "RKLB",
