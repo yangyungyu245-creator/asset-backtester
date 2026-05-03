@@ -1815,6 +1815,11 @@
       "ticker": "RKLB",
       "name_ko": "로켓랩",
       "category": "us_stock"
+    },
+    {
+      "ticker": "UAL",
+      "name_ko": "유나이티드 항공",
+      "category": "us_stock"
     }
   ]
 }

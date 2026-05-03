@@ -1,27 +1,9 @@
 {
-  "last_updated": "2026-05-03T07:48:58+00:00",
+  "last_updated": "2026-05-03T09:15:46+00:00",
   "added": [
-    "MAGS"
+    "UAL"
   ],
-  "rejected": [
-    {
-      "ticker": "PLTR",
-      "reason": "ticker already exists in tickers.json"
-    },
-    {
-      "ticker": "RKLB",
-      "reason": "ticker already exists in tickers.json"
-    }
-  ],
+  "rejected": [],
   "pending": [],
-  "invalid": [
-    {
-      "ticker": "PLTR",
-      "reason": "ticker already exists in tickers.json"
-    },
-    {
-      "ticker": "RKLB",
-      "reason": "ticker already exists in tickers.json"
-    }
-  ]
+  "invalid": []
 }
