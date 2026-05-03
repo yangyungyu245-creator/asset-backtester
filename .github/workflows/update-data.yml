@@ -32,11 +32,13 @@ jobs:
           cd scripts
           pip install -r requirements.txt
 
-      - name: Process approved ticker requests
+      - name: Process ticker requests
+        continue-on-error: true
         env:
           GOOGLE_SHEETS_REQUEST_CSV_URL: ${{ secrets.GOOGLE_SHEETS_REQUEST_CSV_URL }}
         run: |
-          python scripts/process_ticker_requests.py
+          cd scripts
+          python process_requests.py
 
       - name: Fetch latest data (full stage)
         run: |

@@ -53,7 +53,7 @@ python fetch_data.py --stage full      # 360종목 + 커뮤니티 승인 종목
 ## 데이터 갱신 정책
 
 - 매주 일요일 18:00 UTC (월요일 03:00 KST)에 GitHub Actions가 자동으로 yfinance에서 최신 데이터 수집
-- 승인된 종목 요청은 Google Sheets CSV를 읽어 `scripts/tickers.json`의 `community` 목록에 자동 추가
+- `pending` 상태의 종목 요청은 Google Sheets CSV를 읽어 자동 검증 후 `scripts/tickers.json`의 `community` 목록에 추가
 - 데이터 변경 시 자동 commit + Vercel 재배포
 - 수동 갱신: GitHub Actions 탭 → "Update Stock Data" → "Run workflow"
 
@@ -62,7 +62,8 @@ python fetch_data.py --stage full      # 360종목 + 커뮤니티 승인 종목
 - Vercel 환경변수 `GOOGLE_SHEETS_WEBHOOK_URL`: `/request` 페이지 제출을 Google Apps Script 웹앱으로 전달
 - GitHub Actions secret `GOOGLE_SHEETS_REQUEST_CSV_URL`: 관리 시트의 CSV 내보내기 URL
 - 시트 권장 컬럼: `ticker`, `name_ko`, `category`, `status`, `reason`, `contact`, `submittedAt`
-- `status`가 `approved` 또는 `승인`이면 자동 추가, `rejected` 또는 `거부`이면 `public/data/ticker-request-status.json`에 기록
+- 시트 컬럼: `timestamp`, `ticker`, `name_ko`, `category`, `reason`, `contact`, `status`, `comment`
+- `status`가 `pending`인 행만 자동 검증하며, 결과는 GitHub Actions 로그와 `public/data/ticker-request-status.json`에 기록
 
 ## 빌드
 
