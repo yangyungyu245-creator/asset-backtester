@@ -1,7 +1,17 @@
 {
-  "last_updated": null,
+  "last_updated": "2026-05-03T05:14:31+00:00",
   "added": [],
-  "rejected": [],
+  "rejected": [
+    {
+      "ticker": "PLTR",
+      "reason": "ticker already exists in tickers.json"
+    }
+  ],
   "pending": [],
-  "invalid": []
+  "invalid": [
+    {
+      "ticker": "PLTR",
+      "reason": "ticker already exists in tickers.json"
+    }
+  ]
 }
