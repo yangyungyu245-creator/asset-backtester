@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { TickerMeta } from "@/lib/data/tickerIndex";
 import { createSearcher } from "@/lib/data/tickerSearch";
@@ -90,8 +91,19 @@ export function TickerSearch({
             </p>
           ) : null}
           {results.length === 0 ? (
-            <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-5 text-sm text-neutral-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-400">
-              검색 결과가 없습니다.
+            <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-6 text-center dark:border-white/10 dark:bg-white/[0.03]">
+              <p className="text-sm text-neutral-600 dark:text-neutral-300">
+                &quot;{debouncedQuery}&quot;에 대한 검색 결과가 없습니다.
+              </p>
+              <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                찾으시는 종목이 사이트에 없으신가요?
+              </p>
+              <Link
+                href={`/request?ticker=${encodeURIComponent(debouncedQuery)}`}
+                className="mt-5 inline-flex h-11 items-center justify-center rounded-md border border-neutral-900 bg-neutral-950 px-5 text-sm font-medium text-white transition hover:bg-neutral-800 dark:border-white/10 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
+              >
+                종목 추가 요청하기 →
+              </Link>
             </div>
           ) : null}
           {results.map((ticker) => {

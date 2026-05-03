@@ -36,6 +36,8 @@ jobs:
         continue-on-error: true
         env:
           GOOGLE_SHEETS_REQUEST_CSV_URL: ${{ secrets.GOOGLE_SHEETS_REQUEST_CSV_URL }}
+          GOOGLE_SHEETS_WEBHOOK_URL: ${{ secrets.GOOGLE_SHEETS_WEBHOOK_URL }}
+          GOOGLE_SHEETS_UPDATE_TOKEN: ${{ secrets.GOOGLE_SHEETS_UPDATE_TOKEN }}
         run: |
           cd scripts
           python process_requests.py

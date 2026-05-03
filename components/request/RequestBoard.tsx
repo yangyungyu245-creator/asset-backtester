@@ -1,0 +1,167 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { RequestCard } from "@/components/request/RequestCard";
+import { RequestForm } from "@/components/request/RequestForm";
+import type { TickerRequest } from "@/components/request/types";
+import { Button } from "@/components/ui/Button";
+
+type RequestBoardProps = {
+  requests: TickerRequest[];
+  initialTicker?: string;
+  csvConfigured: boolean;
+};
+
+export function RequestBoard({
+  requests,
+  initialTicker = "",
+  csvConfigured,
+}: RequestBoardProps) {
+  const [query, setQuery] = useState("");
+  const [visibleCount, setVisibleCount] = useState(20);
+  const [isFormOpen, setIsFormOpen] = useState(Boolean(initialTicker));
+  const [formTicker, setFormTicker] = useState(initialTicker);
+
+  const filtered = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) {
+      return requests;
+    }
+
+    return requests.filter((request) => {
+      return (
+        request.ticker.toLowerCase().includes(normalized) ||
+        request.nameKo.toLowerCase().includes(normalized)
+      );
+    });
+  }, [query, requests]);
+
+  const visibleRequests = filtered.slice(0, visibleCount);
+
+  function openForm(ticker = query) {
+    setFormTicker(ticker.trim().toUpperCase());
+    setIsFormOpen(true);
+  }
+
+  function closeForm() {
+    setIsFormOpen(false);
+  }
+
+  return (
+    <div className="grid gap-6">
+      <div className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a] sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <label htmlFor="requestSearch" className="sr-only">
+            요청 검색
+          </label>
+          <input
+            id="requestSearch"
+            value={query}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setVisibleCount(20);
+            }}
+            placeholder="이미 누가 요청했는지 확인하세요..."
+            className="h-11 min-w-0 flex-1 rounded-md border border-neutral-300 bg-white px-3 text-sm text-neutral-950 outline-none transition focus:border-info focus:ring-2 focus:ring-info/30 dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-50"
+          />
+          <Button type="button" onClick={() => openForm()} className="sm:w-auto">
+            + 새 요청 작성
+          </Button>
+        </div>
+        {!csvConfigured ? (
+          <p className="mt-3 text-sm text-negative">
+            요청 목록 CSV URL이 설정되지 않아 목록을 불러오지 못했습니다.
+          </p>
+        ) : null}
+      </div>
+
+      <section className="grid gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-base font-semibold text-neutral-950 dark:text-neutral-50">
+            요청 목록
+          </h2>
+          <span className="text-sm text-neutral-500 dark:text-neutral-400">
+            {filtered.length}건
+          </span>
+        </div>
+
+        {visibleRequests.length > 0 ? (
+          visibleRequests.map((request) => (
+            <RequestCard key={request.id} request={request} />
+          ))
+        ) : query.trim() ? (
+          <div className="rounded-lg border border-neutral-200 bg-white p-8 text-center shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]">
+            <p className="text-sm text-neutral-600 dark:text-neutral-300">
+              &quot;{query}&quot;에 대한 요청이 없습니다.
+            </p>
+            <Button type="button" onClick={() => openForm(query)} className="mt-5">
+              직접 요청하기
+            </Button>
+          </div>
+        ) : (
+          <div className="rounded-lg border border-neutral-200 bg-white p-8 text-center shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]">
+            <p className="text-sm text-neutral-600 dark:text-neutral-300">
+              아직 요청이 없습니다.
+            </p>
+            <Button type="button" onClick={() => openForm("")} className="mt-5">
+              + 새 요청 작성
+            </Button>
+          </div>
+        )}
+
+        {filtered.length > visibleCount ? (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setVisibleCount((count) => count + 20)}
+            className="mx-auto mt-2"
+          >
+            더보기
+          </Button>
+        ) : null}
+      </section>
+
+      {isFormOpen ? (
+        <div
+          className="fixed inset-0 z-50 flex items-end bg-neutral-950/55 p-0 sm:items-center sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="requestFormTitle"
+        >
+          <div className="mx-auto max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-lg border border-neutral-200 bg-white p-5 shadow-xl dark:border-white/10 dark:bg-[#1a1a1a] sm:rounded-lg">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                  커뮤니티 종목 요청
+                </p>
+                <h2
+                  id="requestFormTitle"
+                  className="mt-1 text-xl font-semibold text-neutral-950 dark:text-neutral-50"
+                >
+                  새 요청 작성
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={closeForm}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-neutral-200 text-xl leading-none text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-950 dark:border-white/10 dark:hover:bg-white/10 dark:hover:text-neutral-50"
+                aria-label="요청 작성 닫기"
+              >
+                ×
+              </button>
+            </div>
+            <RequestForm
+              initialTicker={formTicker}
+              onSuccess={() => {
+                window.setTimeout(() => {
+                  closeForm();
+                  window.location.reload();
+                }, 700);
+              }}
+            />
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}

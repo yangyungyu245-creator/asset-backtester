@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 from urllib.request import urlopen
 
+import requests
 import yfinance as yf
 
 from fetch_data import fetch_ticker
@@ -22,6 +23,8 @@ STATUS_PATH = ROOT_DIR / "public" / "data" / "ticker-request-status.json"
 
 ALLOWED_CATEGORIES = {"us_stock", "us_etf", "kr_stock", "kr_etf", "crypto"}
 PENDING_STATUS = "pending"
+UPDATE_WEBHOOK_URL = os.environ.get("GOOGLE_SHEETS_WEBHOOK_URL", "").strip()
+UPDATE_TOKEN = os.environ.get("GOOGLE_SHEETS_UPDATE_TOKEN", "").strip()
 
 
 def read_csv_rows(csv_url: str) -> list[dict[str, str]]:
@@ -90,9 +93,44 @@ def has_recent_yfinance_data(ticker: str) -> bool:
     return not history.empty
 
 
+def update_sheet_status(ticker: str, status: str, comment: str = "") -> None:
+    """Update the matching pending row in Google Sheets via Apps Script."""
+    if not ticker:
+        return
+
+    if not UPDATE_WEBHOOK_URL or not UPDATE_TOKEN:
+        print(f"[skip update] {ticker} - webhook or token is not set")
+        return
+
+    try:
+        response = requests.get(
+            UPDATE_WEBHOOK_URL,
+            params={
+                "token": UPDATE_TOKEN,
+                "action": "update_status",
+                "ticker": ticker,
+                "status": status,
+                "comment": comment[:200],
+            },
+            timeout=15,
+        )
+        if response.ok:
+            print(f"[updated] {ticker} -> {status}")
+        else:
+            print(f"[update failed] {ticker}: HTTP {response.status_code}")
+    except Exception as error:  # noqa: BLE001 - sheet update must not stop data processing.
+        print(f"[update error] {ticker}: {error}")
+
+
 def reject(rejected: list[dict[str, str]], ticker: str, reason: str) -> None:
     rejected.append({"ticker": ticker or "(empty)", "reason": reason})
     print(f"[reject] {ticker or '(empty)'}: {reason}")
+    update_sheet_status(ticker, "rejected", reason)
+
+
+def added_comment() -> str:
+    date = datetime.now(timezone.utc).date().isoformat()
+    return f"{date}에 자동 추가됨"
 
 
 def main() -> None:
@@ -162,6 +200,7 @@ def main() -> None:
         existing.add(ticker)
         added.append(ticker)
         print(f"[add] {ticker}: added to community and downloaded data")
+        update_sheet_status(ticker, "added", added_comment())
 
     if added:
         community.sort(key=lambda item: item["ticker"])
