@@ -1807,6 +1807,11 @@
   ],
   "community": [
     {
+      "ticker": "MAGS",
+      "name_ko": "라운드힐 매그니피센트 7 ETF",
+      "category": "us_etf"
+    },
+    {
       "ticker": "RKLB",
       "name_ko": "로켓랩",
       "category": "us_stock"

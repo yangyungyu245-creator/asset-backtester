@@ -1,11 +1,15 @@
 {
-  "last_updated": "2026-05-03T06:54:54+00:00",
+  "last_updated": "2026-05-03T07:48:58+00:00",
   "added": [
-    "RKLB"
+    "MAGS"
   ],
   "rejected": [
     {
       "ticker": "PLTR",
+      "reason": "ticker already exists in tickers.json"
+    },
+    {
+      "ticker": "RKLB",
       "reason": "ticker already exists in tickers.json"
     }
   ],
@@ -13,6 +17,10 @@
   "invalid": [
     {
       "ticker": "PLTR",
+      "reason": "ticker already exists in tickers.json"
+    },
+    {
+      "ticker": "RKLB",
       "reason": "ticker already exists in tickers.json"
     }
   ]
