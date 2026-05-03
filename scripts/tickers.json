@@ -1805,5 +1805,11 @@
       "category": "crypto"
     }
   ],
-  "community": []
+  "community": [
+    {
+      "ticker": "RKLB",
+      "name_ko": "로켓랩",
+      "category": "us_stock"
+    }
+  ]
 }

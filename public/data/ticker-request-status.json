@@ -1,6 +1,8 @@
 {
-  "last_updated": "2026-05-03T05:14:31+00:00",
-  "added": [],
+  "last_updated": "2026-05-03T06:54:54+00:00",
+  "added": [
+    "RKLB"
+  ],
   "rejected": [
     {
       "ticker": "PLTR",
