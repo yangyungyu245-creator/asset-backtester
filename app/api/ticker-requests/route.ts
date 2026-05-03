@@ -86,7 +86,8 @@ export async function POST(request: Request) {
 
   const response = await fetch(webhookUrl, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    redirect: "follow",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify(payload),
   });
 
