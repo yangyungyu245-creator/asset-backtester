@@ -21,10 +21,13 @@ export function Header() {
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
         <Link
           href="/"
-          className="text-base font-semibold text-neutral-950 focus:outline-none focus:ring-2 focus:ring-info dark:text-neutral-50"
+          className="flex items-center gap-2 text-base text-neutral-950 focus:outline-none focus:ring-2 focus:ring-info dark:text-neutral-50"
           onClick={() => setIsOpen(false)}
         >
-          투자 시뮬레이터
+          <span className="text-2xl leading-none" aria-hidden="true">
+            📈
+          </span>
+          <span className="font-extrabold tracking-wide">FIRE LIFE</span>
         </Link>
         <div className="hidden items-center gap-2 md:flex">
           <nav className="flex items-center gap-1" aria-label="주요 메뉴">

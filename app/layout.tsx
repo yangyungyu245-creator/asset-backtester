@@ -6,30 +6,31 @@ import { Header } from "@/components/layout/Header";
 export const metadata: Metadata = {
   metadataBase: new URL("https://asset-backtester.vercel.app"),
   title: {
-    default: "투자 시뮬레이터",
-    template: "%s | 투자 시뮬레이터",
+    default: "FIRE LIFE",
+    template: "%s | FIRE LIFE",
   },
   description:
-    "실제 종목 데이터 기반 투자 시뮬레이션. 적립식 복리, 포트폴리오 백테스트, 기간별 적립액 변경 가능.",
+    "실제 종목 데이터 기반 투자 시뮬레이터. 적립식 복리, 포트폴리오 백테스트, 기간별 적립금 변경 가능.",
   keywords: [
+    "FIRE LIFE",
     "투자 시뮬레이터",
     "복리 계산기",
     "주식 백테스트",
     "적립식 투자",
-    "DCA 시뮬레이션",
+    "DCA 시뮬레이터",
   ],
   openGraph: {
-    title: "투자 시뮬레이터",
+    title: "FIRE LIFE",
     description:
-      "실제 종목 데이터 기반 투자 시뮬레이션. 적립식 복리와 포트폴리오 백테스트를 한 번에 확인하세요.",
+      "실제 종목 데이터 기반 투자 시뮬레이터. 적립식 복리와 포트폴리오 백테스트를 한 번에 확인하세요.",
     type: "website",
     locale: "ko_KR",
-    siteName: "투자 시뮬레이터",
+    siteName: "FIRE LIFE",
     images: [{ url: "/opengraph-image", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "투자 시뮬레이터",
+    title: "FIRE LIFE",
     description:
       "실제 종목 데이터 기반 투자 시뮬레이션과 적립식 포트폴리오 백테스트.",
     images: ["/opengraph-image"],

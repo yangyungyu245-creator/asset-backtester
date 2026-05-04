@@ -1,4 +1,4 @@
-# asset-backtester
+# FIRE LIFE
 
 실제 종목 데이터 기반 투자 시뮬레이터. 적립식 복리, 포트폴리오 백테스트, 기간별 적립액 변경 가능.
 
@@ -96,4 +96,4 @@ npm run dev
 
 ## Credits
 
-Made by [WHY_N.ART](https://whyn.art) x asset-backtester
+Made by 양클로드 x FIRE LIFE

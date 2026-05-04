@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "투자 시뮬레이터";
+export const alt = "FIRE LIFE";
 export const size = {
   width: 1200,
   height: 630,
@@ -26,21 +26,21 @@ export default function Image() {
       >
         <div
           style={{
-            fontSize: 28,
+            fontSize: 30,
             color: "#38bdf8",
             marginBottom: 28,
           }}
         >
-          적립식 투자 · 포트폴리오 백테스트
+          📈 적립식 투자 · 포트폴리오 백테스트
         </div>
         <div
           style={{
-            fontSize: 88,
-            fontWeight: 700,
-            letterSpacing: 0,
+            fontSize: 92,
+            fontWeight: 900,
+            letterSpacing: 2,
           }}
         >
-          투자 시뮬레이터
+          FIRE LIFE
         </div>
         <div
           style={{
@@ -51,7 +51,16 @@ export default function Image() {
             color: "#cbd5e1",
           }}
         >
-          실제 종목 데이터 기반으로 장기 투자 시나리오를 확인하세요.
+          실제 종목 데이터 기반으로 나만의 투자 시나리오를 확인하세요.
+        </div>
+        <div
+          style={{
+            marginTop: 42,
+            fontSize: 24,
+            color: "#94a3b8",
+          }}
+        >
+          made by 양클로드
         </div>
       </div>
     ),

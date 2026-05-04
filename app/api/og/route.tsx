@@ -22,9 +22,9 @@ function formatKRW(amount: number) {
 
 export async function GET(request: Request) {
   const encoded = new URL(request.url).searchParams.get("s");
-  let title = "투자 시뮬레이터";
+  let title = "FIRE LIFE";
   let subtitle = "실제 종목 데이터 기반 백테스트";
-  let detail = "공유된 시나리오를 열어 결과를 확인하세요";
+  let detail = "공유된 시나리오를 열어 결과를 확인하세요.";
 
   if (encoded) {
     try {
@@ -42,7 +42,7 @@ export async function GET(request: Request) {
       subtitle = `${scenario.startDate} ~ ${scenario.endDate}`;
       detail = `초기 ${formatKRW(scenario.initialAmount)} · 월 적립 ${formatKRW(monthlyTotal)}`;
     } catch {
-      detail = "공유 URL 형식을 확인해 주세요";
+      detail = "공유 URL 형식을 확인해 주세요.";
     }
   }
 
@@ -62,11 +62,11 @@ export async function GET(request: Request) {
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <div style={{ fontSize: 28, color: "#a3a3a3" }}>투자 시뮬레이터</div>
-          <div style={{ fontSize: 24, color: "#38bdf8" }}>asset-backtester</div>
+          <div style={{ fontSize: 30, color: "#a3a3a3" }}>📈 FIRE LIFE</div>
+          <div style={{ fontSize: 24, color: "#38bdf8" }}>made by 양클로드</div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          <div style={{ fontSize: 56, fontWeight: 700, lineHeight: 1.15 }}>
+          <div style={{ fontSize: 56, fontWeight: 800, lineHeight: 1.15 }}>
             {title}
           </div>
           <div style={{ fontSize: 34, color: "#d4d4d4" }}>{subtitle}</div>
