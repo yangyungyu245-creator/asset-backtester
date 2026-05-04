@@ -29,6 +29,10 @@ export function MetricGrid({
       ? (result.totalReturn / result.totalContributions) * 100
       : 0;
   const cagrPercent = result.cagr * 100;
+  const drawdownDateRange =
+    result.maxDrawdown.peakDate && result.maxDrawdown.troughDate
+      ? `${result.maxDrawdown.peakDate} → ${result.maxDrawdown.troughDate}`
+      : "하락 구간 없음";
 
   const metrics = [
     {
@@ -54,10 +58,16 @@ export function MetricGrid({
       helper: "전체 기간 CAGR",
       tone: cagrPercent >= 0 ? "positive" : "negative",
     },
+    {
+      label: "최대 낙폭",
+      value: formatPercentValue(result.maxDrawdown.percent, 1),
+      helper: drawdownDateRange,
+      tone: "negative",
+    },
   ] as const;
 
   return (
-    <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
+    <section className="grid grid-cols-2 gap-3 lg:grid-cols-5">
       {metrics.map((metric, index) => (
         <MetricCard key={metric.label} {...metric} index={index} />
       ))}

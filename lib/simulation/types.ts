@@ -18,6 +18,13 @@ export type SimulationResult = {
   totalContributions: number;
   totalReturn: number;
   cagr: number;
+  maxDrawdown: {
+    percent: number;
+    peakDate: string;
+    troughDate: string;
+    peakValue: number;
+    troughValue: number;
+  };
   timeSeries: SimulationPoint[];
   yearlyBreakdown: YearlyBreakdown[];
   initialPortfolio: PortfolioSnapshot[];

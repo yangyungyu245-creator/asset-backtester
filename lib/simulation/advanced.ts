@@ -373,6 +373,53 @@ function createYearlyBreakdown(
   return yearlyBreakdown;
 }
 
+function calculateMaxDrawdown(timeSeries: SimulationResult["timeSeries"]) {
+  const first = timeSeries[0];
+
+  if (!first) {
+    return {
+      percent: 0,
+      peakDate: "",
+      troughDate: "",
+      peakValue: 0,
+      troughValue: 0,
+    };
+  }
+
+  let peakValue = first.value;
+  let peakDate = first.date;
+  let maxDrawdown = 0;
+  let resultPeakDate = first.date;
+  let resultTroughDate = first.date;
+  let resultPeakValue = first.value;
+  let resultTroughValue = first.value;
+
+  for (const point of timeSeries) {
+    if (point.value > peakValue) {
+      peakValue = point.value;
+      peakDate = point.date;
+    }
+
+    const drawdown = peakValue > 0 ? (point.value - peakValue) / peakValue : 0;
+
+    if (drawdown < maxDrawdown) {
+      maxDrawdown = drawdown;
+      resultPeakDate = peakDate;
+      resultTroughDate = point.date;
+      resultPeakValue = peakValue;
+      resultTroughValue = point.value;
+    }
+  }
+
+  return {
+    percent: maxDrawdown * 100,
+    peakDate: resultPeakDate,
+    troughDate: resultTroughDate,
+    peakValue: resultPeakValue,
+    troughValue: resultTroughValue,
+  };
+}
+
 function yearsFromStart(startDate: string, targetDate: string) {
   const start = new Date(`${startDate}T00:00:00Z`).getTime();
   const target = new Date(`${targetDate}T00:00:00Z`).getTime();
@@ -408,6 +455,7 @@ function applyInflationAdjustment(
     totalReturn,
     timeSeries,
     yearlyBreakdown: createYearlyBreakdown(input, timeSeries),
+    maxDrawdown: calculateMaxDrawdown(timeSeries),
   };
 }
 
@@ -536,6 +584,7 @@ export async function simulateAdvanced(
       ? Math.pow(finalValue / totalContributions, 1 / years) - 1
       : 0;
   const yearlyBreakdown = createYearlyBreakdown(input, timeSeries);
+  const maxDrawdown = calculateMaxDrawdown(timeSeries);
   const finalPortfolio = createPortfolioSnapshot(
     input.endDate,
     holdings,
@@ -550,6 +599,7 @@ export async function simulateAdvanced(
     totalContributions,
     totalReturn,
     cagr,
+    maxDrawdown,
     timeSeries,
     yearlyBreakdown,
     initialPortfolio,
