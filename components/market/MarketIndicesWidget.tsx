@@ -1,0 +1,156 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+type MarketIndex = {
+  symbol: string;
+  label: string;
+  decimals: number;
+  price: number | null;
+  change: number | null;
+  changePercent: number | null;
+};
+
+type MarketIndicesResponse = {
+  indices: MarketIndex[];
+  updatedAt: string;
+  error?: string;
+};
+
+function formatNumber(value: number | null, decimals: number) {
+  if (value === null || !Number.isFinite(value)) {
+    return "-";
+  }
+
+  return new Intl.NumberFormat("ko-KR", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(value);
+}
+
+function formatUpdatedAt(value: string | null) {
+  if (!value) {
+    return "15분 지연";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "15분 지연";
+  }
+
+  return `${date.toLocaleTimeString("ko-KR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  })} 기준`;
+}
+
+export function MarketIndicesWidget() {
+  const [data, setData] = useState<MarketIndicesResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadIndices() {
+      try {
+        const response = await fetch("/api/market-indices");
+
+        if (!response.ok) {
+          throw new Error("Failed to load market indices.");
+        }
+
+        const payload = (await response.json()) as MarketIndicesResponse;
+
+        if (!ignore) {
+          setData(payload);
+          setHasError(Boolean(payload.error));
+        }
+      } catch {
+        if (!ignore) {
+          setHasError(true);
+        }
+      } finally {
+        if (!ignore) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadIndices();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  const indices = data?.indices ?? [];
+  const displayItems: Array<MarketIndex | null> = isLoading
+    ? Array.from({ length: 6 }, () => null)
+    : indices;
+
+  return (
+    <section className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold text-neutral-950 dark:text-neutral-50">
+            시장 지수
+          </h2>
+          <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+            USD/KRW, VIX, 미국·한국 주요 지수
+          </p>
+        </div>
+        <span className="shrink-0 text-xs text-neutral-500 dark:text-neutral-400">
+          {isLoading ? "불러오는 중" : formatUpdatedAt(data?.updatedAt ?? null)}
+        </span>
+      </div>
+
+      {hasError && !isLoading ? (
+        <div className="mt-4 rounded-md bg-neutral-50 px-3 py-4 text-sm text-neutral-500 dark:bg-white/5 dark:text-neutral-400">
+          지수 데이터를 불러올 수 없습니다.
+        </div>
+      ) : (
+        <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+          {displayItems.map((item, index) => {
+            if (!item) {
+              return (
+                <div
+                  key={index}
+                  className="h-[104px] animate-pulse rounded-lg bg-neutral-100 dark:bg-white/5"
+                />
+              );
+            }
+
+            const isUp = (item.change ?? 0) > 0;
+            const isDown = (item.change ?? 0) < 0;
+            const changeClassName = isUp
+              ? "text-red-500"
+              : isDown
+                ? "text-blue-500"
+                : "text-neutral-500 dark:text-neutral-400";
+
+            return (
+              <article
+                key={item.symbol}
+                className="rounded-lg bg-neutral-50 p-3 dark:bg-white/5"
+              >
+                <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                  {item.label}
+                </p>
+                <p className="mt-2 text-base font-semibold text-neutral-950 dark:text-neutral-50">
+                  {formatNumber(item.price, item.decimals)}
+                </p>
+                <p className={`mt-1 text-xs font-medium ${changeClassName}`}>
+                  {isUp ? "▲" : isDown ? "▼" : "–"}{" "}
+                  {formatNumber(Math.abs(item.change ?? 0), item.decimals)} (
+                  {formatNumber(Math.abs(item.changePercent ?? 0), 2)}%)
+                </p>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}

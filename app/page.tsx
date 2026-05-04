@@ -1,17 +1,18 @@
 import Link from "next/link";
+import { MarketIndicesWidget } from "@/components/market/MarketIndicesWidget";
 
 const modes = [
   {
-    icon: "📊",
+    icon: "💰",
     title: "간단 모드",
-    subtitle: "초기 금액 + 연 수익률만 입력. 예금·적금 복리 계산",
+    subtitle: "초기 금액과 월 수익률만 입력해 예금·적금 복리를 계산합니다.",
     href: "/simple",
     badge: null,
   },
   {
-    icon: "📈",
+    icon: "📊",
     title: "고급 모드",
-    subtitle: "실제 종목 과거 데이터 기반. 포트폴리오 백테스트",
+    subtitle: "실제 종목 과거 데이터로 포트폴리오를 백테스트합니다.",
     href: "/advanced/dates",
     badge: "Beta",
   },
@@ -28,6 +29,8 @@ export default function HomePage() {
           원하는 방식으로 미래 자산을 계산하세요
         </h1>
       </div>
+
+      <MarketIndicesWidget />
 
       <div className="grid gap-4 md:grid-cols-2 md:gap-6">
         {modes.map((mode) => (
