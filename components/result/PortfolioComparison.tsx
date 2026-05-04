@@ -3,9 +3,7 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import type { TooltipProps } from "recharts";
 import type { PortfolioSnapshot } from "@/lib/simulation/types";
-import {
-  formatCompactKRW,
-} from "./format";
+import { formatCompactKRW } from "./format";
 
 type PortfolioComparisonProps = {
   initialPortfolio: PortfolioSnapshot[];
@@ -118,31 +116,46 @@ function PortfolioDonut({
   );
 }
 
-function createChangeSummary(
+function createChanges(
   initialPortfolio: PortfolioSnapshot[],
   finalPortfolio: PortfolioSnapshot[],
 ) {
   const initialMap = new Map(
-    initialPortfolio.map((item) => [item.ticker, item.weight]),
+    initialPortfolio.map((item) => [item.ticker, item]),
   );
-  const changes = finalPortfolio
-    .map((item) => ({
-      ticker: item.ticker,
-      name: item.name_ko || item.name,
-      from: initialMap.get(item.ticker) ?? 0,
-      to: item.weight,
-      diff: item.weight - (initialMap.get(item.ticker) ?? 0),
-    }))
+  const finalMap = new Map(finalPortfolio.map((item) => [item.ticker, item]));
+  const tickers = Array.from(
+    new Set([...Array.from(initialMap.keys()), ...Array.from(finalMap.keys())]),
+  );
+
+  return tickers
+    .map((ticker) => {
+      const initial = initialMap.get(ticker);
+      const final = finalMap.get(ticker);
+      const from = initial?.weight ?? 0;
+      const to = final?.weight ?? 0;
+
+      return {
+        ticker,
+        name: final?.name_ko || initial?.name_ko || final?.name || initial?.name || "",
+        from,
+        to,
+        diff: to - from,
+      };
+    })
     .sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
-
-  const increased = [...changes].sort((a, b) => b.diff - a.diff)[0];
-  const decreased = [...changes].sort((a, b) => a.diff - b.diff)[0];
-
-  return { increased, decreased };
 }
 
 function formatPercentagePoint(value: number) {
   return `${value >= 0 ? "+" : ""}${value.toFixed(1)}%p`;
+}
+
+function getDiffClassName(value: number) {
+  if (Math.abs(value) <= 1) {
+    return "text-neutral-500 dark:text-neutral-400";
+  }
+
+  return value > 0 ? "text-positive" : "text-negative";
 }
 
 export function PortfolioComparison({
@@ -155,10 +168,7 @@ export function PortfolioComparison({
   }
 
   const colorMap = getColorMap([initialPortfolio, finalPortfolio]);
-  const { increased, decreased } = createChangeSummary(
-    initialPortfolio,
-    finalPortfolio,
-  );
+  const changes = createChanges(initialPortfolio, finalPortfolio);
 
   return (
     <section className="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]">
@@ -171,42 +181,50 @@ export function PortfolioComparison({
         </p>
       </div>
       <div className="mt-5 grid gap-4 lg:grid-cols-2">
-        <PortfolioDonut
-          title="시작"
-          data={initialPortfolio}
-          colorMap={colorMap}
-        />
+        <PortfolioDonut title="시작" data={initialPortfolio} colorMap={colorMap} />
         <PortfolioDonut
           title={`종료 (${endDate})`}
           data={finalPortfolio}
           colorMap={colorMap}
         />
       </div>
-      <div className="mt-4 grid gap-2 rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300">
-        {increased ? (
-          <p>
-            <span
-              className="font-semibold"
-              style={{ color: colorMap.get(increased.ticker) }}
+      <div className="mt-4 rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+        <h3 className="text-sm font-semibold text-neutral-950 dark:text-neutral-50">
+          비중 변화
+        </h3>
+        <div className="mt-3 divide-y divide-neutral-200 dark:divide-white/10">
+          {changes.map((change) => (
+            <div
+              key={change.ticker}
+              className="grid gap-2 py-2 text-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
             >
-              {increased.ticker}
-            </span>
-            의 비중이 {increased.from.toFixed(1)}% → {increased.to.toFixed(1)}%로
-            증가했습니다 ({formatPercentagePoint(increased.diff)}).
-          </p>
-        ) : null}
-        {decreased && decreased.ticker !== increased?.ticker ? (
-          <p>
-            <span
-              className="font-semibold"
-              style={{ color: colorMap.get(decreased.ticker) }}
-            >
-              {decreased.ticker}
-            </span>
-            의 비중이 {decreased.from.toFixed(1)}% → {decreased.to.toFixed(1)}%로
-            감소했습니다 ({formatPercentagePoint(decreased.diff)}).
-          </p>
-        ) : null}
+              <div className="flex min-w-0 items-center gap-2">
+                <span
+                  className="h-2.5 w-2.5 shrink-0 rounded-full"
+                  style={{ backgroundColor: colorMap.get(change.ticker) ?? COLORS[0] }}
+                />
+                <span className="font-mono font-medium text-neutral-950 dark:text-neutral-50">
+                  {change.ticker}
+                </span>
+                {change.name ? (
+                  <span className="hidden truncate text-xs text-neutral-500 dark:text-neutral-400 sm:inline">
+                    {change.name}
+                  </span>
+                ) : null}
+              </div>
+              <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-300">
+                <span>{change.from.toFixed(1)}%</span>
+                <span className="text-neutral-400">→</span>
+                <span className="font-medium text-neutral-950 dark:text-neutral-50">
+                  {change.to.toFixed(1)}%
+                </span>
+                <span className={`font-medium ${getDiffClassName(change.diff)}`}>
+                  ({formatPercentagePoint(change.diff)})
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
