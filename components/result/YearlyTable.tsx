@@ -64,24 +64,24 @@ export function YearlyTable({ rows, timeSeries, initialAmount }: YearlyTableProp
   let cumulativePrincipal = initialAmount;
 
   return (
-    <section className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]">
-      <div className="flex flex-col gap-4 border-b border-neutral-200 p-5 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
+    <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-subtle">
+      <div className="flex flex-col gap-4 border-b border-border p-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-neutral-950 dark:text-neutral-50">
+          <h2 className="text-[22px] font-bold text-primary">
             상세 내역
           </h2>
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+          <p className="mt-1 text-sm text-secondary">
             기간별 평가금액, 원금, 수익 흐름을 확인합니다.
           </p>
         </div>
-        <div className="inline-flex rounded-md border border-neutral-200 bg-neutral-50 p-1 text-sm dark:border-white/10 dark:bg-neutral-950">
+        <div className="inline-flex rounded-lg bg-card-subtle p-1 text-sm">
           <button
             type="button"
             onClick={() => setMode("yearly")}
             className={`rounded px-3 py-1.5 font-medium transition ${
               mode === "yearly"
-                ? "bg-neutral-950 text-white dark:bg-neutral-50 dark:text-neutral-950"
-                : "text-neutral-600 hover:text-neutral-950 dark:text-neutral-300 dark:hover:text-neutral-50"
+                ? "bg-card text-primary shadow-subtle"
+                : "text-secondary hover:text-primary"
             }`}
           >
             연도별
@@ -91,8 +91,8 @@ export function YearlyTable({ rows, timeSeries, initialAmount }: YearlyTableProp
             onClick={() => setMode("monthly")}
             className={`rounded px-3 py-1.5 font-medium transition ${
               mode === "monthly"
-                ? "bg-neutral-950 text-white dark:bg-neutral-50 dark:text-neutral-950"
-                : "text-neutral-600 hover:text-neutral-950 dark:text-neutral-300 dark:hover:text-neutral-50"
+                ? "bg-card text-primary shadow-subtle"
+                : "text-secondary hover:text-primary"
             }`}
           >
             월별
@@ -101,7 +101,7 @@ export function YearlyTable({ rows, timeSeries, initialAmount }: YearlyTableProp
       </div>
       <div className="max-h-[520px] overflow-auto">
         <table className="w-full min-w-[44rem] border-collapse text-sm">
-          <thead className="sticky top-0 z-10 bg-neutral-100 text-neutral-600 dark:bg-neutral-900 dark:text-neutral-300">
+          <thead className="sticky top-0 z-10 bg-card-subtle text-secondary">
             <tr>
               <th className="px-4 py-3 text-left font-medium">
                 {mode === "yearly" ? "연도" : "월"}
@@ -114,7 +114,7 @@ export function YearlyTable({ rows, timeSeries, initialAmount }: YearlyTableProp
               <th className="px-4 py-3 text-right font-medium">누적 수익률</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-100 dark:divide-white/10">
+          <tbody className="divide-y divide-border">
             {mode === "yearly"
               ? rows.map((row) => {
                   cumulativePrincipal += row.contributionsThisYear;
@@ -124,27 +124,27 @@ export function YearlyTable({ rows, timeSeries, initialAmount }: YearlyTableProp
                   return (
                     <tr
                       key={row.year}
-                      className="transition hover:bg-neutral-50 dark:hover:bg-white/5"
+                      className="transition hover:bg-card-subtle"
                     >
-                      <td className="px-4 py-3 font-medium text-neutral-800 dark:text-neutral-200">
+                      <td className="px-4 py-3 font-bold text-primary">
                         {row.year}
                       </td>
-                      <td className="px-4 py-3 text-right text-neutral-600 dark:text-neutral-300">
+                      <td className="px-4 py-3 text-right text-secondary">
                         {formatCompactKRW(cumulativePrincipal)}
                       </td>
-                      <td className="px-4 py-3 text-right font-semibold text-neutral-950 dark:text-neutral-50">
+                      <td className="px-4 py-3 text-right font-bold text-primary">
                         {formatCompactKRW(row.endValue)}
                       </td>
                       <td
                         className={`px-4 py-3 text-right font-medium ${
-                          yearProfit >= 0 ? "text-positive" : "text-negative"
+                          yearProfit >= 0 ? "text-up" : "text-down"
                         }`}
                       >
                         {formatSignedKRW(yearProfit)}
                       </td>
                       <td
                         className={`px-4 py-3 text-right font-medium ${
-                          row.cumReturn >= 0 ? "text-positive" : "text-negative"
+                          row.cumReturn >= 0 ? "text-up" : "text-down"
                         }`}
                       >
                         {formatPercentValue(row.cumReturn)}
@@ -155,30 +155,30 @@ export function YearlyTable({ rows, timeSeries, initialAmount }: YearlyTableProp
               : monthlyRows.map((row) => (
                   <tr
                     key={row.month}
-                    className="transition hover:bg-neutral-50 dark:hover:bg-white/5"
+                    className="transition hover:bg-card-subtle"
                   >
-                    <td className="px-4 py-3 font-medium text-neutral-800 dark:text-neutral-200">
+                    <td className="px-4 py-3 font-bold text-primary">
                       {row.month}
                       {row.isFuture ? (
                         <span className="ml-2 text-xs text-amber-500">예측</span>
                       ) : null}
                     </td>
-                    <td className="px-4 py-3 text-right text-neutral-600 dark:text-neutral-300">
+                    <td className="px-4 py-3 text-right text-secondary">
                       {formatCompactKRW(row.contributions)}
                     </td>
-                    <td className="px-4 py-3 text-right font-semibold text-neutral-950 dark:text-neutral-50">
+                    <td className="px-4 py-3 text-right font-bold text-primary">
                       {formatCompactKRW(row.endValue)}
                     </td>
                     <td
                       className={`px-4 py-3 text-right font-medium ${
-                        row.monthProfit >= 0 ? "text-positive" : "text-negative"
+                        row.monthProfit >= 0 ? "text-up" : "text-down"
                       }`}
                     >
                       {formatSignedKRW(row.monthProfit)}
                     </td>
                     <td
                       className={`px-4 py-3 text-right font-medium ${
-                        row.cumReturn >= 0 ? "text-positive" : "text-negative"
+                        row.cumReturn >= 0 ? "text-up" : "text-down"
                       }`}
                     >
                       {formatPercentValue(row.cumReturn)}

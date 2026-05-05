@@ -6,6 +6,9 @@ import type { TickerMeta } from "@/lib/data/tickerIndex";
 import { createSearcher } from "@/lib/data/tickerSearch";
 import { isTickerAvailable } from "@/lib/utils/validation";
 import type { SelectedTicker } from "@/store/useSimulationStore";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 
 const popularTickers = [
   "AAPL",
@@ -69,10 +72,10 @@ export function TickerSearch({
 
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_18rem]">
-      <section className="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]">
+      <Card rounded="2xl" padding="lg">
         <label
           htmlFor="tickerSearch"
-          className="text-sm font-medium text-neutral-800 dark:text-neutral-200"
+          className="text-sm font-bold text-primary"
         >
           종목 검색
         </label>
@@ -81,29 +84,29 @@ export function TickerSearch({
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="티커 또는 종목명 검색 (예: AAPL, 애플, 삼성전자)"
-          className="mt-2 h-11 w-full rounded-md border border-neutral-300 bg-white px-3 text-sm text-neutral-950 outline-none transition focus:ring-2 focus:ring-info dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-50"
+          className="mt-2 h-12 w-full rounded-md border border-border bg-card px-4 text-base text-primary outline-none transition placeholder:text-secondary focus:ring-2 focus:ring-brand/30"
         />
 
         <div className="mt-5 grid gap-3">
           {!debouncedQuery ? (
-            <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+            <p className="text-xs font-bold text-secondary">
               인기 종목
             </p>
           ) : null}
           {results.length === 0 ? (
-            <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-6 text-center dark:border-white/10 dark:bg-white/[0.03]">
-              <p className="text-sm text-neutral-600 dark:text-neutral-300">
+            <div className="rounded-xl bg-card-subtle p-6 text-center">
+              <p className="text-sm text-secondary">
                 &quot;{debouncedQuery}&quot;에 대한 검색 결과가 없습니다.
               </p>
-              <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+              <p className="mt-2 text-sm text-secondary">
                 찾으시는 종목이 사이트에 없으신가요?
               </p>
-              <Link
+              <Button
                 href={`/request?ticker=${encodeURIComponent(debouncedQuery)}`}
-                className="mt-5 inline-flex h-11 items-center justify-center rounded-md border border-neutral-900 bg-neutral-950 px-5 text-sm font-medium text-white transition hover:bg-neutral-800 dark:border-white/10 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
+                className="mt-5"
               >
                 종목 추가 요청하기 →
-              </Link>
+              </Button>
             </div>
           ) : null}
           {results.map((ticker) => {
@@ -115,38 +118,36 @@ export function TickerSearch({
             return (
               <div
                 key={ticker.ticker}
-                className={`grid gap-3 rounded-lg border p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center ${
+                className={`grid gap-3 rounded-xl p-4 transition sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center ${
                   available
-                    ? "border-neutral-200 dark:border-white/10"
-                    : "border-neutral-200 bg-neutral-50 opacity-70 dark:border-white/10 dark:bg-white/[0.03]"
+                    ? "bg-card-subtle hover:bg-brand-bg"
+                    : "bg-card-subtle opacity-60"
                 }`}
               >
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <Link
                       href={`/asset/${encodeURIComponent(ticker.ticker)}`}
-                      className="text-base font-semibold text-neutral-950 underline-offset-4 hover:text-info hover:underline dark:text-neutral-50"
+                      className="text-base font-bold text-primary underline-offset-4 hover:text-brand hover:underline"
                     >
                       {ticker.ticker}
                     </Link>
-                    <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600 dark:bg-white/10 dark:text-neutral-300">
-                      {ticker.exchange}
-                    </span>
-                    <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                    <Badge variant="neutral">{ticker.exchange}</Badge>
+                    <span className="text-xs text-secondary">
                       상장일 {ticker.ipo_date}
                     </span>
                   </div>
-                  <p className="mt-1 truncate text-sm text-neutral-800 dark:text-neutral-200">
+                  <p className="mt-1 truncate text-sm font-semibold text-primary">
                     {ticker.name_ko || ticker.name}
                   </p>
-                  <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">
+                  <p className="truncate text-xs text-secondary">
                     {ticker.name}
                   </p>
                 </div>
                 <div className="grid gap-2 sm:grid-cols-2">
                   <Link
                     href={detailHref}
-                    className="inline-flex h-10 items-center justify-center rounded-md border border-neutral-300 px-4 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 dark:border-white/10 dark:text-neutral-200 dark:hover:bg-white/5"
+                    className="inline-flex h-10 items-center justify-center rounded-lg border border-border px-4 text-sm font-bold text-primary transition hover:bg-card"
                   >
                     상세보기
                   </Link>
@@ -155,12 +156,12 @@ export function TickerSearch({
                       type="button"
                       disabled={disabled}
                       onClick={() => onAdd(ticker.ticker)}
-                      className="inline-flex h-10 items-center justify-center rounded-md border border-neutral-900 bg-neutral-950 px-4 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-neutral-50 dark:text-neutral-950"
+                      className="inline-flex h-10 items-center justify-center rounded-lg border border-brand bg-brand px-4 text-sm font-bold text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {selected ? "추가됨" : canAddMore ? "선택" : "최대 10개"}
                     </button>
                   ) : (
-                    <span className="inline-flex h-10 items-center justify-center rounded-md border border-neutral-200 px-3 text-sm font-medium text-neutral-500 dark:border-white/10 dark:text-neutral-400">
+                    <span className="inline-flex h-10 items-center justify-center rounded-lg border border-border px-3 text-sm font-bold text-secondary">
                       선택 불가
                     </span>
                   )}
@@ -169,33 +170,33 @@ export function TickerSearch({
             );
           })}
         </div>
-      </section>
+      </Card>
 
-      <aside className="rounded-lg border border-neutral-200 bg-neutral-50 p-5 dark:border-white/10 dark:bg-white/[0.03] lg:sticky lg:top-6 lg:self-start">
+      <aside className="rounded-2xl border border-border bg-card p-5 shadow-subtle lg:sticky lg:top-24 lg:self-start">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold text-neutral-950 dark:text-neutral-50">
+          <h2 className="text-sm font-bold text-primary">
             선택된 종목
           </h2>
-          <span className="text-xs text-neutral-500 dark:text-neutral-400">
+          <span className="text-xs text-secondary">
             {selectedTickers.length} / 10
           </span>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
           {selectedTickers.length === 0 ? (
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            <p className="text-sm text-secondary">
               최소 1개 이상 선택하세요.
             </p>
           ) : (
             selectedTickers.map((item) => (
               <span
                 key={item.ticker}
-                className="inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-3 py-1 text-sm text-neutral-800 dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-100"
+                className="inline-flex items-center gap-2 rounded-sm bg-card-subtle px-3 py-1 text-sm font-bold text-primary"
               >
                 {item.ticker}
                 <button
                   type="button"
                   onClick={() => onRemove(item.ticker)}
-                  className="text-neutral-500 transition hover:text-negative"
+                  className="text-secondary transition hover:text-up"
                   aria-label={`${item.ticker} 제거`}
                 >
                   ×

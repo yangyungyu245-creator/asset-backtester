@@ -42,11 +42,11 @@ function PortfolioTooltip({ active, payload }: TooltipProps<number, string>) {
   }
 
   return (
-    <div className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs shadow-lg dark:border-white/10 dark:bg-neutral-950">
-      <p className="font-medium text-neutral-950 dark:text-neutral-50">
+    <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs shadow-medium">
+      <p className="font-bold text-primary">
         {item.ticker} ({item.name_ko || item.name})
       </p>
-      <div className="mt-2 grid gap-1 text-neutral-600 dark:text-neutral-300">
+      <div className="mt-2 grid gap-1 text-secondary">
         <p>보유: {item.shares.toFixed(4)}주</p>
         <p>평가금액: {formatCompactKRW(item.value)}</p>
         <p>비중: {item.weight.toFixed(1)}%</p>
@@ -65,8 +65,8 @@ function PortfolioDonut({
   colorMap: Map<string, string>;
 }) {
   return (
-    <div className="rounded-lg bg-neutral-50 p-4 dark:bg-white/5">
-      <h3 className="text-sm font-semibold text-neutral-950 dark:text-neutral-50">
+    <div className="rounded-xl bg-card-subtle p-4">
+      <h3 className="text-sm font-bold text-primary">
         {title}
       </h3>
       <div className="mt-3 h-52">
@@ -99,14 +99,14 @@ function PortfolioDonut({
             key={item.ticker}
             className="flex items-center justify-between gap-3 text-sm"
           >
-            <span className="flex min-w-0 items-center gap-2 text-neutral-700 dark:text-neutral-300">
+            <span className="flex min-w-0 items-center gap-2 text-secondary">
               <span
                 className="h-2.5 w-2.5 shrink-0 rounded-full"
                 style={{ backgroundColor: colorMap.get(item.ticker) ?? COLORS[0] }}
               />
               <span className="truncate">{item.ticker}</span>
             </span>
-            <span className="font-medium text-neutral-950 dark:text-neutral-50">
+            <span className="font-bold text-primary">
               {item.weight.toFixed(1)}%
             </span>
           </div>
@@ -152,10 +152,10 @@ function formatPercentagePoint(value: number) {
 
 function getDiffClassName(value: number) {
   if (Math.abs(value) <= 1) {
-    return "text-neutral-500 dark:text-neutral-400";
+    return "text-secondary";
   }
 
-  return value > 0 ? "text-positive" : "text-negative";
+  return value > 0 ? "text-up" : "text-down";
 }
 
 export function PortfolioComparison({
@@ -171,12 +171,12 @@ export function PortfolioComparison({
   const changes = createChanges(initialPortfolio, finalPortfolio);
 
   return (
-    <section className="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]">
+    <section className="rounded-2xl border border-border bg-card p-5 shadow-subtle">
       <div>
-        <h2 className="text-lg font-semibold text-neutral-950 dark:text-neutral-50">
+        <h2 className="text-[22px] font-bold text-primary">
           포트폴리오 변화
         </h2>
-        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+        <p className="mt-1 text-sm text-secondary">
           시작 시점과 종료 시점의 종목 비중을 비교합니다.
         </p>
       </div>
@@ -188,11 +188,11 @@ export function PortfolioComparison({
           colorMap={colorMap}
         />
       </div>
-      <div className="mt-4 rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-white/10 dark:bg-white/[0.03]">
-        <h3 className="text-sm font-semibold text-neutral-950 dark:text-neutral-50">
+      <div className="mt-4 rounded-xl bg-card-subtle p-4">
+        <h3 className="text-sm font-bold text-primary">
           비중 변화
         </h3>
-        <div className="mt-3 divide-y divide-neutral-200 dark:divide-white/10">
+        <div className="mt-3 divide-y divide-border">
           {changes.map((change) => (
             <div
               key={change.ticker}
@@ -203,22 +203,22 @@ export function PortfolioComparison({
                   className="h-2.5 w-2.5 shrink-0 rounded-full"
                   style={{ backgroundColor: colorMap.get(change.ticker) ?? COLORS[0] }}
                 />
-                <span className="font-mono font-medium text-neutral-950 dark:text-neutral-50">
+                <span className="font-mono font-bold text-primary">
                   {change.ticker}
                 </span>
                 {change.name ? (
-                  <span className="hidden truncate text-xs text-neutral-500 dark:text-neutral-400 sm:inline">
+                  <span className="hidden truncate text-xs text-secondary sm:inline">
                     {change.name}
                   </span>
                 ) : null}
               </div>
-              <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-300">
+              <div className="flex items-center gap-2 text-secondary">
                 <span>{change.from.toFixed(1)}%</span>
-                <span className="text-neutral-400">→</span>
-                <span className="font-medium text-neutral-950 dark:text-neutral-50">
+                <span className="text-secondary">→</span>
+                <span className="font-bold text-primary">
                   {change.to.toFixed(1)}%
                 </span>
-                <span className={`font-medium ${getDiffClassName(change.diff)}`}>
+                <span className={`font-bold ${getDiffClassName(change.diff)}`}>
                   ({formatPercentagePoint(change.diff)})
                 </span>
               </div>
