@@ -38,6 +38,8 @@ type YahooQuote = {
   regularMarketPreviousClose?: number;
   regularMarketTime?: number;
   averageDailyVolume3Month?: number;
+  regularMarketVolume?: number;
+  trailingEps?: number;
   exchange?: string;
   exchangeTimezoneShortName?: string;
   fullExchangeName?: string;
@@ -70,6 +72,12 @@ type YahooQuoteSummary = {
       assetProfile?: {
         sector?: string;
         industry?: string;
+        longBusinessSummary?: string;
+        city?: string;
+        state?: string;
+        country?: string;
+        fullTimeEmployees?: number;
+        website?: string;
       };
       fundProfile?: {
         feesExpensesInvestment?: {
@@ -88,7 +96,13 @@ type YahooQuoteSummary = {
   };
 };
 
+type YahooAssetProfile = NonNullable<
+  NonNullable<YahooQuoteSummary["quoteSummary"]>["result"]
+>[number]["assetProfile"];
+
 const periodMap: Record<string, { range: string; interval: string }> = {
+  "1d": { range: "1d", interval: "5m" },
+  "1w": { range: "5d", interval: "15m" },
   "1m": { range: "1mo", interval: "1d" },
   "3m": { range: "3mo", interval: "1d" },
   "6m": { range: "6mo", interval: "1d" },
@@ -173,6 +187,7 @@ async function fetchYahooChart(symbol: string, period: string) {
             high?: Array<number | null>;
             low?: Array<number | null>;
             close?: Array<number | null>;
+            volume?: Array<number | null>;
           }>;
         };
       }>;
@@ -185,6 +200,7 @@ async function fetchYahooChart(symbol: string, period: string) {
   const highs = quote?.high ?? [];
   const lows = quote?.low ?? [];
   const closes = quote?.close ?? [];
+  const volumes = quote?.volume ?? [];
 
   return timestamps.flatMap((timestamp, index) => {
     const close = closes[index];
@@ -195,7 +211,10 @@ async function fetchYahooChart(symbol: string, period: string) {
 
     return [
       {
-        date: new Date(timestamp * 1000).toISOString().slice(0, 10),
+          date:
+            period === "1d" || period === "1w"
+              ? new Date(timestamp * 1000).toISOString()
+              : new Date(timestamp * 1000).toISOString().slice(0, 10),
         open:
           typeof opens[index] === "number" && Number.isFinite(opens[index])
             ? opens[index]
@@ -209,9 +228,21 @@ async function fetchYahooChart(symbol: string, period: string) {
             ? lows[index]
             : close,
         close,
+        volume:
+          typeof volumes[index] === "number" && Number.isFinite(volumes[index])
+            ? volumes[index]
+            : null,
       },
     ];
   });
+}
+
+function getHeadquarters(profile?: YahooAssetProfile) {
+  if (!profile) {
+    return null;
+  }
+
+  return [profile.city, profile.state, profile.country].filter(Boolean).join(", ") || null;
 }
 
 function filterLocalPrices(
@@ -224,6 +255,7 @@ function filterLocalPrices(
     high: close,
     low: close,
     close,
+    volume: null as number | null,
   }));
 
   if (period === "max") {
@@ -280,10 +312,11 @@ export async function GET(request: Request, { params }: AssetRouteContext) {
   const url = new URL(request.url);
   const period = url.searchParams.get("period") ?? "1y";
   const symbol = decodeURIComponent(params.symbol).trim();
-  const [local, quote, summary] = await Promise.all([
+  const [local, quote, summary, usdKrwQuote] = await Promise.all([
     readLocalTicker(symbol),
     fetchYahooQuote(symbol),
     fetchYahooSummary(symbol),
+    symbol === "KRW=X" ? Promise.resolve(null) : fetchYahooQuote("KRW=X"),
   ]);
   const kind = getAssetKind(symbol, local?.category, quote?.quoteType);
   const displayName = getAssetDisplayName({
@@ -371,6 +404,7 @@ export async function GET(request: Request, { params }: AssetRouteContext) {
         (kind === "index" ? displayName : null),
       issuer: quote?.fundFamily ?? null,
       peRatio: quote?.trailingPE ?? rawValue(summary?.summaryDetail?.trailingPE),
+      eps: quote?.trailingEps ?? null,
       priceToBook:
         quote?.priceToBook ??
         rawValue(summary?.defaultKeyStatistics?.priceToBook) ??
@@ -384,8 +418,16 @@ export async function GET(request: Request, { params }: AssetRouteContext) {
         quote?.regularMarketTime
           ? new Date(quote.regularMarketTime * 1000).toISOString().slice(0, 10)
           : latestChartDate,
+      volume: quote?.regularMarketVolume ?? null,
       averageVolume: quote?.averageDailyVolume3Month ?? null,
-      description: assetDescriptionMap[symbol] ?? null,
+      description:
+        summary?.assetProfile?.longBusinessSummary ??
+        assetDescriptionMap[symbol] ??
+        null,
+      headquarters: getHeadquarters(summary?.assetProfile),
+      employees: summary?.assetProfile?.fullTimeEmployees ?? null,
+      website: summary?.assetProfile?.website ?? null,
+      usdKrw: usdKrwQuote?.regularMarketPrice ?? null,
     },
     updatedAt: new Date().toISOString(),
     warnings:
