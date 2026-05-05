@@ -68,6 +68,9 @@ export default function AdvancedDatesPage() {
         <p className="mt-3 text-sm leading-6 text-neutral-600 dark:text-neutral-400">
           투자 시작일과 종료일을 정해주세요.
         </p>
+        <p className="mt-1 text-sm leading-6 text-info">
+          과거 백테스트는 물론, 원한다면 미래 시점까지 확장한 시뮬레이션도 사용할 수 있습니다.
+        </p>
       </div>
 
       <form

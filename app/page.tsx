@@ -3,16 +3,16 @@ import { MarketIndicesWidget } from "@/components/market/MarketIndicesWidget";
 
 const modes = [
   {
-    icon: "💰",
+    icon: "◎",
     title: "간단 모드",
-    subtitle: "초기 금액과 월 수익률만 입력해 예금·적금 복리를 계산합니다.",
+    subtitle: "초기 금액과 월 적립액만 입력해 장기 복리 결과를 빠르게 확인합니다.",
     href: "/simple",
     badge: null,
   },
   {
-    icon: "📊",
+    icon: "▣",
     title: "고급 모드",
-    subtitle: "실제 종목 과거 데이터로 포트폴리오를 백테스트합니다.",
+    subtitle: "실제 종목 과거 데이터로 포트폴리오를 백테스트하고 미래 시점까지 확장해 볼 수 있습니다.",
     href: "/advanced/dates",
     badge: "Beta",
   },
@@ -23,10 +23,10 @@ export default function HomePage() {
     <section className="mx-auto grid max-w-4xl gap-8 py-6 sm:py-10">
       <div>
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          투자 시나리오 계산기
+          FIRE 투자 시뮬레이터
         </p>
         <h1 className="mt-3 text-3xl font-semibold tracking-normal text-neutral-950 dark:text-neutral-50 sm:text-4xl">
-          원하는 방식으로 미래 자산을 계산하세요
+          경제적 자유를 향한 여정, FIRE LIFE와 함께
         </h1>
       </div>
 
@@ -61,7 +61,7 @@ export default function HomePage() {
       </div>
 
       <p className="text-center text-xs text-neutral-500 dark:text-neutral-400">
-        추가 모드(채권/부동산/혼합 포트폴리오)는 추후 확장 예정
+        과거 데이터 기반 백테스트와 장기 투자 설계를 한곳에서 확인하세요.
       </p>
     </section>
   );

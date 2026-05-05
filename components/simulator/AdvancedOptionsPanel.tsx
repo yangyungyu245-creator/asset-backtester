@@ -8,6 +8,29 @@ type AdvancedOptionsPanelProps = {
   onChange: (patch: Partial<AdvancedOptions>) => void;
 };
 
+function TooltipIcon({
+  label,
+  description,
+}: {
+  label: string;
+  description: string;
+}) {
+  return (
+    <span className="group relative inline-flex align-middle">
+      <button
+        type="button"
+        aria-label={label}
+        className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full border border-neutral-300 text-xs font-semibold leading-none text-neutral-500 transition hover:border-info hover:text-info focus:outline-none focus:ring-2 focus:ring-info dark:border-white/20 dark:text-neutral-400"
+      >
+        ?
+      </button>
+      <span className="pointer-events-none absolute left-1/2 top-7 z-10 hidden w-56 -translate-x-1/2 rounded-md border border-neutral-200 bg-white px-3 py-2 text-xs font-normal leading-5 text-neutral-600 shadow-lg group-focus-within:block group-hover:block dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-300">
+        {description}
+      </span>
+    </span>
+  );
+}
+
 export function AdvancedOptionsPanel({
   options,
   showExchangeRate,
@@ -30,12 +53,10 @@ export function AdvancedOptionsPanel({
           />
           <span>
             배당 재투자
-            <span
-              className="ml-2 text-xs text-neutral-500 dark:text-neutral-400"
-              title="발생한 배당금을 같은 종목에 자동 재투자합니다."
-            >
-              ?
-            </span>
+            <TooltipIcon
+              label="배당 재투자 설명"
+              description="배당금을 현금으로 두지 않고 다시 같은 자산에 투자한다고 가정합니다."
+            />
           </span>
         </label>
 
@@ -64,12 +85,10 @@ export function AdvancedOptionsPanel({
           />
           <span>
             인플레이션 보정
-            <span
-              className="ml-2 text-xs text-neutral-500 dark:text-neutral-400"
-              title="결과를 시작 시점 가치로 환산합니다."
-            >
-              ?
-            </span>
+            <TooltipIcon
+              label="인플레이션 보정 설명"
+              description="물가 상승을 반영해 실질 구매력 기준으로 결과를 비교합니다."
+            />
           </span>
         </label>
 
