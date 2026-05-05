@@ -1,9 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AdvancedStepper } from "@/components/simulator/AdvancedStepper";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
 import { useSimulationStore } from "@/store/useSimulationStore";
 
 const minExchangeRateDate = "2003-12-01";
@@ -23,6 +25,7 @@ function todayString() {
 
 export default function AdvancedDatesPage() {
   const router = useRouter();
+  const [assetSymbol, setAssetSymbol] = useState("");
   const { startDate, endDate, options, setStartDate, setEndDate, updateOptions } =
     useSimulationStore();
 
@@ -58,41 +61,58 @@ export default function AdvancedDatesPage() {
       ? "환율 데이터가 2003-12-01부터 제공되어 일부 해외 종목 시뮬레이션이 제한될 수 있습니다."
       : null;
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setAssetSymbol(params.get("asset")?.trim().toUpperCase() ?? "");
+  }, []);
+
   return (
     <section className="py-4 sm:py-8">
       <AdvancedStepper currentStep={1} />
       <div>
-        <h1 className="text-3xl font-semibold text-neutral-950 dark:text-neutral-50">
+        <h1 className="text-3xl font-bold text-primary sm:text-[40px]">
           시뮬레이션 기간
         </h1>
-        <p className="mt-3 text-sm leading-6 text-neutral-600 dark:text-neutral-400">
+        <p className="mt-3 text-base leading-7 text-secondary">
           투자 시작일과 종료일을 정해주세요.
         </p>
-        <p className="mt-1 text-sm leading-6 text-info">
+        <p className="mt-1 text-sm leading-6 text-brand">
           과거 백테스트는 물론, 원한다면 미래 시점까지 확장한 시뮬레이션도 사용할 수 있습니다.
         </p>
       </div>
 
+      {assetSymbol ? (
+        <Card rounded="2xl" className="mt-6 bg-brand-bg">
+          <Badge variant="brand">{assetSymbol}</Badge>
+          <p className="mt-3 text-sm font-semibold text-primary">
+            다음 종목 선택 단계에서 {assetSymbol}을 자동으로 추가합니다.
+          </p>
+        </Card>
+      ) : null}
+
       <form
-        className="mt-6 grid min-w-0 gap-5 rounded-lg border border-neutral-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]"
+        className="mt-6 grid min-w-0 gap-5 rounded-2xl border border-border bg-card p-5 shadow-subtle"
         onSubmit={(event) => {
           event.preventDefault();
+          if (assetSymbol) {
+            window.sessionStorage.setItem("firelife.pendingAsset", assetSymbol);
+          }
           if (validation.valid) {
-            router.push("/advanced/tickers");
+            router.push(assetSymbol ? `/advanced/tickers?asset=${encodeURIComponent(assetSymbol)}` : "/advanced/tickers");
           }
         }}
       >
         <div className="grid min-w-0 gap-5 sm:grid-cols-2">
-          <label className="min-w-0 text-sm font-medium text-neutral-800 dark:text-neutral-200">
+          <label className="min-w-0 text-sm font-bold text-primary">
             시작 날짜
             <input
               type="date"
               value={startDate}
               onChange={(event) => setStartDate(event.target.value)}
-              className="mt-2 h-11 w-full min-w-0 rounded-md border border-neutral-300 bg-white px-3 text-sm text-neutral-950 outline-none focus:ring-2 focus:ring-info dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-50"
+              className="mt-2 h-11 w-full min-w-0 rounded-md border border-border bg-card px-3 text-sm text-primary outline-none focus:ring-2 focus:ring-brand/30"
             />
           </label>
-          <label className="min-w-0 text-sm font-medium text-neutral-800 dark:text-neutral-200">
+          <label className="min-w-0 text-sm font-bold text-primary">
             종료 날짜
             <input
               type="date"
@@ -104,26 +124,26 @@ export default function AdvancedDatesPage() {
                   updateOptions({ futureMode: false });
                 }
               }}
-              className="mt-2 h-11 w-full min-w-0 rounded-md border border-neutral-300 bg-white px-3 text-sm text-neutral-950 outline-none focus:ring-2 focus:ring-info dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-50"
+              className="mt-2 h-11 w-full min-w-0 rounded-md border border-border bg-card px-3 text-sm text-primary outline-none focus:ring-2 focus:ring-brand/30"
             />
           </label>
         </div>
 
         {isEndDateInFuture ? (
-          <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-blue-500/30 bg-blue-500/10 p-4">
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl bg-down-bg p-4">
             <input
               type="checkbox"
               checked={options.futureMode}
               onChange={(event) =>
                 updateOptions({ futureMode: event.target.checked })
               }
-              className="mt-1 accent-info"
+              className="mt-1 accent-brand"
             />
             <span className="flex-1">
-              <span className="block text-sm font-semibold text-neutral-950 dark:text-neutral-50">
+              <span className="block text-sm font-bold text-primary">
                 미래 시점까지 시뮬레이션
               </span>
-              <span className="mt-1 block text-sm leading-6 text-neutral-600 dark:text-neutral-400">
+              <span className="mt-1 block text-sm leading-6 text-secondary">
                 시작일 ~ 오늘까지는 실제 시장 데이터로 백테스트하고, 오늘 ~ 종료일까지는 과거 5년 평균 수익률 기반 단순 복리로 예측합니다.
               </span>
               <span className="mt-2 block text-xs leading-5 text-amber-600 dark:text-amber-400">
@@ -133,19 +153,19 @@ export default function AdvancedDatesPage() {
           </label>
         ) : null}
 
-        <div className="rounded-lg bg-neutral-50 p-4 text-sm dark:bg-white/[0.03]">
-          <p className="font-medium text-neutral-950 dark:text-neutral-50">
+        <div className="rounded-xl bg-card-subtle p-4 text-sm">
+          <p className="font-bold text-primary">
             총 {years}년 {months}개월
           </p>
-          <p className="mt-2 text-neutral-600 dark:text-neutral-400">
+          <p className="mt-2 text-secondary">
             시작 날짜에 상장되지 않은 종목은 다음 단계에서 자동으로 비활성화합니다.
           </p>
         </div>
 
         {!validation.valid ? (
-          <p className="text-sm text-negative">{validation.error}</p>
+          <p className="text-sm text-up">{validation.error}</p>
         ) : null}
-        {warning ? <p className="text-sm text-info">{warning}</p> : null}
+        {warning ? <p className="text-sm text-brand">{warning}</p> : null}
 
         <div className="flex justify-end">
           <Button type="submit" disabled={!validation.valid}>

@@ -1,6 +1,7 @@
 "use client";
 
 import type { AdvancedOptions } from "@/store/useSimulationStore";
+import { Card } from "@/components/ui/Card";
 
 type AdvancedOptionsPanelProps = {
   options: AdvancedOptions;
@@ -20,11 +21,11 @@ function TooltipIcon({
       <button
         type="button"
         aria-label={label}
-        className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full border border-neutral-300 text-xs font-semibold leading-none text-neutral-500 transition hover:border-info hover:text-info focus:outline-none focus:ring-2 focus:ring-info dark:border-white/20 dark:text-neutral-400"
+        className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full border border-border text-xs font-semibold leading-none text-secondary transition hover:text-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
       >
         ?
       </button>
-      <span className="pointer-events-none absolute left-1/2 top-7 z-10 hidden w-56 -translate-x-1/2 rounded-md border border-neutral-200 bg-white px-3 py-2 text-xs font-normal leading-5 text-neutral-600 shadow-lg group-focus-within:block group-hover:block dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-300">
+      <span className="pointer-events-none absolute left-1/2 top-7 z-10 hidden w-56 -translate-x-1/2 rounded-md border border-border bg-card px-3 py-2 text-xs font-normal leading-5 text-secondary shadow-medium group-focus-within:block group-hover:block">
         {description}
       </span>
     </span>
@@ -37,19 +38,19 @@ export function AdvancedOptionsPanel({
   onChange,
 }: AdvancedOptionsPanelProps) {
   return (
-    <section className="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]">
-      <h2 className="text-lg font-semibold text-neutral-950 dark:text-neutral-50">
+    <Card rounded="2xl" padding="lg">
+      <h2 className="text-[22px] font-bold text-primary">
         고급 옵션
       </h2>
       <div className="mt-5 grid gap-4">
-        <label className="flex items-start gap-3 text-sm text-neutral-800 dark:text-neutral-200">
+        <label className="flex items-start gap-3 text-sm text-primary">
           <input
             type="checkbox"
             checked={options.reinvestDividends}
             onChange={(event) =>
               onChange({ reinvestDividends: event.target.checked })
             }
-            className="mt-1 accent-info"
+            className="mt-1 accent-brand"
           />
           <span>
             배당 재투자
@@ -61,27 +62,27 @@ export function AdvancedOptionsPanel({
         </label>
 
         {showExchangeRate ? (
-          <label className="flex items-start gap-3 text-sm text-neutral-800 dark:text-neutral-200">
+          <label className="flex items-start gap-3 text-sm text-primary">
             <input
               type="checkbox"
               checked={options.applyExchangeRate}
               onChange={(event) =>
                 onChange({ applyExchangeRate: event.target.checked })
               }
-              className="mt-1 accent-info"
+              className="mt-1 accent-brand"
             />
             <span>환율 적용</span>
           </label>
         ) : null}
 
-        <label className="flex items-start gap-3 text-sm text-neutral-800 dark:text-neutral-200">
+        <label className="flex items-start gap-3 text-sm text-primary">
           <input
             type="checkbox"
             checked={options.inflationAdjusted}
             onChange={(event) =>
               onChange({ inflationAdjusted: event.target.checked })
             }
-            className="mt-1 accent-info"
+            className="mt-1 accent-brand"
           />
           <span>
             인플레이션 보정
@@ -92,7 +93,7 @@ export function AdvancedOptionsPanel({
           </span>
         </label>
 
-        <label className="grid gap-2 text-sm font-medium text-neutral-800 dark:text-neutral-200 sm:max-w-xs">
+        <label className="grid gap-2 text-sm font-bold text-primary sm:max-w-xs">
           리밸런싱 주기
           <select
             value={options.rebalance}
@@ -101,7 +102,7 @@ export function AdvancedOptionsPanel({
                 rebalance: event.target.value as AdvancedOptions["rebalance"],
               })
             }
-            className="h-11 rounded-md border border-neutral-300 bg-white px-3 text-sm text-neutral-950 outline-none focus:ring-2 focus:ring-info dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-50"
+            className="h-11 rounded-md border border-border bg-card px-3 text-sm text-primary outline-none focus:ring-2 focus:ring-brand/30"
           >
             <option value="none">없음</option>
             <option value="monthly">매월</option>
@@ -110,6 +111,6 @@ export function AdvancedOptionsPanel({
           </select>
         </label>
       </div>
-    </section>
+    </Card>
   );
 }

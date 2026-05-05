@@ -11,6 +11,7 @@ import { useSimulationStore } from "@/store/useSimulationStore";
 
 export default function AdvancedTickersPage() {
   const router = useRouter();
+  const [assetSymbol, setAssetSymbol] = useState("");
   const {
     startDate,
     selectedTickers,
@@ -39,24 +40,45 @@ export default function AdvancedTickersPage() {
       .finally(() => setLoading(false));
   }, [router, startDate]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setAssetSymbol(params.get("asset")?.trim().toUpperCase() ?? "");
+  }, []);
+
+  useEffect(() => {
+    const pending =
+      assetSymbol ||
+      (typeof window !== "undefined"
+        ? window.sessionStorage.getItem("firelife.pendingAsset") ?? ""
+        : "");
+    if (!pending) return;
+    addTicker(pending);
+    window.sessionStorage.removeItem("firelife.pendingAsset");
+  }, [addTicker, assetSymbol]);
+
   return (
     <section className="py-4 sm:py-8">
       <AdvancedStepper currentStep={2} />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-neutral-950 dark:text-neutral-50">
+          <h1 className="text-3xl font-bold text-primary sm:text-[40px]">
             종목 선택
           </h1>
-          <p className="mt-3 text-sm leading-6 text-neutral-600 dark:text-neutral-400">
+          <p className="mt-3 text-base leading-7 text-secondary">
             시작일 이전에 상장된 종목만 선택할 수 있습니다.
           </p>
-          <p className="mt-2 text-sm font-medium text-neutral-950 dark:text-neutral-50">
+          {assetSymbol ? (
+            <p className="mt-2 text-sm font-bold text-brand">
+              {assetSymbol}이 자동으로 추가되었습니다.
+            </p>
+          ) : null}
+          <p className="mt-2 text-sm font-bold text-primary">
             시작일: {startDate}
           </p>
         </div>
         <Link
           href="/advanced/dates"
-          className="text-sm font-medium text-info transition hover:text-blue-500"
+          className="text-sm font-bold text-brand transition hover:text-brand-dark"
         >
           시작일 변경
         </Link>
@@ -64,11 +86,11 @@ export default function AdvancedTickersPage() {
 
       <div className="mt-6">
         {loading ? (
-          <div className="rounded-lg border border-neutral-200 bg-white p-5 text-sm text-neutral-500 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a] dark:text-neutral-400">
+          <div className="rounded-2xl border border-border bg-card p-5 text-sm text-secondary shadow-subtle">
             종목 인덱스를 불러오는 중입니다.
           </div>
         ) : error ? (
-          <div className="rounded-lg border border-negative/30 bg-negative/10 p-5 text-sm text-negative">
+          <div className="rounded-2xl bg-up-bg p-5 text-sm text-up">
             {error}
           </div>
         ) : (

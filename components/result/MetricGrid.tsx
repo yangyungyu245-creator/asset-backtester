@@ -68,7 +68,7 @@ export function MetricGrid({
   ] as const;
 
   return (
-    <section className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+    <section className="grid grid-cols-2 gap-3 lg:grid-cols-6">
       {metrics.map((metric, index) => (
         <MetricCard key={metric.label} {...metric} index={index} />
       ))}

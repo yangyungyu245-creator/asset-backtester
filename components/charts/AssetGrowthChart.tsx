@@ -23,6 +23,38 @@ type AssetGrowthChartProps = {
   data: ChartPoint[];
 };
 
+function renderTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload?: ChartPoint }>;
+  label?: string | number;
+}) {
+  const point = payload?.[0]?.payload;
+
+  if (!active || !point) {
+    return null;
+  }
+
+  const profit = point.value - point.contributions;
+
+  return (
+    <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs shadow-medium">
+      <p className="font-bold text-primary">{String(label ?? point.date)}</p>
+      <div className="mt-2 grid gap-1 text-secondary">
+        <p>평가금액 {formatKRW(point.value)}</p>
+        <p>누적 원금 {formatKRW(point.contributions)}</p>
+        <p className={profit >= 0 ? "text-up" : "text-down"}>
+          수익 {profit >= 0 ? "+" : ""}
+          {formatKRW(profit)}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export function AssetGrowthChart({ data }: AssetGrowthChartProps) {
   return (
     <div className="h-60 w-full md:h-80">
@@ -30,45 +62,30 @@ export function AssetGrowthChart({ data }: AssetGrowthChartProps) {
         <AreaChart data={data} margin={{ top: 10, right: 8, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="assetValue" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.35} />
-              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+              <stop offset="5%" stopColor="#FF6B35" stopOpacity={0.28} />
+              <stop offset="95%" stopColor="#FF6B35" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.25)" />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
           <XAxis
             dataKey="period"
             tickFormatter={(period) => `${period}년`}
-            tick={{ fill: "#737373", fontSize: 12 }}
+            tick={{ fill: "var(--text-secondary)", fontSize: 12 }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
             tickFormatter={(value) => formatKRW(Number(value))}
-            tick={{ fill: "#737373", fontSize: 12 }}
+            tick={{ fill: "var(--text-secondary)", fontSize: 12 }}
             axisLine={false}
             tickLine={false}
             width={56}
           />
-          <Tooltip
-            formatter={(value, name) => [
-              formatKRW(Number(value)),
-              name === "value" ? "평가금액" : "누적 원금",
-            ]}
-            labelFormatter={(_, payload) => {
-              const point = payload?.[0]?.payload as ChartPoint | undefined;
-              return point ? point.date : "";
-            }}
-            contentStyle={{
-              borderRadius: 8,
-              border: "1px solid rgba(148, 163, 184, 0.35)",
-              background: "rgba(10, 10, 10, 0.92)",
-              color: "#f5f5f5",
-            }}
-          />
+          <Tooltip content={renderTooltip} wrapperStyle={{ outline: "none" }} />
           <Area
             type="monotone"
             dataKey="value"
-            stroke="#3b82f6"
+            stroke="#FF6B35"
             strokeWidth={2}
             fill="url(#assetValue)"
           />

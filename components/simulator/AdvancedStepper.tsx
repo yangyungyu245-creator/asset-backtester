@@ -15,7 +15,7 @@ type AdvancedStepperProps = {
 export function AdvancedStepper({ currentStep }: AdvancedStepperProps) {
   return (
     <nav aria-label="고급 모드 단계" className="mb-6">
-      <ol className="grid grid-cols-3 gap-2 rounded-lg border border-neutral-200 bg-white p-2 dark:border-white/10 dark:bg-[#1a1a1a]">
+      <ol className="grid grid-cols-3 gap-2 overflow-x-auto rounded-2xl border border-border bg-card p-2 shadow-subtle">
         {steps.map((step) => {
           const isCurrent = step.number === currentStep;
           const isPast = step.number < currentStep;
@@ -24,12 +24,12 @@ export function AdvancedStepper({ currentStep }: AdvancedStepperProps) {
             <li key={step.href}>
               <Link
                 href={step.href}
-                className={`flex h-10 items-center justify-center rounded-md text-sm font-medium transition ${
+                className={`flex h-11 min-w-24 items-center justify-center rounded-lg text-sm font-bold transition ${
                   isCurrent
-                    ? "bg-neutral-950 text-white dark:bg-neutral-50 dark:text-neutral-950"
+                    ? "bg-brand text-white"
                     : isPast
-                      ? "text-info hover:bg-info/10"
-                      : "text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-white/5"
+                      ? "text-primary hover:bg-card-subtle"
+                      : "text-secondary hover:bg-card-subtle hover:text-primary"
                 }`}
               >
                 {step.number}. {step.label}

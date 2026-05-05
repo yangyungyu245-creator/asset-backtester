@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { loadTickerIndex, type TickerMeta } from "@/lib/data/tickerIndex";
 import { createSearcher } from "@/lib/data/tickerSearch";
@@ -132,6 +133,20 @@ export default function SearchPage() {
             ))}
           </div>
         )}
+      </Card>
+
+      <Card rounded="2xl" className="bg-card-subtle">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-base font-bold text-primary">찾는 종목이 없나요?</p>
+            <p className="mt-1 text-sm text-secondary">
+              티커를 알려주시면 데이터 추가 가능 여부를 확인합니다.
+            </p>
+          </div>
+          <Button href="/request" variant="ghost">
+            종목 추가 요청 →
+          </Button>
+        </div>
       </Card>
     </div>
   );

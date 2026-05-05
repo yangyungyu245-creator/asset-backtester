@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AssetGrowthChart } from "@/components/charts/AssetGrowthChart";
 import { LoadingScreen } from "@/components/simulator/LoadingScreen";
-import { ResultMetrics } from "@/components/simulator/ResultMetrics";
 import { SimpleInputForm } from "@/components/simulator/SimpleInputForm";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import {
   type SimpleSimulationInput,
   simulateSimple,
@@ -28,12 +30,18 @@ const defaultInput: SimpleSimulationInput = {
 };
 
 export default function SimplePage() {
+  const [assetSymbol, setAssetSymbol] = useState("");
   const [phase, setPhase] = useState<Phase>("input");
   const [input, setInput] = useState<SimpleSimulationInput>(defaultInput);
   const result = useMemo(() => simulateSimple(input), [input]);
 
   const handleLoadingDone = useCallback(() => {
     setPhase("result");
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setAssetSymbol(params.get("asset")?.trim().toUpperCase() ?? "");
   }, []);
 
   const chartData = useMemo(
@@ -52,22 +60,40 @@ export default function SimplePage() {
   }
 
   return (
-    <section className="grid gap-8 py-4 sm:py-8">
+    <section className="grid gap-6 py-4 pb-24 sm:gap-8 sm:py-8 md:pb-8">
       <div>
         <Link
           href="/"
-          className="text-sm text-neutral-500 transition hover:text-info dark:text-neutral-400"
+          className="text-sm font-semibold text-secondary transition hover:text-brand"
         >
           ← 모드 선택으로
         </Link>
-        <h1 className="mt-4 text-3xl font-semibold text-neutral-950 dark:text-neutral-50">
-          간단 모드
+        <h1 className="mt-4 text-3xl font-bold text-primary sm:text-[40px]">
+          간단 백테스트
         </h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-600 dark:text-neutral-400">
-          예금·적금처럼 초기 금액, 월 적립액, 연 수익률만으로 복리 결과를
-          빠르게 계산합니다.
+        <p className="mt-3 max-w-2xl text-base leading-7 text-secondary">
+          복리 시뮬레이션으로 미래 자산을 빠르게 계산합니다.
         </p>
       </div>
+
+      {assetSymbol && phase === "input" ? (
+        <Card rounded="2xl" className="bg-brand-bg">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <Badge variant="brand">{assetSymbol}</Badge>
+              <p className="mt-3 text-sm font-semibold text-primary">
+                종목 기반 시뮬레이션은 고급 백테스트에서 더 정확하게 계산할 수 있어요.
+              </p>
+              <p className="mt-1 text-sm text-secondary">
+                간단 모드는 종목 가격을 쓰지 않고 입력한 수익률 가정만 사용합니다.
+              </p>
+            </div>
+            <Button href={`/advanced/dates?asset=${encodeURIComponent(assetSymbol)}`} variant="secondary">
+              고급으로 이동 →
+            </Button>
+          </div>
+        </Card>
+      ) : null}
 
       {phase === "input" ? (
         <SimpleInputForm
@@ -77,36 +103,70 @@ export default function SimplePage() {
         />
       ) : (
         <div className="grid gap-6">
-          <ResultMetrics
-            finalValue={result.finalValue}
-            totalContributions={result.totalContributions}
-            totalReturn={result.totalReturn}
-            effectiveAnnualRate={result.effectiveAnnualRate}
-          />
+          <Card rounded="2xl" padding="lg">
+            <p className="text-sm font-semibold text-secondary">최종 자산</p>
+            <p className="mt-2 text-[40px] font-bold leading-tight text-primary text-numeric">
+              {formatKRW(result.finalValue)}
+            </p>
+            <p
+              className={`mt-2 text-base font-bold text-numeric ${
+                result.totalReturn >= 0 ? "text-up" : "text-down"
+              }`}
+            >
+              {result.totalReturn >= 0 ? "+" : ""}
+              {formatKRW(result.totalReturn)} (
+              {result.totalContributions > 0
+                ? ((result.totalReturn / result.totalContributions) * 100).toFixed(1)
+                : "0.0"}
+              %)
+            </p>
+          </Card>
 
-          <section className="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {[
+              ["원금 합계", formatKRW(result.totalContributions)],
+              ["이자 합계", formatKRW(result.totalReturn)],
+              ["연 환산 수익률", `${result.effectiveAnnualRate.toFixed(2)}%`],
+              [
+                "투자 기간",
+                `${input.contributionSchedule.reduce(
+                  (sum, item) => sum + item.durationYears,
+                  0,
+                )}년`,
+              ],
+            ].map(([label, value]) => (
+              <Card key={label} rounded="xl" padding="sm">
+                <p className="text-xs font-semibold text-secondary">{label}</p>
+                <p className="mt-2 break-words text-lg font-bold text-primary text-numeric">
+                  {value}
+                </p>
+              </Card>
+            ))}
+          </div>
+
+          <Card rounded="2xl" padding="lg">
             <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-neutral-950 dark:text-neutral-50">
+                <h2 className="text-[22px] font-bold text-primary">
                   자산 추이
                 </h2>
-                <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                <p className="text-sm text-secondary">
                   평가금액과 누적 원금을 연도별로 비교합니다
                 </p>
               </div>
             </div>
             <AssetGrowthChart data={chartData} />
-          </section>
+          </Card>
 
-          <section className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]">
-            <div className="border-b border-neutral-200 p-5 dark:border-white/10">
-              <h2 className="text-lg font-semibold text-neutral-950 dark:text-neutral-50">
+          <Card rounded="2xl" padding="sm" className="overflow-hidden">
+            <div className="border-b border-border p-5">
+              <h2 className="text-[22px] font-bold text-primary">
                 연도별 상세
               </h2>
             </div>
             <div className="max-h-96 overflow-auto">
               <table className="w-full min-w-[42rem] border-collapse text-sm">
-                <thead className="sticky top-0 bg-neutral-100 text-neutral-600 dark:bg-neutral-900 dark:text-neutral-300">
+                <thead className="sticky top-0 bg-card-subtle text-secondary">
                   <tr>
                     <th className="px-4 py-3 text-left font-medium">연차</th>
                     <th className="px-4 py-3 text-right font-medium">누적 원금</th>
@@ -118,18 +178,18 @@ export default function SimplePage() {
                 <tbody className="divide-y divide-neutral-100 dark:divide-white/10">
                   {result.yearlyBreakdown.map((row) => (
                     <tr key={row.year}>
-                      <td className="px-4 py-3 text-neutral-700 dark:text-neutral-300">
+                      <td className="px-4 py-3 text-secondary">
                         {row.year}년차
                       </td>
-                      <td className="px-4 py-3 text-right text-neutral-700 dark:text-neutral-300">
+                      <td className="px-4 py-3 text-right text-secondary">
                         {formatKRW(row.cumulativeContributions)}
                       </td>
-                      <td className="px-4 py-3 text-right font-medium text-neutral-950 dark:text-neutral-50">
+                      <td className="px-4 py-3 text-right font-bold text-primary">
                         {formatKRW(row.endValue)}
                       </td>
                       <td
                         className={`px-4 py-3 text-right ${
-                          row.interest >= 0 ? "text-positive" : "text-negative"
+                          row.interest >= 0 ? "text-up" : "text-down"
                         }`}
                       >
                         {row.interest >= 0 ? "+" : ""}
@@ -137,7 +197,7 @@ export default function SimplePage() {
                       </td>
                       <td
                         className={`px-4 py-3 text-right ${
-                          row.cumReturn >= 0 ? "text-positive" : "text-negative"
+                          row.cumReturn >= 0 ? "text-up" : "text-down"
                         }`}
                       >
                         {row.cumReturn >= 0 ? "+" : ""}
@@ -148,22 +208,15 @@ export default function SimplePage() {
                 </tbody>
               </table>
             </div>
-          </section>
+          </Card>
 
           <div className="flex flex-col gap-3 sm:flex-row">
-            <button
-              type="button"
-              onClick={() => setPhase("input")}
-              className="inline-flex h-11 items-center justify-center rounded-md border border-neutral-300 px-4 text-sm font-medium text-neutral-800 transition hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-info dark:border-white/10 dark:text-neutral-100 dark:hover:bg-white/5"
-            >
+            <Button type="button" onClick={() => setPhase("input")} variant="secondary">
               다시 계산하기
-            </button>
-            <Link
-              href="/advanced/dates"
-              className="inline-flex h-11 items-center justify-center rounded-md border border-neutral-900 bg-neutral-950 px-4 text-sm font-medium text-white transition hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-info dark:border-white/10 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
-            >
+            </Button>
+            <Button href="/advanced/dates">
               고급 모드 시도
-            </Link>
+            </Button>
           </div>
         </div>
       )}

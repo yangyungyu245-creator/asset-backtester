@@ -1,5 +1,6 @@
 import { RequestBoard } from "@/components/request/RequestBoard";
 import type { TickerRequest } from "@/components/request/types";
+import { Card } from "@/components/ui/Card";
 
 export const revalidate = 300;
 
@@ -116,22 +117,22 @@ export default async function RequestPage({ searchParams }: RequestPageProps) {
     <section className="mx-auto grid max-w-5xl gap-6 py-4 sm:py-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+          <p className="text-sm font-semibold text-secondary">
             커뮤니티 종목 요청
           </p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-normal text-neutral-950 dark:text-neutral-50">
-            종목 요청
+          <h1 className="mt-3 text-3xl font-bold tracking-normal text-primary sm:text-[40px]">
+            종목 추가 요청
           </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-600 dark:text-neutral-400">
+          <p className="mt-3 max-w-2xl text-base leading-7 text-secondary">
             원하는 종목이 사이트에 없나요? 미국, 한국, 암호화폐 종목을 Yahoo Finance
             데이터 기준으로 검증하고 매주 일요일 자동 처리합니다.
           </p>
         </div>
-        <div className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-400">
+        <Card rounded="xl" padding="sm" className="grid gap-1 text-sm text-secondary">
           <p>지원: 미국 / 한국 / 암호화폐</p>
           <p>검증: Yahoo Finance 데이터 기준</p>
           <p>처리: 매주 일요일 18:00 UTC</p>
-        </div>
+        </Card>
       </div>
 
       <RequestBoard

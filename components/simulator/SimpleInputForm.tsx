@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { NumberInput } from "@/components/ui/NumberInput";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { RangeWithNumber } from "@/components/ui/RangeWithNumber";
 import {
   type CompoundFrequency,
@@ -120,8 +121,8 @@ export function SimpleInputForm({ input, onChange, onSubmit }: SimpleInputFormPr
         }
       }}
     >
-      <div className="grid gap-5 rounded-lg border border-neutral-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]">
-        <div className="rounded-lg bg-neutral-50 p-4 text-sm leading-6 text-neutral-600 dark:bg-white/[0.03] dark:text-neutral-400">
+      <Card rounded="2xl" padding="lg" className="grid gap-5">
+        <div className="rounded-xl bg-card-subtle p-4 text-sm leading-6 text-secondary">
           <p>지금부터 {totalYears}년 동안의 적립 시나리오를 시뮬레이션합니다.</p>
           <p>각 구간별로 다른 월 적립액을 설정할 수 있습니다.</p>
         </div>
@@ -140,17 +141,17 @@ export function SimpleInputForm({ input, onChange, onSubmit }: SimpleInputFormPr
         <div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-sm font-medium text-neutral-800 dark:text-neutral-200">
+              <h2 className="text-lg font-bold text-primary">
                 월 적립 일정
               </h2>
-              <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+              <p className="mt-1 text-sm text-secondary">
                 예: 1년 100만 → 3년 150만 → 5년 200만
               </p>
             </div>
             <button
               type="button"
               onClick={addPeriod}
-              className="inline-flex h-10 items-center justify-center rounded-md border border-neutral-300 px-3 text-sm font-medium text-neutral-800 transition hover:bg-neutral-100 dark:border-white/10 dark:text-neutral-100 dark:hover:bg-white/5"
+              className="inline-flex h-10 items-center justify-center rounded-lg border border-border px-3 text-sm font-bold text-brand transition hover:bg-brand-bg"
             >
               + 구간 추가
             </button>
@@ -160,7 +161,7 @@ export function SimpleInputForm({ input, onChange, onSubmit }: SimpleInputFormPr
             {input.contributionSchedule.map((period, index) => (
               <div
                 key={period.id}
-                className="grid gap-4 rounded-lg border border-neutral-200 p-4 dark:border-white/10 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,0.8fr)_auto] lg:items-end"
+                className="grid gap-4 rounded-xl bg-card-subtle p-4 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,0.8fr)_auto] lg:items-end"
               >
                 <RangeWithNumber
                   id={`durationYears-${period.id}`}
@@ -190,7 +191,7 @@ export function SimpleInputForm({ input, onChange, onSubmit }: SimpleInputFormPr
                   type="button"
                   onClick={() => removePeriod(period.id)}
                   disabled={input.contributionSchedule.length < 2}
-                  className="inline-flex h-11 items-center justify-center rounded-md border border-neutral-300 px-3 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-neutral-200 dark:hover:bg-white/5"
+                  className="inline-flex h-11 items-center justify-center rounded-lg border border-border px-3 text-sm font-bold text-secondary transition hover:bg-card disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   삭제
                 </button>
@@ -198,7 +199,7 @@ export function SimpleInputForm({ input, onChange, onSubmit }: SimpleInputFormPr
             ))}
           </div>
           {errors.contributionSchedule?.[0] ? (
-            <p className="mt-2 text-xs text-negative">
+            <p className="mt-2 text-xs text-up">
               {errors.contributionSchedule[0]}
             </p>
           ) : null}
@@ -218,7 +219,7 @@ export function SimpleInputForm({ input, onChange, onSubmit }: SimpleInputFormPr
         />
 
         <fieldset>
-          <legend className="text-sm font-medium text-neutral-800 dark:text-neutral-200">
+          <legend className="text-sm font-bold text-primary">
             복리 주기
           </legend>
           <div className="mt-2 grid grid-cols-3 gap-2">
@@ -227,8 +228,8 @@ export function SimpleInputForm({ input, onChange, onSubmit }: SimpleInputFormPr
                 key={option.value}
                 className={`flex h-10 cursor-pointer items-center justify-center rounded-md border text-sm transition ${
                   input.compoundFrequency === option.value
-                    ? "border-info bg-info text-white"
-                    : "border-neutral-300 text-neutral-700 hover:border-info dark:border-white/10 dark:text-neutral-300"
+                    ? "border-brand bg-brand text-white"
+                    : "border-border text-secondary hover:bg-card-subtle hover:text-primary"
                 }`}
               >
                 <input
@@ -248,7 +249,7 @@ export function SimpleInputForm({ input, onChange, onSubmit }: SimpleInputFormPr
         <Button type="submit" disabled={!validation.success} className="w-full">
           계산하기
         </Button>
-      </div>
+      </Card>
     </form>
   );
 }

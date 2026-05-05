@@ -2,6 +2,7 @@
 
 import type { TickerMeta } from "@/lib/data/tickerIndex";
 import type { SelectedTicker } from "@/store/useSimulationStore";
+import { Card } from "@/components/ui/Card";
 
 type WeightSliderProps = {
   selectedTickers: SelectedTicker[];
@@ -24,20 +25,20 @@ export function WeightSlider({
   const isValid = Math.abs(diff) <= 0.01;
 
   return (
-    <section className="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]">
+    <Card rounded="2xl" padding="lg">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-neutral-950 dark:text-neutral-50">
+          <h2 className="text-[22px] font-bold text-primary">
             종목별 비중
           </h2>
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+          <p className="mt-1 text-sm text-secondary">
             모든 종목 비중의 합계가 100%여야 합니다.
           </p>
         </div>
         <button
           type="button"
           onClick={onDistribute}
-          className="inline-flex h-10 items-center justify-center rounded-md border border-neutral-300 px-3 text-sm font-medium text-neutral-800 transition hover:bg-neutral-100 dark:border-white/10 dark:text-neutral-100 dark:hover:bg-white/5"
+          className="inline-flex h-10 items-center justify-center rounded-lg border border-border px-3 text-sm font-bold text-brand transition hover:bg-brand-bg"
         >
           균등 분배
         </button>
@@ -50,13 +51,13 @@ export function WeightSlider({
           return (
             <div
               key={item.ticker}
-              className="grid gap-3 rounded-lg border border-neutral-200 p-4 dark:border-white/10 md:grid-cols-[10rem_minmax(0,1fr)_8rem] md:items-center"
+              className="grid gap-3 rounded-xl bg-card-subtle p-4 md:grid-cols-[10rem_minmax(0,1fr)_8rem] md:items-center"
             >
               <div className="min-w-0">
-                <p className="font-semibold text-neutral-950 dark:text-neutral-50">
+                <p className="font-bold text-primary">
                   {item.ticker}
                 </p>
-                <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">
+                <p className="truncate text-xs text-secondary">
                   {meta?.name_ko || meta?.name || "종목"}
                 </p>
               </div>
@@ -67,9 +68,9 @@ export function WeightSlider({
                 step={1}
                 value={item.weight}
                 onChange={(event) => onChange(item.ticker, Number(event.target.value))}
-                className="w-full accent-info"
+                className="w-full accent-brand"
               />
-              <label className="flex h-11 items-center rounded-md border border-neutral-300 bg-white px-3 focus-within:ring-2 focus-within:ring-info dark:border-white/10 dark:bg-neutral-950">
+              <label className="flex h-11 items-center rounded-md border border-border bg-card px-3 focus-within:ring-2 focus-within:ring-brand/30">
                 <input
                   type="number"
                   min={0}
@@ -79,9 +80,9 @@ export function WeightSlider({
                   onChange={(event) =>
                     onChange(item.ticker, Number(event.target.value))
                   }
-                  className="min-w-0 flex-1 bg-transparent text-right text-sm text-neutral-950 outline-none dark:text-neutral-50"
+                  className="min-w-0 flex-1 bg-transparent text-right text-sm text-primary outline-none"
                 />
-                <span className="ml-2 text-sm text-neutral-500 dark:text-neutral-400">
+                <span className="ml-2 text-sm text-secondary">
                   %
                 </span>
               </label>
@@ -90,13 +91,13 @@ export function WeightSlider({
         })}
       </div>
 
-      <p className={`mt-4 text-sm font-medium ${isValid ? "text-positive" : "text-negative"}`}>
+      <p className={`mt-4 text-sm font-bold ${isValid ? "text-brand" : "text-up"}`}>
         {isValid
           ? `합계 ${totalWeight.toFixed(2)}% ✓`
           : diff > 0
             ? `합계 ${totalWeight.toFixed(2)}% (${diff.toFixed(2)}% 부족)`
             : `합계 ${totalWeight.toFixed(2)}% (${Math.abs(diff).toFixed(2)}% 초과)`}
       </p>
-    </section>
+    </Card>
   );
 }

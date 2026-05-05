@@ -17,27 +17,29 @@ export function MetricCard({
 }: MetricCardProps) {
   const valueColor =
     tone === "positive"
-      ? "text-positive"
+      ? "text-up"
       : tone === "negative"
-        ? "text-negative"
-        : "text-neutral-950 dark:text-neutral-50";
+        ? "text-down"
+        : "text-primary";
 
   return (
     <article
-      className="animate-[fadeIn_320ms_ease-out_both] rounded-lg border border-neutral-200 bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md dark:border-white/10 dark:bg-[#1a1a1a] dark:hover:border-white/20"
+      className={`animate-[fadeIn_320ms_ease-out_both] rounded-2xl border border-border bg-card p-4 shadow-subtle transition duration-200 hover:bg-card-subtle ${
+        featured ? "col-span-2 lg:col-span-2" : ""
+      }`}
       style={{ animationDelay: `${index * 50}ms` }}
     >
-      <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+      <p className="text-xs font-bold text-secondary">
         {label}
       </p>
       <p
-        className={`mt-2 font-semibold tracking-normal ${valueColor} ${
-          featured ? "text-3xl md:text-[32px]" : "text-2xl md:text-[28px]"
+        className={`mt-2 font-bold tracking-normal text-numeric ${valueColor} ${
+          featured ? "text-3xl md:text-[40px]" : "text-2xl md:text-[28px]"
         }`}
       >
         {value}
       </p>
-      <p className="mt-2 min-h-5 text-xs leading-5 text-neutral-500 dark:text-neutral-400">
+      <p className="mt-2 min-h-5 text-xs leading-5 text-secondary">
         {helper}
       </p>
     </article>

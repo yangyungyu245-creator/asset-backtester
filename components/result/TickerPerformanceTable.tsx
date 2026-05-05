@@ -10,14 +10,14 @@ type TickerPerformanceTableProps = {
 
 function getValueClassName(value: number) {
   if (value > 0) {
-    return "text-positive";
+    return "text-up";
   }
 
   if (value < 0) {
-    return "text-negative";
+    return "text-down";
   }
 
-  return "text-neutral-600 dark:text-neutral-300";
+  return "text-secondary";
 }
 
 export function TickerPerformanceTable({ rows }: TickerPerformanceTableProps) {
@@ -26,19 +26,19 @@ export function TickerPerformanceTable({ rows }: TickerPerformanceTableProps) {
   }
 
   return (
-    <section className="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]">
+    <section className="rounded-2xl border border-border bg-card p-5 shadow-subtle">
       <div>
-        <h2 className="text-lg font-semibold text-neutral-950 dark:text-neutral-50">
+        <h2 className="text-[22px] font-bold text-primary">
           종목별 최종 성과
         </h2>
-        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+        <p className="mt-1 text-sm text-secondary">
           각 종목에 투입된 원금과 종료 시점 평가액을 비교합니다.
         </p>
       </div>
 
       <div className="mt-5 overflow-x-auto">
         <table className="min-w-[760px] w-full text-left text-sm">
-          <thead className="border-b border-neutral-200 text-xs uppercase text-neutral-500 dark:border-white/10 dark:text-neutral-400">
+          <thead className="border-b border-border text-xs uppercase text-secondary">
             <tr>
               <th className="py-3 pr-4 font-medium">종목</th>
               <th className="px-4 py-3 text-right font-medium">최종 원금</th>
@@ -54,18 +54,18 @@ export function TickerPerformanceTable({ rows }: TickerPerformanceTableProps) {
                 <td className="py-3 pr-4">
                   <Link
                     href={`/asset/${encodeURIComponent(row.ticker)}`}
-                    className="font-mono font-semibold text-neutral-950 underline-offset-4 hover:text-info hover:underline dark:text-neutral-50"
+                    className="font-mono font-bold text-primary underline-offset-4 hover:text-brand hover:underline"
                   >
                     {row.ticker}
                   </Link>
-                  <div className="mt-1 max-w-52 truncate text-xs text-neutral-500 dark:text-neutral-400">
+                  <div className="mt-1 max-w-52 truncate text-xs text-secondary">
                     {row.name_ko || row.name || "데이터 준비 중"}
                   </div>
                 </td>
-                <td className="px-4 py-3 text-right text-neutral-700 dark:text-neutral-300">
+                <td className="px-4 py-3 text-right text-secondary">
                   {formatCompactKRW(row.contributions)}
                 </td>
-                <td className="px-4 py-3 text-right font-medium text-neutral-950 dark:text-neutral-50">
+                <td className="px-4 py-3 text-right font-bold text-primary">
                   {formatCompactKRW(row.finalValue)}
                 </td>
                 <td
@@ -82,7 +82,7 @@ export function TickerPerformanceTable({ rows }: TickerPerformanceTableProps) {
                 >
                   {formatPercentValue(row.returnRate, 1)}
                 </td>
-                <td className="py-3 pl-4 text-right text-neutral-700 dark:text-neutral-300">
+                <td className="py-3 pl-4 text-right text-secondary">
                   {formatPercentValue(row.finalWeight, 1)}
                 </td>
               </tr>

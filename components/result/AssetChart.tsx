@@ -68,22 +68,22 @@ function renderTooltip({ active, payload, label }: TooltipProps<number, string>)
       : null;
 
   return (
-    <div className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs shadow-lg dark:border-white/10 dark:bg-neutral-950">
-      <p className="font-medium text-neutral-950 dark:text-neutral-50">
+    <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs shadow-medium">
+      <p className="font-bold text-primary">
         {String(label ?? point.date)}
         {point.isFuture ? " · 미래 예측" : ""}
       </p>
-      <div className="mt-2 grid gap-1 text-neutral-600 dark:text-neutral-300">
+      <div className="mt-2 grid gap-1 text-secondary">
         <p>포트폴리오: {formatCompactKRW(point.value)}</p>
         {point.benchmarkValue !== null && point.benchmarkValue !== undefined ? (
           <p>S&P 500 (VOO): {formatCompactKRW(point.benchmarkValue)}</p>
         ) : null}
         <p>누적 원금: {formatCompactKRW(point.contributions)}</p>
-        <p className={profit >= 0 ? "text-positive" : "text-negative"}>
+        <p className={profit >= 0 ? "text-up" : "text-down"}>
           수익: {formatSignedKRW(profit)} ({formatPercentValue(profitRate)})
         </p>
         {benchmarkDiff !== null ? (
-          <p className={benchmarkDiff >= 0 ? "text-positive" : "text-negative"}>
+          <p className={benchmarkDiff >= 0 ? "text-up" : "text-down"}>
             VOO 대비 {formatSignedKRW(benchmarkDiff)}
           </p>
         ) : null}
@@ -105,7 +105,7 @@ function renderLegend({ payload }: LegendContentProps) {
   }
 
   return (
-    <ul className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-neutral-500 dark:text-neutral-400">
+    <ul className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-secondary">
       {entries.map((entry) => {
         const dashed =
           entry.dataKey === "contributions" || entry.dataKey === "futureValue";
@@ -151,13 +151,13 @@ export function AssetChart({ data, futureStartDate }: AssetChartProps) {
   const hasFuture = chartData.some((point) => point.isFuture);
 
   return (
-    <section className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a] sm:p-5">
+    <section className="rounded-2xl border border-border bg-card p-4 shadow-subtle sm:p-5">
       <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-neutral-950 dark:text-neutral-50">
+          <h2 className="text-[22px] font-bold text-primary">
             자산 추이
           </h2>
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+          <p className="mt-1 text-sm text-secondary">
             평가금액, 누적 원금, 같은 조건의 S&P 500 (VOO) 결과를 비교합니다.
           </p>
         </div>

@@ -5,6 +5,7 @@ import { RequestCard } from "@/components/request/RequestCard";
 import { RequestForm } from "@/components/request/RequestForm";
 import type { TickerRequest } from "@/components/request/types";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 
 type RequestBoardProps = {
   requests: TickerRequest[];
@@ -49,7 +50,7 @@ export function RequestBoard({
 
   return (
     <div className="grid gap-6">
-      <div className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a] sm:p-5">
+      <Card rounded="2xl" padding="lg">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <label htmlFor="requestSearch" className="sr-only">
             요청 검색
@@ -62,25 +63,25 @@ export function RequestBoard({
               setVisibleCount(20);
             }}
             placeholder="이미 누가 요청했는지 확인하세요..."
-            className="h-11 min-w-0 flex-1 rounded-md border border-neutral-300 bg-white px-3 text-sm text-neutral-950 outline-none transition focus:border-info focus:ring-2 focus:ring-info/30 dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-50"
+            className="h-11 min-w-0 flex-1 rounded-md border border-border bg-card px-3 text-sm text-primary outline-none transition focus:ring-2 focus:ring-brand/30"
           />
           <Button type="button" onClick={() => openForm()} className="sm:w-auto">
             + 새 요청 작성
           </Button>
         </div>
         {!csvConfigured ? (
-          <p className="mt-3 text-sm text-negative">
+          <p className="mt-3 text-sm text-up">
             요청 목록 CSV URL이 설정되지 않아 목록을 불러오지 못했습니다.
           </p>
         ) : null}
-      </div>
+      </Card>
 
       <section className="grid gap-3">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-base font-semibold text-neutral-950 dark:text-neutral-50">
+          <h2 className="text-base font-bold text-primary">
             요청 목록
           </h2>
-          <span className="text-sm text-neutral-500 dark:text-neutral-400">
+          <span className="text-sm text-secondary">
             {filtered.length}건
           </span>
         </div>
@@ -90,23 +91,23 @@ export function RequestBoard({
             <RequestCard key={request.id} request={request} />
           ))
         ) : query.trim() ? (
-          <div className="rounded-lg border border-neutral-200 bg-white p-8 text-center shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]">
-            <p className="text-sm text-neutral-600 dark:text-neutral-300">
+          <Card rounded="2xl" className="p-8 text-center">
+            <p className="text-sm text-secondary">
               &quot;{query}&quot;에 대한 요청이 없습니다.
             </p>
             <Button type="button" onClick={() => openForm(query)} className="mt-5">
               직접 요청하기
             </Button>
-          </div>
+          </Card>
         ) : (
-          <div className="rounded-lg border border-neutral-200 bg-white p-8 text-center shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]">
-            <p className="text-sm text-neutral-600 dark:text-neutral-300">
+          <Card rounded="2xl" className="p-8 text-center">
+            <p className="text-sm text-secondary">
               아직 요청이 없습니다.
             </p>
             <Button type="button" onClick={() => openForm("")} className="mt-5">
               + 새 요청 작성
             </Button>
-          </div>
+          </Card>
         )}
 
         {filtered.length > visibleCount ? (
@@ -128,15 +129,15 @@ export function RequestBoard({
           aria-modal="true"
           aria-labelledby="requestFormTitle"
         >
-          <div className="mx-auto max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-lg border border-neutral-200 bg-white p-5 shadow-xl dark:border-white/10 dark:bg-[#1a1a1a] sm:rounded-lg">
+          <div className="mx-auto max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-2xl border border-border bg-card p-5 shadow-strong sm:rounded-2xl">
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
-                <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                <p className="text-sm text-secondary">
                   커뮤니티 종목 요청
                 </p>
                 <h2
                   id="requestFormTitle"
-                  className="mt-1 text-xl font-semibold text-neutral-950 dark:text-neutral-50"
+                  className="mt-1 text-xl font-bold text-primary"
                 >
                   새 요청 작성
                 </h2>
@@ -144,7 +145,7 @@ export function RequestBoard({
               <button
                 type="button"
                 onClick={closeForm}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-neutral-200 text-xl leading-none text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-950 dark:border-white/10 dark:hover:bg-white/10 dark:hover:text-neutral-50"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border text-xl leading-none text-secondary transition hover:bg-card-subtle hover:text-primary"
                 aria-label="요청 작성 닫기"
               >
                 ×

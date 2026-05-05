@@ -8,6 +8,7 @@ import { ContributionScheduler } from "@/components/simulator/ContributionSchedu
 import { WeightSlider } from "@/components/simulator/WeightSlider";
 import { SaveActionButton } from "@/components/saved/SaveActionButton";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { NumberInput } from "@/components/ui/NumberInput";
 import { loadTickerIndex, type TickerMeta } from "@/lib/data/tickerIndex";
 import {
@@ -84,16 +85,16 @@ export default function AdvancedSetupPage() {
     <section className="py-4 sm:py-8">
       <AdvancedStepper currentStep={3} />
       <div>
-        <h1 className="text-3xl font-semibold text-neutral-950 dark:text-neutral-50">
+        <h1 className="text-3xl font-bold text-primary sm:text-[40px]">
           투자 금액과 비중
         </h1>
-        <p className="mt-3 text-sm leading-6 text-neutral-600 dark:text-neutral-400">
+        <p className="mt-3 text-base leading-7 text-secondary">
           선택한 종목 {selectedTickers.length}개
         </p>
       </div>
 
       <div className="mt-6 grid gap-6">
-        <section className="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]">
+        <Card rounded="2xl" padding="lg">
           <NumberInput
             id="initialAmount"
             label="초기 투자금"
@@ -109,7 +110,7 @@ export default function AdvancedSetupPage() {
                 : "초기 투자금은 0원 이상 100억 원 이하로 입력해 주세요."
             }
           />
-        </section>
+        </Card>
 
         <ContributionScheduler
           periods={contributionSchedule}
@@ -127,19 +128,19 @@ export default function AdvancedSetupPage() {
           onDistribute={distributeWeightsEqually}
         />
 
-        <div className="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]">
+        <Card rounded="2xl" padding="lg">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-neutral-950 dark:text-neutral-50">
+              <h2 className="text-[22px] font-bold text-primary">
                 포트폴리오 저장
               </h2>
-              <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+              <p className="mt-1 text-sm text-secondary">
                 로그인하면 선택 종목과 비중을 저장해 다시 불러올 수 있습니다.
               </p>
             </div>
             <SaveActionButton label="포트폴리오 저장" />
           </div>
-        </div>
+        </Card>
 
         <AdvancedOptionsPanel
           options={options}
