@@ -26,7 +26,68 @@ type YahooQuote = {
   netAssets?: number;
   navPrice?: number;
   trailingPE?: number;
+  priceToBook?: number;
+  fiftyTwoWeekLow?: number;
+  fiftyTwoWeekHigh?: number;
+  regularMarketPreviousClose?: number;
+  regularMarketTime?: number;
+  averageDailyVolume3Month?: number;
   exchange?: string;
+  exchangeTimezoneShortName?: string;
+  fullExchangeName?: string;
+  sector?: string;
+  industry?: string;
+};
+
+type YahooSummaryValue<T = number> = {
+  raw?: T;
+  fmt?: string;
+  longFmt?: string;
+};
+
+type YahooQuoteSummary = {
+  quoteSummary?: {
+    result?: Array<{
+      summaryDetail?: {
+        previousClose?: YahooSummaryValue;
+        dividendYield?: YahooSummaryValue;
+        totalAssets?: YahooSummaryValue;
+        navPrice?: YahooSummaryValue;
+        fiftyTwoWeekLow?: YahooSummaryValue;
+        fiftyTwoWeekHigh?: YahooSummaryValue;
+        trailingPE?: YahooSummaryValue;
+      };
+      defaultKeyStatistics?: {
+        priceToBook?: YahooSummaryValue;
+      };
+      assetProfile?: {
+        sector?: string;
+        industry?: string;
+      };
+      fundProfile?: {
+        feesExpensesInvestment?: {
+          annualReportExpenseRatio?: YahooSummaryValue;
+        };
+        fundOverview?: {
+          categoryName?: string;
+        };
+        topHoldings?: {
+          equityHoldings?: {
+            priceToBook?: YahooSummaryValue;
+          };
+        };
+      };
+    }>;
+  };
+};
+
+const displayNameMap: Record<string, string> = {
+  "^GSPC": "S&P 500",
+  "^IXIC": "나스닥",
+  "^KS11": "코스피",
+  "^KQ11": "코스닥",
+  "^VIX": "VIX",
+  "KRW=X": "USD/KRW",
 };
 
 const periodMap: Record<string, { range: string; interval: string }> = {
@@ -90,6 +151,25 @@ async function fetchYahooQuote(symbol: string) {
   }
 }
 
+async function fetchYahooSummary(symbol: string) {
+  try {
+    const modules = [
+      "summaryDetail",
+      "defaultKeyStatistics",
+      "assetProfile",
+      "fundProfile",
+    ].join(",");
+    const url = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(
+      symbol,
+    )}?modules=${modules}`;
+    const payload = await fetchJson<YahooQuoteSummary>(url);
+
+    return payload.quoteSummary?.result?.[0] ?? null;
+  } catch {
+    return null;
+  }
+}
+
 async function fetchYahooChart(symbol: string, period: string) {
   const option = periodMap[period] ?? periodMap["1y"];
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(
@@ -99,13 +179,24 @@ async function fetchYahooChart(symbol: string, period: string) {
     chart?: {
       result?: Array<{
         timestamp?: number[];
-        indicators?: { quote?: Array<{ close?: Array<number | null> }> };
+        indicators?: {
+          quote?: Array<{
+            open?: Array<number | null>;
+            high?: Array<number | null>;
+            low?: Array<number | null>;
+            close?: Array<number | null>;
+          }>;
+        };
       }>;
     };
   }>(url);
   const result = payload.chart?.result?.[0];
   const timestamps = result?.timestamp ?? [];
-  const closes = result?.indicators?.quote?.[0]?.close ?? [];
+  const quote = result?.indicators?.quote?.[0];
+  const opens = quote?.open ?? [];
+  const highs = quote?.high ?? [];
+  const lows = quote?.low ?? [];
+  const closes = quote?.close ?? [];
 
   return timestamps.flatMap((timestamp, index) => {
     const close = closes[index];
@@ -117,6 +208,18 @@ async function fetchYahooChart(symbol: string, period: string) {
     return [
       {
         date: new Date(timestamp * 1000).toISOString().slice(0, 10),
+        open:
+          typeof opens[index] === "number" && Number.isFinite(opens[index])
+            ? opens[index]
+            : close,
+        high:
+          typeof highs[index] === "number" && Number.isFinite(highs[index])
+            ? highs[index]
+            : close,
+        low:
+          typeof lows[index] === "number" && Number.isFinite(lows[index])
+            ? lows[index]
+            : close,
         close,
       },
     ];
@@ -127,7 +230,13 @@ function filterLocalPrices(
   prices: TickerData["prices"],
   period: string,
 ) {
-  const rows = prices.map(([date, close]) => ({ date, close }));
+  const rows = prices.map(([date, close]) => ({
+    date,
+    open: close,
+    high: close,
+    low: close,
+    close,
+  }));
 
   if (period === "max") {
     return rows;
@@ -181,13 +290,43 @@ function formatYield(value: number | undefined) {
   return value > 1 ? value : value * 100;
 }
 
+function rawValue(value: YahooSummaryValue | undefined) {
+  return typeof value?.raw === "number" && Number.isFinite(value.raw)
+    ? value.raw
+    : null;
+}
+
+function getDisplayName(symbol: string, local: TickerData | null, quote: YahooQuote | null) {
+  return (
+    displayNameMap[symbol] ??
+    local?.name_ko ??
+    quote?.longName ??
+    quote?.shortName ??
+    local?.name ??
+    symbol
+  );
+}
+
+function getMarketName(symbol: string, local: TickerData | null, quote: YahooQuote | null) {
+  if (symbol.includes("=X")) {
+    return "외환시장";
+  }
+
+  if (symbol.startsWith("^")) {
+    return quote?.fullExchangeName ?? local?.exchange ?? "시장 지수";
+  }
+
+  return quote?.fullExchangeName ?? quote?.exchange ?? local?.exchange ?? null;
+}
+
 export async function GET(request: Request, { params }: AssetRouteContext) {
   const url = new URL(request.url);
   const period = url.searchParams.get("period") ?? "1y";
   const symbol = decodeURIComponent(params.symbol).trim();
-  const [local, quote] = await Promise.all([
+  const [local, quote, summary] = await Promise.all([
     readLocalTicker(symbol),
     fetchYahooQuote(symbol),
+    fetchYahooSummary(symbol),
   ]);
   let chart = local ? filterLocalPrices(local.prices, period) : [];
   let chartSource: "local" | "yahoo" | "none" = chart.length > 0 ? "local" : "none";
@@ -202,36 +341,77 @@ export async function GET(request: Request, { params }: AssetRouteContext) {
   }
 
   const latestLocalPrice = local?.prices[local.prices.length - 1]?.[1] ?? null;
-  const latestPrice = quote?.regularMarketPrice ?? latestLocalPrice;
+  const latestChartPrice = chart[chart.length - 1]?.close ?? null;
+  const latestPrice = quote?.regularMarketPrice ?? latestChartPrice ?? latestLocalPrice;
+  const previousClose =
+    quote?.regularMarketPreviousClose ??
+    rawValue(summary?.summaryDetail?.previousClose);
+  const chartChange =
+    previousClose && latestPrice ? latestPrice - previousClose : null;
   const dividendYield = formatYield(
-    quote?.dividendYield ?? quote?.trailingAnnualDividendYield,
+    quote?.dividendYield ??
+      quote?.trailingAnnualDividendYield ??
+      rawValue(summary?.summaryDetail?.dividendYield) ??
+      undefined,
+  );
+  const assetType = inferAssetType(symbol, local, quote);
+  const fiftyTwoWeekLow =
+    quote?.fiftyTwoWeekLow ?? rawValue(summary?.summaryDetail?.fiftyTwoWeekLow);
+  const fiftyTwoWeekHigh =
+    quote?.fiftyTwoWeekHigh ?? rawValue(summary?.summaryDetail?.fiftyTwoWeekHigh);
+  const latestChartDate = chart[chart.length - 1]?.date ?? null;
+  const expenseRatio = rawValue(
+    summary?.fundProfile?.feesExpensesInvestment?.annualReportExpenseRatio,
   );
 
   return NextResponse.json({
     symbol,
+    displayName: getDisplayName(symbol, local, quote),
     name: quote?.longName ?? quote?.shortName ?? local?.name ?? symbol,
     nameKo: local?.name_ko ?? "",
-    assetType: inferAssetType(symbol, local, quote),
-    currency: quote?.currency ?? local?.currency ?? "데이터 준비 중",
-    exchange: quote?.exchange ?? local?.exchange ?? "데이터 준비 중",
+    assetType,
+    currency: quote?.currency ?? local?.currency ?? null,
+    exchange: getMarketName(symbol, local, quote),
     latestPrice,
-    change: quote?.regularMarketChange ?? null,
-    changePercent: quote?.regularMarketChangePercent ?? null,
+    previousClose: previousClose ?? null,
+    change: quote?.regularMarketChange ?? chartChange,
+    changePercent:
+      quote?.regularMarketChangePercent ??
+      (chartChange !== null && previousClose ? (chartChange / previousClose) * 100 : null),
     chart,
     chartSource,
     fields: {
       marketCap: quote?.marketCap ?? null,
       dividendYield,
-      aum: quote?.totalAssets ?? quote?.netAssets ?? null,
-      nav: quote?.navPrice ?? null,
+      aum:
+        quote?.totalAssets ??
+        quote?.netAssets ??
+        rawValue(summary?.summaryDetail?.totalAssets),
+      nav: quote?.navPrice ?? rawValue(summary?.summaryDetail?.navPrice),
       premiumDiscount:
         latestPrice && quote?.navPrice
           ? ((latestPrice - quote.navPrice) / quote.navPrice) * 100
           : null,
-      expenseRatio: null,
-      underlyingIndex: null,
+      expenseRatio: expenseRatio !== null ? formatYield(expenseRatio) : null,
+      underlyingIndex:
+        summary?.fundProfile?.fundOverview?.categoryName ??
+        (assetType === "지수" ? getDisplayName(symbol, local, quote) : null),
       issuer: null,
-      peRatio: quote?.trailingPE ?? null,
+      peRatio: quote?.trailingPE ?? rawValue(summary?.summaryDetail?.trailingPE),
+      priceToBook:
+        quote?.priceToBook ??
+        rawValue(summary?.defaultKeyStatistics?.priceToBook) ??
+        rawValue(summary?.fundProfile?.topHoldings?.equityHoldings?.priceToBook),
+      fiftyTwoWeekLow,
+      fiftyTwoWeekHigh,
+      sector: quote?.sector ?? summary?.assetProfile?.sector ?? null,
+      industry: quote?.industry ?? summary?.assetProfile?.industry ?? null,
+      previousClose: previousClose ?? null,
+      latestTradingDate:
+        quote?.regularMarketTime
+          ? new Date(quote.regularMarketTime * 1000).toISOString().slice(0, 10)
+          : latestChartDate,
+      averageVolume: quote?.averageDailyVolume3Month ?? null,
     },
     updatedAt: new Date().toISOString(),
     warnings:

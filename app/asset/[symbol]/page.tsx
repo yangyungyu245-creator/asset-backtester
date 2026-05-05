@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { AssetDetailView } from "@/components/asset/AssetDetailView";
+import { AssetDetailView } from "@/components/asset/AssetDetailContent";
 
 type AssetPageProps = {
   params: { symbol: string };
