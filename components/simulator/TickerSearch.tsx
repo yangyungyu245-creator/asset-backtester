@@ -122,9 +122,12 @@ export function TickerSearch({
               >
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <strong className="text-base text-neutral-950 dark:text-neutral-50">
+                    <Link
+                      href={`/asset/${encodeURIComponent(ticker.ticker)}`}
+                      className="text-base font-semibold text-neutral-950 underline-offset-4 hover:text-info hover:underline dark:text-neutral-50"
+                    >
                       {ticker.ticker}
-                    </strong>
+                    </Link>
                     <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600 dark:bg-white/10 dark:text-neutral-300">
                       {ticker.exchange}
                     </span>

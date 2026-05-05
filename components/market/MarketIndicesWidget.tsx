@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 const REFRESH_INTERVAL = 15 * 60 * 1000;
@@ -156,8 +157,9 @@ export function MarketIndicesWidget() {
               : "text-neutral-500 dark:text-neutral-400";
 
           return (
-            <article
+            <Link
               key={item.symbol}
+              href={`/asset/${encodeURIComponent(item.symbol)}`}
               className="rounded-lg bg-neutral-50 p-3 dark:bg-white/5"
             >
               <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
@@ -171,7 +173,7 @@ export function MarketIndicesWidget() {
                 {formatNumber(Math.abs(item.change ?? 0), item.decimals)} (
                 {formatNumber(Math.abs(item.changePercent ?? 0), 2)}%)
               </p>
-            </article>
+            </Link>
           );
         })}
       </div>
