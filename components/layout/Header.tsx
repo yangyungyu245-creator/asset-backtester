@@ -49,6 +49,12 @@ export function Header() {
               );
             })}
           </nav>
+          <Link
+            href="/login"
+            className="rounded-md border border-neutral-300 px-3 py-2 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-info dark:border-white/10 dark:text-neutral-200 dark:hover:bg-white/10"
+          >
+            로그인
+          </Link>
           <ThemeToggle />
         </div>
         <div className="flex items-center gap-2 md:hidden">
@@ -94,6 +100,13 @@ export function Header() {
                 </Link>
               );
             })}
+            <Link
+              href="/login"
+              onClick={() => setIsOpen(false)}
+              className="rounded-md px-3 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-white/10"
+            >
+              로그인
+            </Link>
           </div>
         </nav>
       ) : null}

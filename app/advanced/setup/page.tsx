@@ -6,6 +6,7 @@ import { AdvancedOptionsPanel } from "@/components/simulator/AdvancedOptionsPane
 import { AdvancedStepper } from "@/components/simulator/AdvancedStepper";
 import { ContributionScheduler } from "@/components/simulator/ContributionScheduler";
 import { WeightSlider } from "@/components/simulator/WeightSlider";
+import { SaveActionButton } from "@/components/saved/SaveActionButton";
 import { Button } from "@/components/ui/Button";
 import { NumberInput } from "@/components/ui/NumberInput";
 import { loadTickerIndex, type TickerMeta } from "@/lib/data/tickerIndex";
@@ -125,6 +126,20 @@ export default function AdvancedSetupPage() {
           onChange={updateWeight}
           onDistribute={distributeWeightsEqually}
         />
+
+        <div className="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-neutral-950 dark:text-neutral-50">
+                포트폴리오 저장
+              </h2>
+              <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                로그인하면 선택 종목과 비중을 저장해 다시 불러올 수 있습니다.
+              </p>
+            </div>
+            <SaveActionButton label="포트폴리오 저장" />
+          </div>
+        </div>
 
         <AdvancedOptionsPanel
           options={options}
