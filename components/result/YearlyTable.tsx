@@ -20,6 +20,7 @@ type MonthlyRow = {
   endValue: number;
   monthProfit: number;
   cumReturn: number;
+  isFuture?: boolean;
 };
 
 function createMonthlyRows(timeSeries: SimulationPoint[], initialAmount: number) {
@@ -44,6 +45,7 @@ function createMonthlyRows(timeSeries: SimulationPoint[], initialAmount: number)
       endValue: point.value,
       monthProfit,
       cumReturn,
+      isFuture: point.isFuture,
     });
 
     previousValue = point.value;
@@ -66,7 +68,7 @@ export function YearlyTable({ rows, timeSeries, initialAmount }: YearlyTableProp
       <div className="flex flex-col gap-4 border-b border-neutral-200 p-5 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-neutral-950 dark:text-neutral-50">
-            상세 표
+            상세 내역
           </h2>
           <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
             기간별 평가금액, 원금, 수익 흐름을 확인합니다.
@@ -107,7 +109,7 @@ export function YearlyTable({ rows, timeSeries, initialAmount }: YearlyTableProp
               <th className="px-4 py-3 text-right font-medium">누적 원금</th>
               <th className="px-4 py-3 text-right font-medium">평가금액</th>
               <th className="px-4 py-3 text-right font-medium">
-                {mode === "yearly" ? "그 해 수익" : "그 달 수익"}
+                {mode === "yearly" ? "연간 수익" : "월간 수익"}
               </th>
               <th className="px-4 py-3 text-right font-medium">누적 수익률</th>
             </tr>
@@ -157,6 +159,9 @@ export function YearlyTable({ rows, timeSeries, initialAmount }: YearlyTableProp
                   >
                     <td className="px-4 py-3 font-medium text-neutral-800 dark:text-neutral-200">
                       {row.month}
+                      {row.isFuture ? (
+                        <span className="ml-2 text-xs text-amber-500">예측</span>
+                      ) : null}
                     </td>
                     <td className="px-4 py-3 text-right text-neutral-600 dark:text-neutral-300">
                       {formatCompactKRW(row.contributions)}

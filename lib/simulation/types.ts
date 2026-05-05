@@ -37,6 +37,15 @@ export type SimulationResult = {
     ticker: string;
     issue: string;
   }[];
+  futureProjection?: {
+    startDate: string;
+    endDate: string;
+    portfolioCAGR: number;
+    tickerCAGRs: Record<string, number>;
+    tickerCAGRYears: Record<string, number>;
+    futureMonths: number;
+    realFinalValue: number;
+  };
 };
 
 export type ContributionPeriod = {
@@ -70,6 +79,7 @@ export type AdvancedOptions = {
   applyExchangeRate: boolean;
   inflationAdjusted: boolean;
   rebalance: "none" | "monthly" | "quarterly" | "annually";
+  futureMode: boolean;
 };
 
 export type AdvancedSimulationInput = {

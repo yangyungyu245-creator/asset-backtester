@@ -71,7 +71,7 @@ export default function AdvancedSetupPage() {
   function handleSubmit() {
     if (!canSubmit) {
       window.scrollTo({ top: 0, behavior: "smooth" });
-      alert(contributionValidation.error ?? "입력값을 확인해주세요.");
+      alert(contributionValidation.error ?? "입력값을 확인해 주세요.");
       return;
     }
 
@@ -105,7 +105,7 @@ export default function AdvancedSetupPage() {
             error={
               initialAmountValid
                 ? undefined
-                : "초기 투자금은 0원 이상 100억원 이하로 입력해주세요."
+                : "초기 투자금은 0원 이상 100억 원 이하로 입력해 주세요."
             }
           />
         </section>

@@ -46,10 +46,28 @@ function dateToYear(date: string) {
   return Number(date.slice(0, 4));
 }
 
+function toDateString(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function todayString() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return toDateString(today);
+}
+
 function daysBetween(startDate: string, endDate: string) {
   const start = new Date(`${startDate}T00:00:00Z`).getTime();
   const end = new Date(`${endDate}T00:00:00Z`).getTime();
   return Math.max(1, (end - start) / 86_400_000);
+}
+
+function addMonthsToDate(date: Date, months: number) {
+  const next = new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+  );
+  next.setUTCMonth(next.getUTCMonth() + months);
+  return next;
 }
 
 function getContributionForMonth(
@@ -60,6 +78,22 @@ function getContributionForMonth(
     (item) => item.startYearMonth <= yearMonth && yearMonth <= item.endYearMonth,
   );
   return period?.monthlyAmount ?? 0;
+}
+
+function getFutureContributionForMonth(
+  yearMonth: string,
+  schedule: AdvancedSimulationInput["contributionSchedule"],
+) {
+  const exact = getContributionForMonth(yearMonth, schedule);
+  if (exact > 0) {
+    return exact;
+  }
+
+  const sorted = [...schedule].sort((a, b) =>
+    a.startYearMonth.localeCompare(b.startYearMonth),
+  );
+  const lastStarted = sorted.findLast((item) => item.startYearMonth <= yearMonth);
+  return lastStarted?.monthlyAmount ?? 0;
 }
 
 function isRebalanceMonth(
@@ -616,10 +650,174 @@ export async function simulateAdvanced(
   };
 }
 
+function calculateTickerCAGR(tickerData: TickerData, targetDate: string) {
+  const endPrice = lookupValue(tickerData.prices, targetDate);
+  const target = new Date(`${targetDate}T00:00:00Z`);
+  target.setUTCFullYear(target.getUTCFullYear() - 5);
+  const targetStartDate = toDateString(target);
+  const startEntry =
+    tickerData.prices.find(([date]) => date >= targetStartDate) ??
+    tickerData.prices[0];
+
+  if (!endPrice || endPrice <= 0 || !startEntry || startEntry[1] <= 0) {
+    return { cagr: 0, years: 0 };
+  }
+
+  const [startDate, startPrice] = startEntry;
+  const years = daysBetween(startDate, targetDate) / 365.25;
+  const cagr = years > 0 ? Math.pow(endPrice / startPrice, 1 / years) - 1 : 0;
+
+  return {
+    cagr: Number.isFinite(cagr) ? cagr : 0,
+    years,
+  };
+}
+
+function simulateFutureCompounding({
+  startValue,
+  startContributions,
+  startDate,
+  endDate,
+  contributionSchedule,
+  annualRate,
+}: {
+  startValue: number;
+  startContributions: number;
+  startDate: string;
+  endDate: string;
+  contributionSchedule: AdvancedSimulationInput["contributionSchedule"];
+  annualRate: number;
+}) {
+  const monthlyRate = annualRate / 12;
+  let value = startValue;
+  let contributions = startContributions;
+  const series: SimulationResult["timeSeries"] = [];
+  let cursor = new Date(`${startDate}T00:00:00Z`);
+  const end = new Date(`${endDate}T00:00:00Z`);
+
+  while (cursor < end) {
+    const next = addMonthsToDate(cursor, 1);
+    const pointDate = next > end ? end : next;
+    const yearMonth = toDateString(pointDate).slice(0, 7);
+    const monthlyAmount = getFutureContributionForMonth(
+      yearMonth,
+      contributionSchedule,
+    );
+
+    value = value * (1 + monthlyRate) + monthlyAmount;
+    contributions += monthlyAmount;
+
+    series.push({
+      date: toDateString(pointDate),
+      value,
+      contributions,
+      isFuture: true,
+    });
+
+    cursor = pointDate;
+  }
+
+  return series;
+}
+
+export async function simulateAdvancedWithFuture(
+  input: AdvancedSimulationInput,
+): Promise<SimulationResult> {
+  const today = todayString();
+
+  if (!input.options.futureMode || input.endDate <= today) {
+    return simulateAdvanced(input);
+  }
+
+  const realInput: AdvancedSimulationInput = {
+    ...input,
+    endDate: today,
+    options: {
+      ...input.options,
+      futureMode: false,
+    },
+  };
+  const realResult = await simulateAdvanced(realInput);
+  const portfolio = normalizePortfolio(input.portfolio);
+  const tickerMap = await loadMultipleTickers(portfolio.map((item) => item.ticker));
+  const tickerCAGRs: Record<string, number> = {};
+  const tickerCAGRYears: Record<string, number> = {};
+  const futureWarnings: string[] = [];
+
+  for (const item of portfolio) {
+    const tickerData = tickerMap.get(item.ticker);
+    if (!tickerData) {
+      tickerCAGRs[item.ticker] = 0;
+      tickerCAGRYears[item.ticker] = 0;
+      continue;
+    }
+
+    const { cagr, years } = calculateTickerCAGR(tickerData, today);
+    tickerCAGRs[item.ticker] = cagr;
+    tickerCAGRYears[item.ticker] = years;
+
+    if (years > 0 && years < 4.75) {
+      futureWarnings.push(
+        `${item.ticker}은 상장 이후 약 ${years.toFixed(1)}년 데이터로 미래 수익률을 계산했습니다.`,
+      );
+    }
+  }
+
+  const portfolioCAGR = portfolio.reduce(
+    (sum, item) => sum + item.weight * (tickerCAGRs[item.ticker] ?? 0),
+    0,
+  );
+  const futureSeries = simulateFutureCompounding({
+    startValue: realResult.finalValue,
+    startContributions: realResult.totalContributions,
+    startDate: today,
+    endDate: input.endDate,
+    contributionSchedule: input.contributionSchedule,
+    annualRate: portfolioCAGR,
+  });
+  const mergedTimeSeries = [...realResult.timeSeries, ...futureSeries];
+  const finalPoint = mergedTimeSeries[mergedTimeSeries.length - 1];
+  const finalValue = finalPoint?.value ?? realResult.finalValue;
+  const totalContributions =
+    finalPoint?.contributions ?? realResult.totalContributions;
+  const totalReturn = finalValue - totalContributions;
+  const years = daysBetween(input.startDate, input.endDate) / 365.25;
+  const cagr =
+    totalContributions > 0 && finalValue > 0
+      ? Math.pow(finalValue / totalContributions, 1 / years) - 1
+      : 0;
+
+  return {
+    ...realResult,
+    finalValue,
+    totalContributions,
+    totalReturn,
+    cagr,
+    timeSeries: mergedTimeSeries,
+    yearlyBreakdown: createYearlyBreakdown(input, mergedTimeSeries),
+    warnings: Array.from(
+      new Set([
+        ...realResult.warnings,
+        ...futureWarnings,
+        "미래 구간은 과거 평균 수익률 기반 예측이며 실제 투자 결과와 다를 수 있습니다.",
+      ]),
+    ),
+    futureProjection: {
+      startDate: today,
+      endDate: input.endDate,
+      portfolioCAGR,
+      tickerCAGRs,
+      tickerCAGRYears,
+      futureMonths: futureSeries.length,
+      realFinalValue: realResult.finalValue,
+    },
+  };
+}
+
 export async function simulateAdvancedWithBenchmark(
   input: AdvancedSimulationInput,
 ): Promise<SimulationResult> {
-  const user = await simulateAdvanced(input);
+  const user = await simulateAdvancedWithFuture(input);
 
   if (input.startDate < "2010-09-09") {
     return {
@@ -632,7 +830,7 @@ export async function simulateAdvancedWithBenchmark(
   }
 
   try {
-    const benchmark = await simulateAdvanced({
+    const benchmark = await simulateAdvancedWithFuture({
       ...input,
       portfolio: [{ ticker: "VOO", weight: 100 }],
     });

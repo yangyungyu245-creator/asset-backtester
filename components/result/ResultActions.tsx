@@ -93,13 +93,13 @@ function drawLineChart(
 
   context.fillStyle = "#cbd5e1";
   context.font = "20px sans-serif";
-  context.fillText("?먯궛 異붿씠", x + 24, y + 30);
+  context.fillText("자산 추이", x + 24, y + 30);
 
   context.font = "18px sans-serif";
   context.fillStyle = "#38bdf8";
-  context.fillText("?됯?湲덉븸", x + width - 210, y + 30);
+  context.fillText("포트폴리오", x + width - 230, y + 30);
   context.fillStyle = "#94a3b8";
-  context.fillText("?먭툑", x + width - 105, y + 30);
+  context.fillText("원금", x + width - 105, y + 30);
 
   context.fillStyle = "#94a3b8";
   context.font = "18px sans-serif";
@@ -139,15 +139,15 @@ export function ResultActions() {
 
     try {
       await navigator.clipboard.writeText(url);
-      setMessage("URL??蹂듭궗?덉뒿?덈떎.");
+      setMessage("공유 링크를 클립보드에 복사했습니다.");
     } catch {
-      setMessage("?대┰蹂대뱶 蹂듭궗???ㅽ뙣?덉뒿?덈떎. 二쇱냼李?URL??吏곸젒 蹂듭궗??二쇱꽭??");
+      setMessage("브라우저 권한 때문에 자동 복사하지 못했습니다. 주소창의 URL을 직접 복사해 주세요.");
     }
   }
 
   function handleDownloadImage() {
     if (!simulationResult) {
-      setMessage("?ㅼ슫濡쒕뱶??寃곌낵媛 ?놁뒿?덈떎.");
+      setMessage("저장할 시뮬레이션 결과가 없습니다.");
       return;
     }
 
@@ -157,7 +157,7 @@ export function ResultActions() {
     const context = canvas.getContext("2d");
 
     if (!context) {
-      setMessage("?대?吏瑜?留뚮뱾 ???놁뒿?덈떎.");
+      setMessage("이미지를 만들 수 없습니다.");
       return;
     }
 
@@ -172,7 +172,7 @@ export function ResultActions() {
 
     context.fillStyle = "#fafafa";
     context.font = "900 56px sans-serif";
-    context.fillText("🔥 FIRE LIFE 결과", 104, 132);
+    context.fillText("FIRE LIFE 결과", 104, 132);
 
     context.fillStyle = "#d4d4d4";
     context.font = "28px sans-serif";
@@ -184,7 +184,7 @@ export function ResultActions() {
       .join(" · ");
     context.fillStyle = "#a3a3a3";
     context.font = "24px sans-serif";
-    context.fillText(tickers || "포트폴리오", 104, 226);
+    context.fillText(tickers || "포트폴리오 없음", 104, 226);
 
     const metrics = [
       ["최종 자산", formatCompactKRW(simulationResult.finalValue), "#fafafa"],
@@ -199,14 +199,14 @@ export function ResultActions() {
     ];
 
     metrics.forEach(([label, value, color], index) => {
-      const x = 104 + (index % 5) * 205;
-      const y = 315;
+      const metricX = 104 + (index % 5) * 205;
+      const metricY = 315;
       context.fillStyle = "#94a3b8";
       context.font = "22px sans-serif";
-      context.fillText(label, x, y);
+      context.fillText(label, metricX, metricY);
       context.fillStyle = color;
       context.font = "700 34px sans-serif";
-      context.fillText(value, x, y + 48);
+      context.fillText(value, metricX, metricY + 48);
     });
 
     context.fillStyle = "#111827";
@@ -216,13 +216,13 @@ export function ResultActions() {
 
     context.fillStyle = "#a3a3a3";
     context.font = "22px sans-serif";
-    context.fillText("firelife.vercel.app · Yahoo Finance 데이터 · made by 양클로드", 104, 830);
+    context.fillText("firelife.vercel.app · Yahoo Finance 데이터 · made by 업로드", 104, 830);
 
     const link = document.createElement("a");
     link.download = `fire-life-${new Date().toISOString().slice(0, 10)}.png`;
     link.href = canvas.toDataURL("image/png");
     link.click();
-    setMessage("李⑦듃媛 ?ы븿??寃곌낵 ?대?吏瑜??ㅼ슫濡쒕뱶?덉뒿?덈떎.");
+    setMessage("PNG 이미지로 저장했습니다.");
   }
 
   return (
@@ -234,7 +234,7 @@ export function ResultActions() {
           className="w-full sm:w-auto"
           onClick={handleDownloadImage}
         >
-          PNG ?ㅼ슫濡쒕뱶
+          PNG로 저장하기
         </Button>
         <Button
           type="button"
@@ -242,10 +242,10 @@ export function ResultActions() {
           className="w-full sm:w-auto"
           onClick={handleShare}
         >
-          寃곌낵 怨듭쑀
+          결과 공유
         </Button>
         <Button asChild href="/advanced/dates" className="w-full sm:w-auto">
-          ?ㅻⅨ ?쒕굹由ъ삤 ?쒕룄
+          다른 시나리오 시작
         </Button>
         <Button
           asChild
@@ -253,7 +253,7 @@ export function ResultActions() {
           variant="outline"
           className="w-full sm:w-auto"
         >
-          媛숈? 議곌굔?쇰줈 ?ㅼ떆
+          같은 조건으로 다시 계산
         </Button>
       </div>
       {message ? (

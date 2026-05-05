@@ -32,9 +32,9 @@ export function AdvancedOptionsPanel({
             배당 재투자
             <span
               className="ml-2 text-xs text-neutral-500 dark:text-neutral-400"
-              title="발생한 배당금을 같은 종목에 자동 재투자"
+              title="발생한 배당금을 같은 종목에 자동 재투자합니다."
             >
-              ⓘ
+              ?
             </span>
           </span>
         </label>
@@ -66,9 +66,9 @@ export function AdvancedOptionsPanel({
             인플레이션 보정
             <span
               className="ml-2 text-xs text-neutral-500 dark:text-neutral-400"
-              title="결과를 시작 시점 가치로 환산"
+              title="결과를 시작 시점 가치로 환산합니다."
             >
-              ⓘ
+              ?
             </span>
           </span>
         </label>
@@ -85,9 +85,9 @@ export function AdvancedOptionsPanel({
             className="h-11 rounded-md border border-neutral-300 bg-white px-3 text-sm text-neutral-950 outline-none focus:ring-2 focus:ring-info dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-50"
           >
             <option value="none">없음</option>
-            <option value="monthly">월</option>
+            <option value="monthly">매월</option>
             <option value="quarterly">분기</option>
-            <option value="annually">연</option>
+            <option value="annually">매년</option>
           </select>
         </label>
       </div>

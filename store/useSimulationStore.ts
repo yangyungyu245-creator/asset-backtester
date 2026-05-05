@@ -21,6 +21,7 @@ export type AdvancedOptions = {
   applyExchangeRate: boolean;
   inflationAdjusted: boolean;
   rebalance: "none" | "monthly" | "quarterly" | "annually";
+  futureMode: boolean;
 };
 
 type SimulationState = {
@@ -103,6 +104,7 @@ function createDefaultState(): SimulationState {
       applyExchangeRate: true,
       inflationAdjusted: false,
       rebalance: "none",
+      futureMode: false,
     },
     simulationResult: null,
     simulationError: null,
@@ -270,7 +272,10 @@ export const useSimulationStore = create<SimulationStore>()(
             ...period,
             id: `shared-${index}-${period.startYearMonth}`,
           })),
-          options: scenario.options,
+          options: {
+            ...defaultState.options,
+            ...scenario.options,
+          },
           simulationResult: null,
           simulationError: null,
         }),

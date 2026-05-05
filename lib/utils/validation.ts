@@ -59,7 +59,7 @@ export function validateContributionPeriods(
     }
 
     if (period.monthlyAmount < 0) {
-      return { valid: false, error: "월 적립액은 0원 이상이어야 합니다." };
+      return { valid: false, error: "월 적립액은 0 이상이어야 합니다." };
     }
 
     const next = sorted[index + 1];

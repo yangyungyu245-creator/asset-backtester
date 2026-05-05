@@ -9,7 +9,23 @@ import { ResultHeader } from "@/components/result/ResultHeader";
 import { YearlyTable } from "@/components/result/YearlyTable";
 import { AdPlaceholder } from "@/components/simulator/AdPlaceholder";
 import { Button } from "@/components/ui/Button";
+import { formatCompactKRW, formatPercentValue } from "@/components/result/format";
 import { useSimulationStore } from "@/store/useSimulationStore";
+
+function formatMonths(months: number) {
+  const years = Math.floor(months / 12);
+  const rest = months % 12;
+
+  if (years === 0) {
+    return `${rest}개월`;
+  }
+
+  if (rest === 0) {
+    return `${years}년`;
+  }
+
+  return `${years}년 ${rest}개월`;
+}
 
 export default function AdvancedResultPage() {
   const {
@@ -64,6 +80,8 @@ export default function AdvancedResultPage() {
     );
   }
 
+  const futureProjection = simulationResult.futureProjection;
+
   return (
     <section className="grid gap-6 py-4 sm:py-6">
       <ResultHeader
@@ -74,6 +92,23 @@ export default function AdvancedResultPage() {
         contributionSchedule={contributionSchedule}
         options={options}
       />
+      {futureProjection ? (
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4">
+          <div className="text-sm">
+            <p className="font-semibold text-neutral-950 dark:text-neutral-50">
+              미래 시점 예측 포함
+            </p>
+            <p className="mt-2 leading-6 text-neutral-700 dark:text-neutral-300">
+              {formatMonths(futureProjection.futureMonths)} 미래 구간은 과거 5년 평균 수익률
+              (포트폴리오 연 {formatPercentValue(futureProjection.portfolioCAGR * 100, 2)})
+              기반 단순 복리로 계산했습니다. 실제 시장은 변동이 크며 결과가 크게 다를 수 있습니다.
+            </p>
+            <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+              오늘 시점 평가금액: {formatCompactKRW(futureProjection.realFinalValue)}
+            </p>
+          </div>
+        </div>
+      ) : null}
       <MetricGrid
         result={simulationResult}
         startDate={startDate}
@@ -81,11 +116,14 @@ export default function AdvancedResultPage() {
         initialAmount={initialAmount}
         inflationAdjusted={options.inflationAdjusted}
       />
-      <AssetChart data={simulationResult.timeSeries} />
+      <AssetChart
+        data={simulationResult.timeSeries}
+        futureStartDate={futureProjection?.startDate}
+      />
       <PortfolioComparison
         initialPortfolio={simulationResult.initialPortfolio ?? []}
         finalPortfolio={simulationResult.finalPortfolio ?? []}
-        endDate={endDate}
+        endDate={futureProjection?.startDate ?? endDate}
       />
       <AdPlaceholder />
       <YearlyTable

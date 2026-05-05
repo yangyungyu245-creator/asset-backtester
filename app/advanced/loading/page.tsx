@@ -73,7 +73,6 @@ export default function AdvancedLoadingPage() {
           return;
         }
 
-        console.log("Advanced simulation result", result);
         setSimulationResult(result);
         router.push("/advanced/result");
       } catch (error) {

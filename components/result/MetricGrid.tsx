@@ -31,8 +31,9 @@ export function MetricGrid({
   const cagrPercent = result.cagr * 100;
   const drawdownDateRange =
     result.maxDrawdown.peakDate && result.maxDrawdown.troughDate
-      ? `${result.maxDrawdown.peakDate} → ${result.maxDrawdown.troughDate}`
+      ? `${result.maxDrawdown.peakDate} ~ ${result.maxDrawdown.troughDate}`
       : "하락 구간 없음";
+  const futureSuffix = result.futureProjection ? " · 실제 데이터 구간 기준" : "";
 
   const metrics = [
     {
@@ -53,7 +54,7 @@ export function MetricGrid({
       tone: result.totalReturn >= 0 ? "positive" : "negative",
     },
     {
-      label: "연평균 수익률",
+      label: "평균 수익률",
       value: `${formatPercentValue(cagrPercent, 2)}`,
       helper: "전체 기간 CAGR",
       tone: cagrPercent >= 0 ? "positive" : "negative",
@@ -61,7 +62,7 @@ export function MetricGrid({
     {
       label: "최대 낙폭",
       value: formatPercentValue(result.maxDrawdown.percent, 1),
-      helper: drawdownDateRange,
+      helper: `${drawdownDateRange}${futureSuffix}`,
       tone: "negative",
     },
   ] as const;

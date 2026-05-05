@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+
+const REFRESH_INTERVAL = 15 * 60 * 1000;
 
 type MarketIndex = {
   symbol: string;
@@ -29,57 +31,79 @@ function formatNumber(value: number | null, decimals: number) {
   }).format(value);
 }
 
-function formatUpdatedAt(value: string | null) {
+function formatRelativeTime(value: Date | null) {
   if (!value) {
     return "15분 지연";
   }
 
-  const date = new Date(value);
+  const diffMs = Date.now() - value.getTime();
+  const diffMinutes = Math.max(0, Math.floor(diffMs / 60_000));
 
-  if (Number.isNaN(date.getTime())) {
-    return "15분 지연";
+  if (diffMinutes < 1) {
+    return "방금 갱신";
   }
 
-  return `${date.toLocaleTimeString("ko-KR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  })} 기준`;
+  if (diffMinutes < 60) {
+    return `${diffMinutes}분 전 갱신`;
+  }
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  return `${diffHours}시간 전 갱신`;
 }
 
 export function MarketIndicesWidget() {
   const [data, setData] = useState<MarketIndicesResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
   const [hasError, setHasError] = useState(false);
 
-  useEffect(() => {
-    let ignore = false;
-
-    async function loadIndices() {
-      try {
-        const response = await fetch("/api/market-indices");
-        const payload = (await response.json()) as MarketIndicesResponse;
-
-        if (!ignore) {
-          setData(payload);
-          setHasError(!response.ok || Boolean(payload.error));
-        }
-      } catch {
-        if (!ignore) {
-          setHasError(true);
-        }
-      } finally {
-        if (!ignore) {
-          setIsLoading(false);
-        }
-      }
+  const loadIndices = useCallback(async (background = false) => {
+    if (background) {
+      setIsRefreshing(true);
+    } else {
+      setIsLoading(true);
     }
 
+    try {
+      const response = await fetch("/api/market-indices", {
+        cache: "no-store",
+      });
+      const payload = (await response.json()) as MarketIndicesResponse;
+
+      setData(payload);
+      setUpdatedAt(new Date());
+      setHasError(!response.ok || Boolean(payload.error));
+    } catch {
+      setHasError(true);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
     loadIndices();
 
-    return () => {
-      ignore = true;
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        loadIndices(true);
+      }
+    }, REFRESH_INTERVAL);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        loadIndices(true);
+      }
     };
-  }, []);
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [loadIndices]);
 
   const indices = data?.indices ?? [];
   const displayItems: Array<MarketIndex | null> = isLoading
@@ -98,7 +122,11 @@ export function MarketIndicesWidget() {
           </p>
         </div>
         <span className="shrink-0 text-xs text-neutral-500 dark:text-neutral-400">
-          {isLoading ? "불러오는 중" : formatUpdatedAt(data?.updatedAt ?? null)}
+          {isLoading
+            ? "불러오는 중"
+            : isRefreshing
+              ? "갱신 중"
+              : formatRelativeTime(updatedAt)}
         </span>
       </div>
 
@@ -139,7 +167,7 @@ export function MarketIndicesWidget() {
                 {formatNumber(item.price, item.decimals)}
               </p>
               <p className={`mt-1 text-xs font-medium ${changeClassName}`}>
-                {isUp ? "▲" : isDown ? "▼" : "━"}{" "}
+                {isUp ? "▲" : isDown ? "▼" : "-"}{" "}
                 {formatNumber(Math.abs(item.change ?? 0), item.decimals)} (
                 {formatNumber(Math.abs(item.changePercent ?? 0), 2)}%)
               </p>
