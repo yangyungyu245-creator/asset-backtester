@@ -27,8 +27,8 @@ const config: Config = {
         primary: "var(--text-primary)",
         secondary: "var(--text-secondary)",
         surface: {
-          dark: "#0a0a0a",
-          card: "#1a1a1a",
+          dark: "#111114",
+          card: "#18181D",
         },
         positive: "#10b981",
         negative: "#ef4444",

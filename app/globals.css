@@ -4,19 +4,19 @@
 
 :root {
   color-scheme: dark;
-  --bg-page: #191F28;
-  --bg-card: #262B33;
-  --bg-card-subtle: #1F242C;
+  --bg-page: #111114;
+  --bg-card: #18181D;
+  --bg-card-subtle: #24242C;
   --text-primary: #FFFFFF;
   --text-secondary: #B0B8C1;
-  --border: #333D4B;
+  --border: #2D2D36;
   --chart-value: #38bdf8;
   --chart-down: #3182F6;
   --chart-contribution: #94a3b8;
   --chart-grid: rgba(148, 163, 184, 0.2);
   --chart-axis: #a3a3a3;
-  --donut-stroke: #262B33;
-  --tooltip-bg: #262B33;
+  --donut-stroke: #18181D;
+  --tooltip-bg: #18181D;
   --tooltip-text: #f5f5f5;
 }
 
