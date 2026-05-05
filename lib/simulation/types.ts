@@ -15,6 +15,17 @@ export type YearlyBreakdown = {
   cumReturn: number;
 };
 
+export type TickerPerformance = {
+  ticker: string;
+  name: string;
+  name_ko: string;
+  contributions: number;
+  finalValue: number;
+  profit: number;
+  returnRate: number;
+  finalWeight: number;
+};
+
 export type SimulationResult = {
   finalValue: number;
   totalContributions: number;
@@ -32,6 +43,7 @@ export type SimulationResult = {
   yearlyBreakdown: YearlyBreakdown[];
   initialPortfolio: PortfolioSnapshot[];
   finalPortfolio: PortfolioSnapshot[];
+  tickerPerformance?: TickerPerformance[];
   warnings: string[];
   dataIssues: {
     ticker: string;

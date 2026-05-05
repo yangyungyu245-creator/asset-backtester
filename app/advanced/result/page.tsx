@@ -6,7 +6,9 @@ import { MetricGrid } from "@/components/result/MetricGrid";
 import { PortfolioComparison } from "@/components/result/PortfolioComparison";
 import { ResultActions } from "@/components/result/ResultActions";
 import { ResultHeader } from "@/components/result/ResultHeader";
+import { TickerPerformanceTable } from "@/components/result/TickerPerformanceTable";
 import { YearlyTable } from "@/components/result/YearlyTable";
+import { SaveActionButton } from "@/components/saved/SaveActionButton";
 import { AdPlaceholder } from "@/components/simulator/AdPlaceholder";
 import { Button } from "@/components/ui/Button";
 import { formatCompactKRW, formatPercentValue } from "@/components/result/format";
@@ -116,6 +118,9 @@ export default function AdvancedResultPage() {
         initialAmount={initialAmount}
         inflationAdjusted={options.inflationAdjusted}
       />
+      <div className="flex justify-end">
+        <SaveActionButton label="전략 저장" />
+      </div>
       <AssetChart
         data={simulationResult.timeSeries}
         futureStartDate={futureProjection?.startDate}
@@ -125,6 +130,7 @@ export default function AdvancedResultPage() {
         finalPortfolio={simulationResult.finalPortfolio ?? []}
         endDate={futureProjection?.startDate ?? endDate}
       />
+      <TickerPerformanceTable rows={simulationResult.tickerPerformance ?? []} />
       <AdPlaceholder />
       <YearlyTable
         rows={simulationResult.yearlyBreakdown}

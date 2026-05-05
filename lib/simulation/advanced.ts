@@ -11,6 +11,7 @@ import type {
 
 type SupportedFxCurrency = "USD" | "JPY" | "EUR";
 type Holdings = Map<string, number>;
+type TickerContributions = Map<string, number>;
 
 const INFLATION_RATE = 0.02;
 const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
@@ -204,6 +205,7 @@ function buyPortfolio(
   warnings: string[],
   dataIssues: SimulationResult["dataIssues"],
   endDate: string,
+  tickerContributions?: TickerContributions,
 ) {
   if (amountKrw <= 0) {
     return 0;
@@ -242,6 +244,10 @@ function buyPortfolio(
     const shares = tradeAmount / price;
 
     holdings.set(item.ticker, (holdings.get(item.ticker) ?? 0) + shares);
+    tickerContributions?.set(
+      item.ticker,
+      (tickerContributions.get(item.ticker) ?? 0) + allocationKrw,
+    );
     invested += allocationKrw;
   }
 
@@ -317,6 +323,27 @@ function createPortfolioSnapshot(
       weight: totalValue > 0 ? (row.value / totalValue) * 100 : 0,
     }))
     .sort((a, b) => b.value - a.value);
+}
+
+function createTickerPerformance(
+  finalPortfolio: PortfolioSnapshot[],
+  tickerContributions: TickerContributions,
+) {
+  return finalPortfolio.map((item) => {
+    const contributions = tickerContributions.get(item.ticker) ?? 0;
+    const profit = item.value - contributions;
+
+    return {
+      ticker: item.ticker,
+      name: item.name,
+      name_ko: item.name_ko,
+      contributions,
+      finalValue: item.value,
+      profit,
+      returnRate: contributions > 0 ? (profit / contributions) * 100 : 0,
+      finalWeight: item.weight,
+    };
+  });
 }
 
 function rebalanceHoldings(
@@ -481,6 +508,27 @@ function applyInflationAdjustment(
     input.endDate,
   );
   const totalReturn = finalValue - totalContributions;
+  const tickerPerformance = result.tickerPerformance?.map((item) => {
+    const contributions = deflateAmount(
+      item.contributions,
+      input.startDate,
+      input.endDate,
+    );
+    const finalItemValue = deflateAmount(
+      item.finalValue,
+      input.startDate,
+      input.endDate,
+    );
+    const profit = finalItemValue - contributions;
+
+    return {
+      ...item,
+      contributions,
+      finalValue: finalItemValue,
+      profit,
+      returnRate: contributions > 0 ? (profit / contributions) * 100 : 0,
+    };
+  });
 
   return {
     ...result,
@@ -488,6 +536,7 @@ function applyInflationAdjustment(
     totalContributions,
     totalReturn,
     timeSeries,
+    tickerPerformance,
     yearlyBreakdown: createYearlyBreakdown(input, timeSeries),
     maxDrawdown: calculateMaxDrawdown(timeSeries),
   };
@@ -531,6 +580,7 @@ export async function simulateAdvanced(
   }
 
   const holdings: Holdings = new Map();
+  const tickerContributions: TickerContributions = new Map();
   const timeSeries: SimulationResult["timeSeries"] = [];
   let totalContributions = 0;
 
@@ -544,6 +594,7 @@ export async function simulateAdvanced(
     warnings,
     dataIssues,
     input.endDate,
+    tickerContributions,
   );
   const initialPortfolio = createPortfolioSnapshot(
     input.startDate,
@@ -574,6 +625,7 @@ export async function simulateAdvanced(
       warnings,
       dataIssues,
       input.endDate,
+      tickerContributions,
     );
 
     totalContributions += invested;
@@ -627,6 +679,10 @@ export async function simulateAdvanced(
     warnings,
     dataIssues,
   );
+  const tickerPerformance = createTickerPerformance(
+    finalPortfolio,
+    tickerContributions,
+  );
 
   const result = {
     finalValue,
@@ -638,6 +694,7 @@ export async function simulateAdvanced(
     yearlyBreakdown,
     initialPortfolio,
     finalPortfolio,
+    tickerPerformance,
   };
   const adjustedResult = input.options.inflationAdjusted
     ? applyInflationAdjustment(input, result)
@@ -786,6 +843,29 @@ export async function simulateAdvancedWithFuture(
     totalContributions > 0 && finalValue > 0
       ? Math.pow(finalValue / totalContributions, 1 / years) - 1
       : 0;
+  const futureContributions =
+    totalContributions - realResult.totalContributions;
+  const tickerPerformance = realResult.tickerPerformance?.map((item) => {
+    const targetWeight =
+      portfolio.find((portfolioItem) => portfolioItem.ticker === item.ticker)?.weight ??
+      0;
+    const contributions = item.contributions + futureContributions * targetWeight;
+    const valueShare =
+      realResult.finalValue > 0
+        ? item.finalValue / realResult.finalValue
+        : targetWeight;
+    const finalItemValue = finalValue * valueShare;
+    const profit = finalItemValue - contributions;
+
+    return {
+      ...item,
+      contributions,
+      finalValue: finalItemValue,
+      profit,
+      returnRate: contributions > 0 ? (profit / contributions) * 100 : 0,
+      finalWeight: finalValue > 0 ? (finalItemValue / finalValue) * 100 : 0,
+    };
+  });
 
   return {
     ...realResult,
@@ -794,6 +874,7 @@ export async function simulateAdvancedWithFuture(
     totalReturn,
     cagr,
     timeSeries: mergedTimeSeries,
+    tickerPerformance,
     yearlyBreakdown: createYearlyBreakdown(input, mergedTimeSeries),
     warnings: Array.from(
       new Set([
