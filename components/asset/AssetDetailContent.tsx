@@ -23,6 +23,7 @@ type ChartPoint = {
 
 type AssetDetail = {
   symbol: string;
+  kind: "stock" | "etf" | "index" | "fx" | "crypto" | "other";
   displayName?: string;
   name: string;
   nameKo: string;
@@ -53,6 +54,7 @@ type AssetDetail = {
     previousClose: number | null;
     latestTradingDate: string | null;
     averageVolume: number | null;
+    description: string | null;
   };
   warnings: string[];
 };
@@ -210,9 +212,9 @@ function CandleChart({
   domain: [number, number];
   currency: string | null | undefined;
 }) {
-  const width = 820;
+  const width = 720;
   const height = 320;
-  const padding = { top: 18, right: 24, bottom: 34, left: 70 };
+  const padding = { top: 18, right: 12, bottom: 34, left: 54 };
   const plotWidth = width - padding.left - padding.right;
   const plotHeight = height - padding.top - padding.bottom;
   const [min, max] = domain;
@@ -295,55 +297,50 @@ function CandleChart({
 
 function createInfoItems(asset: AssetDetail) {
   const fields = asset.fields;
-  const base = [
-    ["자산 유형", asset.assetType],
-    [asset.assetType === "환율" ? "시장" : "거래소", asset.exchange ?? "-"],
-    ["통화", asset.currency ?? "-"],
-    ["최근 거래일", fields.latestTradingDate ?? "-"],
-  ] as Array<[string, string]>;
 
-  if (asset.assetType === "환율") {
+  if (asset.kind === "fx") {
     return [
-      ...base,
+      ["통화쌍", asset.displayName ?? asset.symbol],
       ["현재가", formatNumber(asset.latestPrice, asset.currency)],
-      ["전일대비", `${formatNumber(asset.change, asset.currency)} (${formatPercent(asset.changePercent)})`],
-      ["기간 고가", formatNumber(fields.fiftyTwoWeekHigh, asset.currency)],
-      ["기간 저가", formatNumber(fields.fiftyTwoWeekLow, asset.currency)],
+      ["일간 등락률", formatPercent(asset.changePercent)],
+      ["52주 범위", `${formatNumber(fields.fiftyTwoWeekLow, asset.currency)} - ${formatNumber(fields.fiftyTwoWeekHigh, asset.currency)}`],
+      ["시장", asset.exchange ?? "외환시장"],
+      ["최근 거래일", fields.latestTradingDate ?? "-"],
     ];
   }
 
-  if (asset.assetType.includes("ETF")) {
+  if (asset.kind === "etf") {
     return [
-      ...base,
+      ["거래소", asset.exchange ?? "-"],
+      ["통화", asset.currency ?? "-"],
       ["운용자산(AUM)", formatLargeNumber(fields.aum, asset.currency)],
       ["운용보수", formatPercent(fields.expenseRatio)],
       ["배당수익률", formatPercent(fields.dividendYield)],
-      ["기초지수/분류", fields.underlyingIndex ?? "-"],
-      ["순자산가치(NAV)", formatNumber(fields.nav, asset.currency)],
+      ["NAV", formatNumber(fields.nav, asset.currency)],
       ["괴리율", formatPercent(fields.premiumDiscount)],
-      ["52주 범위", `${formatNumber(fields.fiftyTwoWeekLow, asset.currency)} - ${formatNumber(fields.fiftyTwoWeekHigh, asset.currency)}`],
+      ["운용사/분류", fields.issuer ?? fields.underlyingIndex ?? "-"],
     ];
   }
 
-  if (asset.assetType === "지수") {
+  if (asset.kind === "index") {
     return [
-      ...base,
+      ["자산 유형", asset.assetType],
+      ["통화", asset.currency ?? "-"],
       ["현재가", formatNumber(asset.latestPrice, asset.currency)],
-      ["전일종가", formatNumber(fields.previousClose, asset.currency)],
+      ["일간 등락률", formatPercent(asset.changePercent)],
       ["52주 범위", `${formatNumber(fields.fiftyTwoWeekLow, asset.currency)} - ${formatNumber(fields.fiftyTwoWeekHigh, asset.currency)}`],
-      ["평균 거래량", formatPlainNumber(fields.averageVolume)],
+      ["최근 거래일", fields.latestTradingDate ?? "-"],
     ];
   }
 
   return [
-    ...base,
+    ["거래소", asset.exchange ?? "-"],
+    ["통화", asset.currency ?? "-"],
     ["시가총액", formatLargeNumber(fields.marketCap, asset.currency)],
     ["배당수익률", formatPercent(fields.dividendYield)],
     ["PER", fields.peRatio ? fields.peRatio.toFixed(2) : "-"],
-    ["PBR", fields.priceToBook ? fields.priceToBook.toFixed(2) : "-"],
     ["52주 범위", `${formatNumber(fields.fiftyTwoWeekLow, asset.currency)} - ${formatNumber(fields.fiftyTwoWeekHigh, asset.currency)}`],
-    ["섹터", fields.sector ?? "-"],
-    ["산업", fields.industry ?? "-"],
+    ["섹터/산업", fields.sector ?? fields.industry ?? "-"],
   ];
 }
 
@@ -414,29 +411,31 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
         point.open !== point.close || point.high !== point.close || point.low !== point.close,
     ),
   );
+  const canShowCandle = hasOhlc && (asset?.kind === "stock" || asset?.kind === "etf");
 
   return (
     <section className="grid gap-6 py-4 sm:py-8">
-      <div className="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]">
-        <div className="grid gap-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
-          <div>
-            <p className="text-sm text-info">{asset?.assetType ?? "자산 상세"}</p>
-            <h1 className="mt-2 break-words text-3xl font-semibold text-neutral-950 dark:text-neutral-50">
+      <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]">
+        <div className="grid gap-5 p-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+          <div className="min-w-0">
+            <span className="inline-flex rounded-full border border-info/40 px-2.5 py-1 text-xs font-semibold text-info">
+              {asset?.assetType ?? "자산 상세"}
+            </span>
+            <h1 className="mt-3 break-words text-3xl font-semibold tracking-normal text-neutral-950 dark:text-neutral-50">
               {displayName}
             </h1>
-            <p className="mt-2 font-mono text-sm text-neutral-500 dark:text-neutral-400">
-              {symbol}
-            </p>
-            <div className="mt-4">
-              <SaveActionButton label="관심 종목 추가" />
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
+              <span className="font-mono">{symbol}</span>
+              {asset?.exchange ? <span>{asset.exchange}</span> : null}
+              {asset?.currency ? <span>{asset.currency}</span> : null}
             </div>
           </div>
           <div className="text-left sm:text-right">
-            <p className="text-3xl font-semibold text-neutral-950 dark:text-neutral-50">
+            <p className="text-3xl font-semibold tabular-nums text-neutral-950 dark:text-neutral-50">
               {formatNumber(asset?.latestPrice ?? null, asset?.currency)}
             </p>
             <p
-              className={`mt-2 text-sm font-semibold ${getTrendClassName(
+              className={`mt-2 text-base font-semibold tabular-nums ${getTrendClassName(
                 asset?.changePercent,
               )}`}
             >
@@ -448,11 +447,19 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
                 전일종가 {formatNumber(asset.previousClose, asset.currency)}
               </p>
             ) : null}
+            <div className="mt-4 sm:flex sm:justify-end">
+              <SaveActionButton label="관심 종목 추가" />
+            </div>
           </div>
         </div>
+        {asset?.fields.description ? (
+          <div className="border-t border-neutral-200 px-5 py-4 text-sm leading-6 text-neutral-600 dark:border-white/10 dark:text-neutral-300">
+            {asset.fields.description}
+          </div>
+        ) : null}
       </div>
 
-      <section className="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]">
+      <section className="min-w-0 overflow-hidden rounded-lg border border-neutral-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a] sm:p-5">
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
           <div>
             <h2 className="text-lg font-semibold text-neutral-950 dark:text-neutral-50">
@@ -488,7 +495,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
                 <button
                   key={mode}
                   type="button"
-                  disabled={mode === "candle" && !hasOhlc}
+                  disabled={mode === "candle" && !canShowCandle}
                   onClick={() => setChartMode(mode)}
                   className={`h-9 rounded-md border px-3 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-40 ${
                     chartMode === mode
@@ -530,11 +537,11 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
           </div>
         ) : null}
 
-        <div className="mt-5 h-80">
+        <div className="mt-5 h-80 min-w-0 overflow-hidden">
           {isLoading ? (
             <div className="h-full animate-pulse rounded-lg bg-neutral-100 dark:bg-white/5" />
           ) : asset && asset.chart.length > 0 ? (
-            chartMode === "candle" && hasOhlc && typeof yDomain[0] === "number" ? (
+            chartMode === "candle" && canShowCandle && typeof yDomain[0] === "number" ? (
               <CandleChart
                 data={asset.chart}
                 domain={yDomain}
@@ -542,7 +549,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
               />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={asset.chart} margin={{ left: 0, right: 8, top: 8 }}>
+                <AreaChart data={asset.chart} margin={{ left: -18, right: 4, top: 8, bottom: 0 }}>
                   <defs>
                     <linearGradient id="asset-detail-fill" x1="0" x2="0" y1="0" y2="1">
                       <stop offset="5%" stopColor={chartColor} stopOpacity={0.28} />
@@ -554,7 +561,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
                   <YAxis
                     domain={yDomain}
                     tick={{ fontSize: 12 }}
-                    width={72}
+                    width={54}
                     tickFormatter={(value) =>
                       new Intl.NumberFormat("ko-KR", {
                         notation: "compact",
