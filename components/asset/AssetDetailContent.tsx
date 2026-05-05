@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { type TouchEvent, useEffect, useMemo, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -124,6 +124,30 @@ function formatPlainNumber(value: number | null) {
   }).format(value);
 }
 
+function formatSignedNumber(value: number | null, currency?: string | null) {
+  if (value === null || !Number.isFinite(value)) {
+    return "-";
+  }
+
+  return `${value > 0 ? "+" : ""}${formatNumber(value, currency)}`;
+}
+
+function getPointChange(data: ChartPoint[], index: number) {
+  const current = data[index];
+  const previous = data[index - 1];
+
+  if (!current || !previous || previous.close <= 0) {
+    return { change: null, changePercent: null };
+  }
+
+  const change = current.close - previous.close;
+
+  return {
+    change,
+    changePercent: (change / previous.close) * 100,
+  };
+}
+
 function getTrendColor(value: number) {
   if (value > 0) {
     return upColor;
@@ -212,6 +236,7 @@ function CandleChart({
   domain: [number, number];
   currency: string | null | undefined;
 }) {
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const width = 720;
   const height = 320;
   const padding = { top: 18, right: 12, bottom: 34, left: 54 };
@@ -220,12 +245,45 @@ function CandleChart({
   const [min, max] = domain;
   const y = (value: number) =>
     padding.top + ((max - value) / Math.max(max - min, 1)) * plotHeight;
-  const step = plotWidth / Math.max(data.length - 1, 1);
-  const candleWidth = Math.max(3, Math.min(12, step * 0.55));
+  const step = plotWidth / Math.max(data.length, 1);
+  const candleWidth = Math.max(3, Math.min(12, Math.floor(step * 0.55)));
   const ticks = Array.from({ length: 5 }, (_, index) => min + ((max - min) * index) / 4);
+  const hoverPoint =
+    hoverIndex !== null ? data[Math.max(0, Math.min(data.length - 1, hoverIndex))] : null;
+  const hoverChange =
+    hoverIndex !== null ? getPointChange(data, hoverIndex) : null;
+  const tooltipX =
+    hoverIndex !== null ? padding.left + hoverIndex * step + step / 2 : padding.left;
+  const tooltipLeft = tooltipX > width - 230;
+
+  function getIndexFromClientX(clientX: number, svg: SVGSVGElement) {
+    const rect = svg.getBoundingClientRect();
+    const x = ((clientX - rect.left) / rect.width) * width;
+    return Math.max(
+      0,
+      Math.min(data.length - 1, Math.floor((x - padding.left) / Math.max(step, 1))),
+    );
+  }
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="h-full w-full">
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      className="h-full w-full touch-pan-y"
+      onMouseMove={(event) => setHoverIndex(getIndexFromClientX(event.clientX, event.currentTarget))}
+      onMouseLeave={() => setHoverIndex(null)}
+      onTouchMove={(event: TouchEvent<SVGSVGElement>) => {
+        const touch = event.touches[0];
+        if (touch) {
+          setHoverIndex(getIndexFromClientX(touch.clientX, event.currentTarget));
+        }
+      }}
+      onTouchStart={(event: TouchEvent<SVGSVGElement>) => {
+        const touch = event.touches[0];
+        if (touch) {
+          setHoverIndex(getIndexFromClientX(touch.clientX, event.currentTarget));
+        }
+      }}
+    >
       {ticks.map((tick) => {
         const tickY = y(tick);
 
@@ -251,7 +309,7 @@ function CandleChart({
         );
       })}
       {data.map((point, index) => {
-        const x = padding.left + index * step;
+        const x = padding.left + index * step + step / 2;
         const isUp = point.close >= point.open;
         const color = isUp ? upColor : downColor;
         const bodyTop = y(Math.max(point.open, point.close));
@@ -260,18 +318,57 @@ function CandleChart({
 
         return (
           <g key={`${point.date}-${index}`}>
-            <line x1={x} x2={x} y1={y(point.high)} y2={y(point.low)} stroke={color} />
+            <line
+              x1={x}
+              x2={x}
+              y1={y(point.high)}
+              y2={y(point.low)}
+              stroke="rgba(148,163,184,0.72)"
+              strokeLinecap="round"
+            />
             <rect
               x={x - candleWidth / 2}
               y={bodyTop}
               width={candleWidth}
               height={bodyHeight}
-              rx={1}
+              rx={2}
               fill={color}
             />
           </g>
         );
       })}
+      {hoverPoint ? (
+        <g>
+          <line
+            x1={tooltipX}
+            x2={tooltipX}
+            y1={padding.top}
+            y2={height - padding.bottom}
+            stroke="rgba(115,115,115,0.5)"
+            strokeDasharray="3 3"
+          />
+          <foreignObject
+            x={tooltipLeft ? tooltipX - 208 : tooltipX + 10}
+            y={Math.max(10, Math.min(height - 154, y(hoverPoint.high) - 60))}
+            width={198}
+            height={144}
+          >
+            <div className="rounded-lg bg-neutral-950/95 p-3 text-xs text-white shadow-xl">
+              <p className="text-[11px] text-neutral-300">{hoverPoint.date}</p>
+              <div className="mt-2 grid gap-1">
+                <p>시가 {formatNumber(hoverPoint.open, currency)}</p>
+                <p>고가 {formatNumber(hoverPoint.high, currency)}</p>
+                <p>저가 {formatNumber(hoverPoint.low, currency)}</p>
+                <p className="font-semibold">종가 {formatNumber(hoverPoint.close, currency)}</p>
+                <p className={getTrendClassName(hoverChange?.changePercent)}>
+                  전일 대비 {formatSignedNumber(hoverChange?.change ?? null, currency)} (
+                  {formatPercent(hoverChange?.changePercent ?? null)})
+                </p>
+              </div>
+            </div>
+          </foreignObject>
+        </g>
+      ) : null}
       {data.length > 0 ? (
         <>
           <text
@@ -292,6 +389,42 @@ function CandleChart({
         </>
       ) : null}
     </svg>
+  );
+}
+
+function LineTooltip({
+  active,
+  payload,
+  label,
+  data,
+  currency,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload?: ChartPoint }>;
+  label?: string;
+  data: ChartPoint[];
+  currency: string | null | undefined;
+}) {
+  const point = payload?.[0]?.payload;
+
+  if (!active || !point) {
+    return null;
+  }
+
+  const index = data.findIndex((item) => item.date === point.date);
+  const change = getPointChange(data, index);
+
+  return (
+    <div className="rounded-lg bg-neutral-950/95 p-3 text-xs text-white shadow-xl">
+      <p className="text-[11px] text-neutral-300">{label}</p>
+      <p className="mt-2 text-sm font-semibold">
+        종가 {formatNumber(point.close, currency)}
+      </p>
+      <p className={`mt-1 ${getTrendClassName(change.changePercent)}`}>
+        전일 대비 {formatSignedNumber(change.change, currency)} (
+        {formatPercent(change.changePercent)})
+      </p>
+    </div>
   );
 }
 
@@ -319,7 +452,7 @@ function createInfoItems(asset: AssetDetail) {
       ["NAV", formatNumber(fields.nav, asset.currency)],
       ["괴리율", formatPercent(fields.premiumDiscount)],
       ["운용사/분류", fields.issuer ?? fields.underlyingIndex ?? "-"],
-    ];
+    ].filter(([, value]) => value !== "-").slice(0, 6);
   }
 
   if (asset.kind === "index") {
@@ -330,7 +463,7 @@ function createInfoItems(asset: AssetDetail) {
       ["일간 등락률", formatPercent(asset.changePercent)],
       ["52주 범위", `${formatNumber(fields.fiftyTwoWeekLow, asset.currency)} - ${formatNumber(fields.fiftyTwoWeekHigh, asset.currency)}`],
       ["최근 거래일", fields.latestTradingDate ?? "-"],
-    ];
+    ].filter(([, value]) => value !== "-").slice(0, 5);
   }
 
   return [
@@ -341,7 +474,7 @@ function createInfoItems(asset: AssetDetail) {
     ["PER", fields.peRatio ? fields.peRatio.toFixed(2) : "-"],
     ["52주 범위", `${formatNumber(fields.fiftyTwoWeekLow, asset.currency)} - ${formatNumber(fields.fiftyTwoWeekHigh, asset.currency)}`],
     ["섹터/산업", fields.sector ?? fields.industry ?? "-"],
-  ];
+  ].filter(([, value]) => value !== "-").slice(0, 6);
 }
 
 export function AssetDetailView({ symbol }: AssetDetailViewProps) {
@@ -411,14 +544,14 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
         point.open !== point.close || point.high !== point.close || point.low !== point.close,
     ),
   );
-  const canShowCandle = hasOhlc && (asset?.kind === "stock" || asset?.kind === "etf");
+  const canShowCandle = hasOhlc;
 
   return (
     <section className="grid gap-6 py-4 sm:py-8">
-      <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]">
-        <div className="grid gap-5 p-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+      <div className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-neutral-200 dark:bg-[#1a1a1a] dark:ring-white/10">
+        <div className="grid gap-6 p-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start sm:p-6">
           <div className="min-w-0">
-            <span className="inline-flex rounded-full border border-info/40 px-2.5 py-1 text-xs font-semibold text-info">
+            <span className="inline-flex rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold text-neutral-600 dark:bg-white/10 dark:text-neutral-300">
               {asset?.assetType ?? "자산 상세"}
             </span>
             <h1 className="mt-3 break-words text-3xl font-semibold tracking-normal text-neutral-950 dark:text-neutral-50">
@@ -430,7 +563,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
               {asset?.currency ? <span>{asset.currency}</span> : null}
             </div>
           </div>
-          <div className="text-left sm:text-right">
+          <div className="rounded-lg bg-neutral-50 p-4 text-left dark:bg-white/[0.04] sm:min-w-64 sm:text-right">
             <p className="text-3xl font-semibold tabular-nums text-neutral-950 dark:text-neutral-50">
               {formatNumber(asset?.latestPrice ?? null, asset?.currency)}
             </p>
@@ -459,7 +592,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
         ) : null}
       </div>
 
-      <section className="min-w-0 overflow-hidden rounded-lg border border-neutral-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a] sm:p-5">
+      <section className="min-w-0 overflow-hidden rounded-lg bg-white p-4 shadow-sm ring-1 ring-neutral-200 dark:bg-[#1a1a1a] dark:ring-white/10 sm:p-6">
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
           <div>
             <h2 className="text-lg font-semibold text-neutral-950 dark:text-neutral-50">
@@ -474,33 +607,34 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
             </p>
           </div>
           <div className="grid gap-2">
-            <div className="grid grid-cols-3 gap-2 sm:flex">
+            <div className="grid grid-cols-3 gap-1 rounded-lg bg-neutral-100 p-1 dark:bg-white/[0.06] sm:flex">
               {periods.map((item) => (
                 <button
                   key={item.value}
                   type="button"
                   onClick={() => setPeriod(item.value)}
-                  className={`h-9 rounded-md border px-3 text-xs font-medium transition ${
+                  className={`h-8 rounded-md px-2.5 text-xs font-semibold transition ${
                     period === item.value
-                      ? "border-info bg-info text-white"
-                      : "border-neutral-300 text-neutral-700 hover:bg-neutral-100 dark:border-white/10 dark:text-neutral-200 dark:hover:bg-white/5"
+                      ? "bg-white text-neutral-950 shadow-sm dark:bg-neutral-950 dark:text-neutral-50"
+                      : "text-neutral-500 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-neutral-100"
                   }`}
                 >
                   {item.label}
                 </button>
               ))}
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
+            <div className="grid grid-cols-2 gap-1 rounded-lg bg-neutral-100 p-1 dark:bg-white/[0.06] sm:flex sm:justify-end">
               {(["line", "candle"] as const).map((mode) => (
                 <button
                   key={mode}
                   type="button"
                   disabled={mode === "candle" && !canShowCandle}
                   onClick={() => setChartMode(mode)}
-                  className={`h-9 rounded-md border px-3 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-40 ${
+                  title={mode === "candle" && !canShowCandle ? "OHLC 데이터가 없어 라인 차트로 표시합니다." : undefined}
+                  className={`h-8 rounded-md px-3 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 ${
                     chartMode === mode
-                      ? "border-neutral-950 bg-neutral-950 text-white dark:border-neutral-50 dark:bg-neutral-50 dark:text-neutral-950"
-                      : "border-neutral-300 text-neutral-700 hover:bg-neutral-100 dark:border-white/10 dark:text-neutral-200 dark:hover:bg-white/5"
+                      ? "bg-white text-neutral-950 shadow-sm dark:bg-neutral-950 dark:text-neutral-50"
+                      : "text-neutral-500 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-neutral-100"
                   }`}
                 >
                   {mode === "line" ? "라인" : "캔들"}
@@ -570,11 +704,13 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
                     }
                   />
                   <Tooltip
-                    formatter={(value) => [
-                      formatNumber(Number(value), asset.currency),
-                      "가격",
-                    ]}
-                    labelFormatter={(label) => `날짜 ${label}`}
+                    content={
+                      <LineTooltip
+                        data={asset.chart}
+                        currency={asset.currency}
+                      />
+                    }
+                    wrapperStyle={{ outline: "none" }}
                   />
                   <Area
                     dataKey="close"
@@ -595,12 +731,12 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
         </div>
       </section>
 
-      <section className="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a]">
+      <section className="rounded-lg bg-white p-5 shadow-sm ring-1 ring-neutral-200 dark:bg-[#1a1a1a] dark:ring-white/10 sm:p-6">
         <h2 className="text-lg font-semibold text-neutral-950 dark:text-neutral-50">
           기본 정보
         </h2>
         {isLoading ? (
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }, (_, index) => (
               <div
                 key={index}

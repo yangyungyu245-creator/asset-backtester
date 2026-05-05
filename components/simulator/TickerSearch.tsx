@@ -110,6 +110,7 @@ export function TickerSearch({
             const available = isTickerAvailable(ticker, startDate);
             const selected = selectedSet.has(ticker.ticker);
             const disabled = !available || selected || !canAddMore;
+            const detailHref = `/asset/${encodeURIComponent(ticker.ticker)}`;
 
             return (
               <div
@@ -142,20 +143,28 @@ export function TickerSearch({
                     {ticker.name}
                   </p>
                 </div>
-                {available ? (
-                  <button
-                    type="button"
-                    disabled={disabled}
-                    onClick={() => onAdd(ticker.ticker)}
-                    className="inline-flex h-10 items-center justify-center rounded-md border border-neutral-900 bg-neutral-950 px-4 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-neutral-50 dark:text-neutral-950"
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Link
+                    href={detailHref}
+                    className="inline-flex h-10 items-center justify-center rounded-md border border-neutral-300 px-4 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 dark:border-white/10 dark:text-neutral-200 dark:hover:bg-white/5"
                   >
-                    {selected ? "추가됨" : canAddMore ? "추가" : "최대 10개"}
-                  </button>
-                ) : (
-                  <span className="inline-flex h-10 items-center justify-center rounded-md border border-neutral-200 px-3 text-sm font-medium text-neutral-500 dark:border-white/10 dark:text-neutral-400">
-                    선택 불가
-                  </span>
-                )}
+                    상세보기
+                  </Link>
+                  {available ? (
+                    <button
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => onAdd(ticker.ticker)}
+                      className="inline-flex h-10 items-center justify-center rounded-md border border-neutral-900 bg-neutral-950 px-4 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-neutral-50 dark:text-neutral-950"
+                    >
+                      {selected ? "추가됨" : canAddMore ? "선택" : "최대 10개"}
+                    </button>
+                  ) : (
+                    <span className="inline-flex h-10 items-center justify-center rounded-md border border-neutral-200 px-3 text-sm font-medium text-neutral-500 dark:border-white/10 dark:text-neutral-400">
+                      선택 불가
+                    </span>
+                  )}
+                </div>
               </div>
             );
           })}
