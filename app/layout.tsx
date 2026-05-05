@@ -10,10 +10,10 @@ export const metadata: Metadata = {
     template: "%s | FIRE LIFE",
   },
   description:
-    "실제 종목 데이터 기반 투자 시뮬레이터. 적립식 복리, 포트폴리오 백테스트, 기간별 적립금 변경 가능.",
+    "자기 자산의 미래를 설계하기 위한 툴. 간단 복리 계산, 실제 시장 데이터 기반 백테스트, 종목 정보 탐색을 제공합니다.",
   keywords: [
     "FIRE LIFE",
-    "투자 시뮬레이터",
+    "자산 시뮬레이션",
     "복리 계산기",
     "주식 백테스트",
     "적립식 투자",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "FIRE LIFE",
     description:
-      "실제 종목 데이터 기반 투자 시뮬레이션. 적립식 복리와 포트폴리오 백테스트를 한 번에 확인하세요.",
+      "경제적 자유를 향한 여정, FIRE LIFE와 함께. 자산의 미래를 계산하고 실제 시장 데이터로 점검하세요.",
     type: "website",
     locale: "ko_KR",
     siteName: "FIRE LIFE",
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "FIRE LIFE",
     description:
-      "실제 종목 데이터 기반 투자 시뮬레이션과 적립식 포트폴리오 백테스트.",
+      "간단 복리 계산과 실제 종목 데이터 기반 백테스트를 한 곳에서 확인하세요.",
     images: ["/opengraph-image"],
   },
   robots: "index, follow",

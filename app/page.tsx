@@ -1,68 +1,78 @@
 import Link from "next/link";
-import { MarketIndicesWidget } from "@/components/market/MarketIndicesWidget";
+import { MarketIndicesWidget, MarketPulseLine } from "@/components/market/MarketIndicesWidget";
 
-const modes = [
-  {
-    icon: "💰",
-    title: "간단 모드",
-    subtitle: "초기 금액과 월 적립액만 입력해 장기 복리 결과를 빠르게 확인합니다.",
-    href: "/simple",
-    badge: null,
-  },
+const categories = [
   {
     icon: "📊",
-    title: "고급 모드",
-    subtitle: "실제 종목 과거 데이터로 포트폴리오를 백테스트하고 미래 시점까지 확장해 볼 수 있습니다.",
+    title: "간단 백테스트",
+    desc: "복리 시뮬레이션",
+    href: "/simple",
+  },
+  {
+    icon: "📈",
+    title: "고급 백테스트",
+    desc: "실제 시장 데이터",
     href: "/advanced/dates",
-    badge: "Beta",
+  },
+  {
+    icon: "🔍",
+    title: "종목 검색",
+    desc: "종목 정보 + 시뮬레이션",
+    href: "/search",
   },
 ];
 
+function CategoryCard({
+  icon,
+  title,
+  desc,
+  href,
+}: {
+  icon: string;
+  title: string;
+  desc: string;
+  href: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex min-h-[150px] flex-col justify-between rounded-2xl border border-border bg-card p-5 shadow-subtle transition hover:bg-card-subtle focus:outline-none focus:ring-2 focus:ring-brand/35 sm:min-h-[178px] sm:p-6"
+    >
+      <span className="text-3xl leading-none" aria-hidden="true">
+        {icon}
+      </span>
+      <span>
+        <span className="block text-lg font-bold text-primary">{title}</span>
+        <span className="mt-1 block text-sm text-secondary">{desc}</span>
+      </span>
+    </Link>
+  );
+}
+
 export default function HomePage() {
   return (
-    <section className="mx-auto grid max-w-4xl gap-8 py-6 sm:py-10">
-      <div>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          FIRE 투자 시뮬레이터
+    <div className="grid gap-8 py-4 sm:gap-10 sm:py-8">
+      <section className="grid gap-3">
+        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
+          <h1 className="text-3xl font-bold leading-tight text-primary sm:text-[40px]">
+            FIRE LIFE <span aria-hidden="true">🔥</span>
+          </h1>
+          <MarketPulseLine />
+        </div>
+        <p className="text-base text-secondary">
+          자기 자산의 미래를 설계하는 툴
         </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-normal text-neutral-950 dark:text-neutral-50 sm:text-4xl">
-          경제적 자유를 향한 여정, FIRE LIFE와 함께
-        </h1>
-      </div>
+      </section>
+
+      <section aria-label="백테스트 시작">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+          {categories.map((category) => (
+            <CategoryCard key={category.href} {...category} />
+          ))}
+        </div>
+      </section>
 
       <MarketIndicesWidget />
-
-      <div className="grid gap-4 md:grid-cols-2 md:gap-6">
-        {modes.map((mode) => (
-          <Link
-            key={mode.title}
-            href={mode.href}
-            className="group relative min-h-56 rounded-lg border border-neutral-200 bg-white p-6 shadow-sm transition duration-150 hover:border-info focus:outline-none focus:ring-2 focus:ring-info dark:border-white/10 dark:bg-[#1a1a1a] dark:hover:border-info"
-          >
-            {mode.badge ? (
-              <span className="absolute right-4 top-4 rounded-full border border-info/40 px-2 py-1 text-xs font-medium text-info">
-                {mode.badge}
-              </span>
-            ) : null}
-            <div className="text-3xl" aria-hidden="true">
-              {mode.icon}
-            </div>
-            <h2 className="mt-6 text-2xl font-semibold text-neutral-950 dark:text-neutral-50">
-              {mode.title}
-            </h2>
-            <p className="mt-3 max-w-sm text-sm leading-6 text-neutral-600 dark:text-neutral-400">
-              {mode.subtitle}
-            </p>
-            <p className="mt-8 text-sm font-medium text-info transition group-hover:translate-x-1">
-              시작하기
-            </p>
-          </Link>
-        ))}
-      </div>
-
-      <p className="text-center text-xs text-neutral-500 dark:text-neutral-400">
-        과거 데이터 기반 백테스트와 장기 투자 설계를 한곳에서 확인하세요.
-      </p>
-    </section>
+    </div>
   );
 }

@@ -1,0 +1,138 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { Badge } from "@/components/ui/Badge";
+import { Card } from "@/components/ui/Card";
+import { loadTickerIndex, type TickerMeta } from "@/lib/data/tickerIndex";
+import { createSearcher } from "@/lib/data/tickerSearch";
+
+const popularTickers = [
+  "AAPL",
+  "MSFT",
+  "NVDA",
+  "GOOGL",
+  "AMZN",
+  "005930.KS",
+  "000660.KS",
+  "005380.KS",
+  "035420.KS",
+  "035720.KS",
+  "SPY",
+  "QQQ",
+];
+
+export default function SearchPage() {
+  const [tickers, setTickers] = useState<TickerMeta[]>([]);
+  const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadTickerIndex()
+      .then((data) => setTickers(data))
+      .catch(() => setError("종목 목록을 불러오지 못했습니다."))
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setDebouncedQuery(query.trim()), 180);
+    return () => window.clearTimeout(timeout);
+  }, [query]);
+
+  const searcher = useMemo(() => createSearcher(tickers), [tickers]);
+  const results = useMemo(() => {
+    if (!debouncedQuery) {
+      const popular = new Set(popularTickers);
+      return tickers.filter((ticker) => popular.has(ticker.ticker)).slice(0, 12);
+    }
+
+    return searcher
+      .search(debouncedQuery)
+      .slice(0, 24)
+      .map((result) => result.item);
+  }, [debouncedQuery, searcher, tickers]);
+
+  return (
+    <div className="grid gap-6 py-4 sm:py-8">
+      <section className="grid gap-3">
+        <h1 className="text-3xl font-bold text-primary sm:text-[40px]">
+          종목 검색
+        </h1>
+        <p className="text-base text-secondary">
+          종목 정보를 확인하고 상세 페이지에서 시뮬레이션으로 이어가세요.
+        </p>
+      </section>
+
+      <Card rounded="2xl" padding="lg">
+        <label htmlFor="assetSearch" className="text-sm font-semibold text-primary">
+          종목명 또는 티커
+        </label>
+        <input
+          id="assetSearch"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="예: AAPL, 애플, 삼성전자"
+          className="mt-2 h-12 w-full rounded-md border border-border bg-card px-4 text-base text-primary outline-none transition placeholder:text-secondary focus:ring-2 focus:ring-brand/30"
+        />
+
+        <div className="mt-5 flex items-center justify-between gap-3">
+          <p className="text-sm font-semibold text-secondary">
+            {debouncedQuery ? "검색 결과" : "인기 종목"}
+          </p>
+          <Link
+            href={`/request${debouncedQuery ? `?ticker=${encodeURIComponent(debouncedQuery)}` : ""}`}
+            className="text-sm font-bold text-brand transition hover:text-brand-dark"
+          >
+            종목 추가 요청 →
+          </Link>
+        </div>
+
+        {loading ? (
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {Array.from({ length: 6 }, (_, index) => (
+              <div
+                key={index}
+                className="h-[104px] animate-pulse rounded-xl bg-card-subtle"
+              />
+            ))}
+          </div>
+        ) : error ? (
+          <div className="mt-4 rounded-xl bg-card-subtle p-5 text-sm text-secondary">
+            {error}
+          </div>
+        ) : results.length === 0 ? (
+          <div className="mt-4 rounded-xl bg-card-subtle p-6 text-center">
+            <p className="text-sm text-secondary">
+              &quot;{debouncedQuery}&quot;에 대한 검색 결과가 없습니다.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {results.map((ticker) => (
+              <Link
+                key={ticker.ticker}
+                href={`/asset/${encodeURIComponent(ticker.ticker)}`}
+                className="rounded-xl bg-card-subtle p-4 transition hover:bg-brand-bg focus:outline-none focus:ring-2 focus:ring-brand/35"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-bold text-primary">{ticker.ticker}</p>
+                    <p className="mt-1 truncate text-sm text-primary">
+                      {ticker.name_ko || ticker.name}
+                    </p>
+                    <p className="mt-1 truncate text-xs text-secondary">
+                      {ticker.name}
+                    </p>
+                  </div>
+                  <Badge variant="neutral">{ticker.exchange}</Badge>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
