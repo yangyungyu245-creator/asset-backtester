@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AdPlaceholder } from "@/components/simulator/AdPlaceholder";
-import { simulateAdvanced } from "@/lib/simulation/advanced";
+import { simulateAdvancedWithBenchmark } from "@/lib/simulation/advanced";
 import { useSimulationStore } from "@/store/useSimulationStore";
 
 function delay(ms: number) {
@@ -65,7 +65,10 @@ export default function AdvancedLoadingPage() {
 
     async function runSimulation() {
       try {
-        const [result] = await Promise.all([simulateAdvanced(input), delay(5000)]);
+        const [result] = await Promise.all([
+          simulateAdvancedWithBenchmark(input),
+          delay(5000),
+        ]);
         if (cancelled) {
           return;
         }

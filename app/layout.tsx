@@ -4,7 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://asset-backtester.vercel.app"),
+  metadataBase: new URL("https://firelife.vercel.app"),
   title: {
     default: "FIRE LIFE",
     template: "%s | FIRE LIFE",
@@ -17,12 +17,12 @@ export const metadata: Metadata = {
     "복리 계산기",
     "주식 백테스트",
     "적립식 투자",
-    "DCA 시뮬레이터",
+    "DCA 시뮬레이션",
   ],
   openGraph: {
     title: "FIRE LIFE",
     description:
-      "실제 종목 데이터 기반 투자 시뮬레이터. 적립식 복리와 포트폴리오 백테스트를 한 번에 확인하세요.",
+      "실제 종목 데이터 기반 투자 시뮬레이션. 적립식 복리와 포트폴리오 백테스트를 한 번에 확인하세요.",
     type: "website",
     locale: "ko_KR",
     siteName: "FIRE LIFE",

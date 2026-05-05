@@ -615,3 +615,48 @@ export async function simulateAdvanced(
     dataIssues,
   };
 }
+
+export async function simulateAdvancedWithBenchmark(
+  input: AdvancedSimulationInput,
+): Promise<SimulationResult> {
+  const user = await simulateAdvanced(input);
+
+  if (input.startDate < "2010-09-09") {
+    return {
+      ...user,
+      warnings: [
+        ...user.warnings,
+        "S&P 500 비교는 VOO 상장일인 2010-09-09 이후 시뮬레이션에서만 가능합니다.",
+      ],
+    };
+  }
+
+  try {
+    const benchmark = await simulateAdvanced({
+      ...input,
+      portfolio: [{ ticker: "VOO", weight: 100 }],
+    });
+    const benchmarkByDate = new Map(
+      benchmark.timeSeries.map((point) => [point.date, point.value]),
+    );
+
+    return {
+      ...user,
+      timeSeries: user.timeSeries.map((point) => ({
+        ...point,
+        benchmarkValue: benchmarkByDate.get(point.date) ?? null,
+      })),
+      benchmark,
+    };
+  } catch (error) {
+    return {
+      ...user,
+      warnings: [
+        ...user.warnings,
+        error instanceof Error
+          ? `S&P 500 벤치마크를 계산하지 못했습니다: ${error.message}`
+          : "S&P 500 벤치마크를 계산하지 못했습니다.",
+      ],
+    };
+  }
+}

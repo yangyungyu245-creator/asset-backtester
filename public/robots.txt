@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://investment-simulator.vercel.app/sitemap.xml
+Sitemap: https://firelife.vercel.app/sitemap.xml

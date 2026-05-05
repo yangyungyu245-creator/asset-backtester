@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 export const revalidate = 900;
 
 const MARKET_INDICES = [
@@ -19,73 +21,137 @@ type YahooQuote = {
   regularMarketPreviousClose?: number;
 };
 
-export async function GET() {
-  const symbols = MARKET_INDICES.map((item) => item.symbol).join(",");
-  const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(
-    symbols,
+async function fetchJson<T>(url: string): Promise<T> {
+  const response = await fetch(url, {
+    next: { revalidate },
+    signal: AbortSignal.timeout(8_000),
+    headers: {
+      Accept: "application/json",
+      "User-Agent": "FIRE LIFE market indices widget",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Yahoo Finance responded with ${response.status}`);
+  }
+
+  return (await response.json()) as T;
+}
+
+async function fetchQuote(symbol: string) {
+  const quoteUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(
+    symbol,
   )}`;
+  const payload = await fetchJson<{
+    quoteResponse?: { result?: YahooQuote[] };
+  }>(quoteUrl);
+  const quote = payload.quoteResponse?.result?.[0];
 
+  if (!quote) {
+    throw new Error(`No quote returned for ${symbol}`);
+  }
+
+  return quote;
+}
+
+async function fetchChartQuote(symbol: string): Promise<YahooQuote> {
+  const chartUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(
+    symbol,
+  )}?range=5d&interval=1d`;
+  const payload = await fetchJson<{
+    chart?: {
+      result?: Array<{
+        meta?: {
+          symbol?: string;
+          regularMarketPrice?: number;
+          previousClose?: number;
+        };
+        indicators?: { quote?: Array<{ close?: Array<number | null> }> };
+      }>;
+    };
+  }>(chartUrl);
+  const result = payload.chart?.result?.[0];
+  const closes =
+    result?.indicators?.quote?.[0]?.close?.filter(
+      (value): value is number => typeof value === "number" && Number.isFinite(value),
+    ) ?? [];
+  const price =
+    result?.meta?.regularMarketPrice ?? closes[closes.length - 1] ?? undefined;
+  const previousClose =
+    result?.meta?.previousClose ?? closes[closes.length - 2] ?? undefined;
+
+  if (price === undefined) {
+    throw new Error(`No chart price returned for ${symbol}`);
+  }
+
+  const change =
+    previousClose !== undefined && previousClose > 0 ? price - previousClose : undefined;
+
+  return {
+    symbol: result?.meta?.symbol ?? symbol,
+    regularMarketPrice: price,
+    regularMarketPreviousClose: previousClose,
+    regularMarketChange: change,
+    regularMarketChangePercent:
+      change !== undefined && previousClose ? (change / previousClose) * 100 : undefined,
+  };
+}
+
+async function fetchMarketIndex(symbol: string) {
   try {
-    const response = await fetch(url, {
-      next: { revalidate },
-      headers: {
-        "User-Agent": "FIRE LIFE market indices widget",
-      },
-    });
+    return await fetchQuote(symbol);
+  } catch (quoteError) {
+    console.error(`[market-indices] quote failed for ${symbol}`, quoteError);
+    return fetchChartQuote(symbol);
+  }
+}
 
-    if (!response.ok) {
-      throw new Error(`Yahoo Finance responded with ${response.status}`);
+export async function GET() {
+  const results = await Promise.allSettled(
+    MARKET_INDICES.map((item) => fetchMarketIndex(item.symbol)),
+  );
+  const indices = MARKET_INDICES.map((item, index) => {
+    const result = results[index];
+    const quote = result.status === "fulfilled" ? result.value : null;
+
+    if (result.status === "rejected") {
+      console.error(`[market-indices] failed for ${item.symbol}`, result.reason);
     }
 
-    const payload = (await response.json()) as {
-      quoteResponse?: { result?: YahooQuote[] };
+    const price = quote?.regularMarketPrice ?? null;
+    const change =
+      quote?.regularMarketChange ??
+      (price !== null && quote?.regularMarketPreviousClose
+        ? price - quote.regularMarketPreviousClose
+        : null);
+    const changePercent =
+      quote?.regularMarketChangePercent ??
+      (change !== null && quote?.regularMarketPreviousClose
+        ? (change / quote.regularMarketPreviousClose) * 100
+        : null);
+
+    return {
+      symbol: item.symbol,
+      label: item.label,
+      decimals: item.decimals,
+      price,
+      change,
+      changePercent,
+      error: quote ? undefined : "quote unavailable",
     };
-    const quoteMap = new Map(
-      (payload.quoteResponse?.result ?? []).map((quote) => [quote.symbol, quote]),
-    );
-    const indices = MARKET_INDICES.map((item) => {
-      const quote = quoteMap.get(item.symbol);
-      const price = quote?.regularMarketPrice ?? null;
-      const change =
-        quote?.regularMarketChange ??
-        (price !== null && quote?.regularMarketPreviousClose
-          ? price - quote.regularMarketPreviousClose
-          : null);
-      const changePercent =
-        quote?.regularMarketChangePercent ??
-        (change !== null && quote?.regularMarketPreviousClose
-          ? (change / quote.regularMarketPreviousClose) * 100
-          : null);
+  });
+  const hasAnyPrice = indices.some((item) => item.price !== null);
 
-      return {
-        symbol: item.symbol,
-        label: item.label,
-        decimals: item.decimals,
-        price,
-        change,
-        changePercent,
-      };
-    });
-
-    return NextResponse.json(
-      {
-        indices,
-        updatedAt: new Date().toISOString(),
+  return NextResponse.json(
+    {
+      indices,
+      updatedAt: new Date().toISOString(),
+      error: hasAnyPrice ? undefined : "Failed to load market indices.",
+    },
+    {
+      headers: {
+        "Cache-Control": "s-maxage=900, stale-while-revalidate=3600",
       },
-      {
-        headers: {
-          "Cache-Control": "s-maxage=900, stale-while-revalidate=3600",
-        },
-      },
-    );
-  } catch (error) {
-    return NextResponse.json(
-      {
-        indices: [],
-        updatedAt: new Date().toISOString(),
-        error: error instanceof Error ? error.message : "Failed to load market indices.",
-      },
-      { status: 502 },
-    );
-  }
+    },
+  );
 }

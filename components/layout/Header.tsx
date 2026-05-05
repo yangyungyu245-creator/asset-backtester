@@ -24,9 +24,7 @@ export function Header() {
           className="flex items-center gap-2 text-base text-neutral-950 focus:outline-none focus:ring-2 focus:ring-info dark:text-neutral-50"
           onClick={() => setIsOpen(false)}
         >
-          <span className="text-2xl leading-none" aria-hidden="true">
-            📈
-          </span>
+          <span className="text-2xl leading-none" aria-hidden="true">🔥</span>
           <span className="font-extrabold tracking-wide">FIRE LIFE</span>
         </Link>
         <div className="hidden items-center gap-2 md:flex">
@@ -73,7 +71,7 @@ export function Header() {
       {isOpen ? (
         <nav
           className="border-t border-neutral-200 bg-white px-4 py-3 dark:border-white/10 dark:bg-neutral-950 md:hidden"
-          aria-label="모바일 주요 메뉴"
+          aria-label="주요 메뉴"
         >
           <div className="mx-auto grid w-full max-w-5xl gap-1">
             {navItems.map((item) => {

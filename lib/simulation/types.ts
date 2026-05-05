@@ -2,6 +2,8 @@ export type SimulationPoint = {
   date: string;
   value: number;
   contributions: number;
+  benchmarkValue?: number | null;
+  isFuture?: boolean;
 };
 
 export type YearlyBreakdown = {
@@ -26,6 +28,7 @@ export type SimulationResult = {
     troughValue: number;
   };
   timeSeries: SimulationPoint[];
+  benchmark?: Omit<SimulationResult, "benchmark">;
   yearlyBreakdown: YearlyBreakdown[];
   initialPortfolio: PortfolioSnapshot[];
   finalPortfolio: PortfolioSnapshot[];

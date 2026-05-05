@@ -62,7 +62,7 @@ export async function GET(request: Request) {
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <div style={{ fontSize: 30, color: "#a3a3a3" }}>📈 FIRE LIFE</div>
+          <div style={{ fontSize: 30, color: "#a3a3a3" }}>🔥 FIRE LIFE</div>
           <div style={{ fontSize: 24, color: "#38bdf8" }}>made by 양클로드</div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>

@@ -31,7 +31,7 @@ export default function Image() {
             marginBottom: 28,
           }}
         >
-          📈 적립식 투자 · 포트폴리오 백테스트
+          🔥 적립식 투자 · 포트폴리오 백테스트
         </div>
         <div
           style={{
@@ -60,7 +60,7 @@ export default function Image() {
             color: "#94a3b8",
           }}
         >
-          made by 양클로드
+          firelife.vercel.app · made by 양클로드
         </div>
       </div>
     ),

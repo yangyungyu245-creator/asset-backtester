@@ -58,6 +58,10 @@ function renderTooltip({ active, payload, label }: TooltipProps<number, string>)
 
   const profit = point.value - point.contributions;
   const profitRate = point.contributions > 0 ? (profit / point.contributions) * 100 : 0;
+  const benchmarkDiff =
+    point.benchmarkValue !== null && point.benchmarkValue !== undefined
+      ? point.value - point.benchmarkValue
+      : null;
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs shadow-lg dark:border-white/10 dark:bg-neutral-950">
@@ -65,11 +69,19 @@ function renderTooltip({ active, payload, label }: TooltipProps<number, string>)
         {String(label ?? point.date)}
       </p>
       <div className="mt-2 grid gap-1 text-neutral-600 dark:text-neutral-300">
-        <p>평가금액: {formatCompactKRW(point.value)}</p>
+        <p>내 포트폴리오: {formatCompactKRW(point.value)}</p>
+        {point.benchmarkValue !== null && point.benchmarkValue !== undefined ? (
+          <p>S&P 500 (VOO): {formatCompactKRW(point.benchmarkValue)}</p>
+        ) : null}
         <p>누적 원금: {formatCompactKRW(point.contributions)}</p>
         <p className={profit >= 0 ? "text-positive" : "text-negative"}>
           수익: {formatSignedKRW(profit)} ({formatPercentValue(profitRate)})
         </p>
+        {benchmarkDiff !== null ? (
+          <p className={benchmarkDiff >= 0 ? "text-positive" : "text-negative"}>
+            VOO 대비: {formatSignedKRW(benchmarkDiff)}
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -78,7 +90,7 @@ function renderTooltip({ active, payload, label }: TooltipProps<number, string>)
 function renderLegend({ payload }: LegendContentProps) {
   const entries =
     payload?.filter((entry) =>
-      entry.dataKey === "value" || entry.dataKey === "contributions",
+      ["value", "contributions", "benchmarkValue"].includes(String(entry.dataKey)),
     ) ?? [];
 
   if (entries.length === 0) {
@@ -88,7 +100,7 @@ function renderLegend({ payload }: LegendContentProps) {
   return (
     <ul className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-neutral-500 dark:text-neutral-400">
       {entries.map((entry) => {
-        const isContribution = entry.dataKey === "contributions";
+        const dashed = entry.dataKey === "contributions";
 
         return (
           <li key={String(entry.dataKey)} className="inline-flex items-center gap-2">
@@ -96,7 +108,7 @@ function renderLegend({ payload }: LegendContentProps) {
               className="inline-block h-0 w-6 border-t-2"
               style={{
                 borderColor: entry.color,
-                borderTopStyle: isContribution ? "dashed" : "solid",
+                borderTopStyle: dashed ? "dashed" : "solid",
               }}
               aria-hidden="true"
             />
@@ -121,6 +133,9 @@ export function AssetChart({ data }: AssetChartProps) {
       downValueStrong: downStreak >= 3 ? point.value : null,
     };
   });
+  const hasBenchmark = chartData.some(
+    (point) => point.benchmarkValue !== null && point.benchmarkValue !== undefined,
+  );
 
   return (
     <section className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#1a1a1a] sm:p-5">
@@ -130,7 +145,7 @@ export function AssetChart({ data }: AssetChartProps) {
             자산 추이
           </h2>
           <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-            평가금액과 누적 원금을 월 단위로 비교합니다.
+            평가금액, 누적 원금, 같은 조건의 S&P 500 (VOO) 결과를 비교합니다.
           </p>
         </div>
       </div>
@@ -183,7 +198,7 @@ export function AssetChart({ data }: AssetChartProps) {
               content={renderLegend}
             />
             <Area
-              name="평가금액"
+              name="내 포트폴리오"
               type="monotone"
               dataKey="value"
               stroke="var(--chart-value)"
@@ -205,7 +220,7 @@ export function AssetChart({ data }: AssetChartProps) {
               legendType="none"
             />
             <Area
-              name="긴 하락 구간"
+              name="큰 하락 구간"
               type="monotone"
               dataKey="downValueStrong"
               stroke="none"
@@ -225,6 +240,17 @@ export function AssetChart({ data }: AssetChartProps) {
               strokeWidth={2}
               dot={false}
             />
+            {hasBenchmark ? (
+              <Line
+                name="S&P 500 (VOO)"
+                type="monotone"
+                dataKey="benchmarkValue"
+                stroke="#f59e0b"
+                strokeWidth={2.5}
+                dot={false}
+                connectNulls={false}
+              />
+            ) : null}
           </ComposedChart>
         </ResponsiveContainer>
       </div>

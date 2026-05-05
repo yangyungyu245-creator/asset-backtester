@@ -9,6 +9,7 @@ type MarketIndex = {
   price: number | null;
   change: number | null;
   changePercent: number | null;
+  error?: string;
 };
 
 type MarketIndicesResponse = {
@@ -56,16 +57,11 @@ export function MarketIndicesWidget() {
     async function loadIndices() {
       try {
         const response = await fetch("/api/market-indices");
-
-        if (!response.ok) {
-          throw new Error("Failed to load market indices.");
-        }
-
         const payload = (await response.json()) as MarketIndicesResponse;
 
         if (!ignore) {
           setData(payload);
-          setHasError(Boolean(payload.error));
+          setHasError(!response.ok || Boolean(payload.error));
         }
       } catch {
         if (!ignore) {
@@ -108,49 +104,49 @@ export function MarketIndicesWidget() {
 
       {hasError && !isLoading ? (
         <div className="mt-4 rounded-md bg-neutral-50 px-3 py-4 text-sm text-neutral-500 dark:bg-white/5 dark:text-neutral-400">
-          지수 데이터를 불러올 수 없습니다.
+          일부 지수 데이터를 불러오지 못했습니다. 표시 가능한 항목만 보여드립니다.
         </div>
-      ) : (
-        <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-          {displayItems.map((item, index) => {
-            if (!item) {
-              return (
-                <div
-                  key={index}
-                  className="h-[104px] animate-pulse rounded-lg bg-neutral-100 dark:bg-white/5"
-                />
-              );
-            }
+      ) : null}
 
-            const isUp = (item.change ?? 0) > 0;
-            const isDown = (item.change ?? 0) < 0;
-            const changeClassName = isUp
-              ? "text-red-500"
-              : isDown
-                ? "text-blue-500"
-                : "text-neutral-500 dark:text-neutral-400";
-
+      <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+        {displayItems.map((item, index) => {
+          if (!item) {
             return (
-              <article
-                key={item.symbol}
-                className="rounded-lg bg-neutral-50 p-3 dark:bg-white/5"
-              >
-                <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-                  {item.label}
-                </p>
-                <p className="mt-2 text-base font-semibold text-neutral-950 dark:text-neutral-50">
-                  {formatNumber(item.price, item.decimals)}
-                </p>
-                <p className={`mt-1 text-xs font-medium ${changeClassName}`}>
-                  {isUp ? "▲" : isDown ? "▼" : "–"}{" "}
-                  {formatNumber(Math.abs(item.change ?? 0), item.decimals)} (
-                  {formatNumber(Math.abs(item.changePercent ?? 0), 2)}%)
-                </p>
-              </article>
+              <div
+                key={index}
+                className="h-[104px] animate-pulse rounded-lg bg-neutral-100 dark:bg-white/5"
+              />
             );
-          })}
-        </div>
-      )}
+          }
+
+          const isUp = (item.change ?? 0) > 0;
+          const isDown = (item.change ?? 0) < 0;
+          const changeClassName = isUp
+            ? "text-red-500"
+            : isDown
+              ? "text-blue-500"
+              : "text-neutral-500 dark:text-neutral-400";
+
+          return (
+            <article
+              key={item.symbol}
+              className="rounded-lg bg-neutral-50 p-3 dark:bg-white/5"
+            >
+              <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                {item.label}
+              </p>
+              <p className="mt-2 text-base font-semibold text-neutral-950 dark:text-neutral-50">
+                {formatNumber(item.price, item.decimals)}
+              </p>
+              <p className={`mt-1 text-xs font-medium ${changeClassName}`}>
+                {isUp ? "▲" : isDown ? "▼" : "━"}{" "}
+                {formatNumber(Math.abs(item.change ?? 0), item.decimals)} (
+                {formatNumber(Math.abs(item.changePercent ?? 0), 2)}%)
+              </p>
+            </article>
+          );
+        })}
+      </div>
     </section>
   );
 }

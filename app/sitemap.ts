@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const baseUrl = "https://asset-backtester.vercel.app";
+const baseUrl = "https://firelife.vercel.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const routes = ["", "/simple", "/advanced/dates", "/request", "/about"];

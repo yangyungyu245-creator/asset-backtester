@@ -90,6 +90,7 @@ export default function AdvancedResultPage() {
       <AdPlaceholder />
       <YearlyTable
         rows={simulationResult.yearlyBreakdown}
+        timeSeries={simulationResult.timeSeries}
         initialAmount={initialAmount}
       />
       <DataWarnings
