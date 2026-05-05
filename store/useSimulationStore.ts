@@ -77,6 +77,37 @@ function addMonths(yearMonth: string, months: number) {
   return `${date.getFullYear()}-${`${date.getMonth() + 1}`.padStart(2, "0")}`;
 }
 
+function normalizeScheduleRanges(
+  periods: ContributionPeriod[],
+  editedIndex: number,
+) {
+  const normalized = periods.map((period) => ({ ...period }));
+
+  for (let index = editedIndex; index < normalized.length; index += 1) {
+    const period = normalized[index];
+
+    if (index < editedIndex) {
+      continue;
+    }
+
+    const previous = normalized[index - 1];
+
+    const startYearMonth =
+      index > editedIndex && previous
+        ? addMonths(previous.endYearMonth, 1)
+        : period.startYearMonth;
+
+    normalized[index] = {
+      ...period,
+      startYearMonth,
+      endYearMonth:
+        period.endYearMonth < startYearMonth ? startYearMonth : period.endYearMonth,
+    };
+  }
+
+  return normalized;
+}
+
 function createPeriod(startDate: string, endDate: string, monthlyAmount = 0) {
   return {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -255,11 +286,23 @@ export const useSimulationStore = create<SimulationStore>()(
           return { contributionSchedule: periods };
         }),
       updateContributionPeriod: (id, patch) =>
-        set((state) => ({
-          contributionSchedule: state.contributionSchedule.map((period) =>
+        set((state) => {
+          const editedIndex = state.contributionSchedule.findIndex(
+            (period) => period.id === id,
+          );
+
+          if (editedIndex === -1) {
+            return state;
+          }
+
+          const periods = state.contributionSchedule.map((period) =>
             period.id === id ? { ...period, ...patch } : period,
-          ),
-        })),
+          );
+
+          return {
+            contributionSchedule: normalizeScheduleRanges(periods, editedIndex),
+          };
+        }),
       updateOptions: (patch) =>
         set((state) => ({ options: { ...state.options, ...patch } })),
       loadScenario: (scenario) =>

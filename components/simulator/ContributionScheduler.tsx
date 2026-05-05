@@ -37,6 +37,9 @@ export function ContributionScheduler({
           <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
             시뮬레이션 기간 전체가 빈틈없이 이어져야 합니다.
           </p>
+          <p className="mt-1 text-xs text-info">
+            앞 구간의 종료 년월을 바꾸면 다음 구간 시작 년월이 자동으로 이어집니다.
+          </p>
         </div>
         <button
           type="button"
