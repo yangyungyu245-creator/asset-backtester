@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import { colors, radius, shadow } from "./lib/design/tokens";
 
 const config: Config = {
   darkMode: "class",
@@ -18,6 +19,13 @@ const config: Config = {
         ],
       },
       colors: {
+        ...colors,
+        page: "var(--bg-page)",
+        card: "var(--bg-card)",
+        "card-subtle": "var(--bg-card-subtle)",
+        border: "var(--border)",
+        primary: "var(--text-primary)",
+        secondary: "var(--text-secondary)",
         surface: {
           dark: "#0a0a0a",
           card: "#1a1a1a",
@@ -26,6 +34,8 @@ const config: Config = {
         negative: "#ef4444",
         info: "#3b82f6",
       },
+      borderRadius: radius,
+      boxShadow: shadow,
     },
   },
   plugins: [],

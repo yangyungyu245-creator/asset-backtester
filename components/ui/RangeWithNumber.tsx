@@ -38,7 +38,7 @@ export function RangeWithNumber({
       {label ? (
         <label
           htmlFor={`${id}-range`}
-          className="text-sm font-medium text-neutral-800 dark:text-neutral-200"
+          className="text-sm font-semibold text-primary"
         >
           {label}
         </label>
@@ -52,9 +52,9 @@ export function RangeWithNumber({
           step={step}
           value={value}
           onChange={(event) => update(Number(event.target.value))}
-          className="min-w-0 accent-info"
+          className="min-w-0 accent-brand"
         />
-        <label className="flex h-11 min-w-0 items-center rounded-md border border-neutral-300 bg-white px-3 focus-within:ring-2 focus-within:ring-info dark:border-white/10 dark:bg-neutral-950">
+        <label className="flex h-11 min-w-0 items-center rounded-md border border-border bg-card px-3 focus-within:ring-2 focus-within:ring-brand/30">
           <input
             id={id}
             type="number"
@@ -63,16 +63,16 @@ export function RangeWithNumber({
             step={step}
             value={value}
             onChange={(event) => update(Number(event.target.value))}
-            className="min-w-0 flex-1 bg-transparent text-right text-sm text-neutral-950 outline-none dark:text-neutral-50"
+            className="min-w-0 flex-1 bg-transparent text-right text-sm text-primary outline-none"
           />
           {unit ? (
-            <span className="ml-2 shrink-0 text-sm text-neutral-500 dark:text-neutral-400">
+            <span className="ml-2 shrink-0 text-sm text-secondary">
               {unit}
             </span>
           ) : null}
         </label>
       </div>
-      {error ? <p className="mt-1 text-xs text-negative">{error}</p> : null}
+      {error ? <p className="mt-1 text-xs text-up">{error}</p> : null}
     </div>
   );
 }

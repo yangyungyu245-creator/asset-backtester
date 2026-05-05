@@ -54,15 +54,15 @@ export function NumberInput({
     <div>
       <label
         htmlFor={id}
-        className="text-sm font-medium text-neutral-800 dark:text-neutral-200"
+        className="text-sm font-semibold text-primary"
       >
         {label}
       </label>
       <div
-        className={`mt-2 flex h-11 items-center rounded-md border bg-white px-3 focus-within:ring-2 focus-within:ring-info dark:bg-neutral-950 ${
+        className={`mt-2 flex h-11 items-center rounded-md border bg-card px-3 transition focus-within:ring-2 focus-within:ring-brand/30 ${
           isInvalid
-            ? "border-negative"
-            : "border-neutral-300 dark:border-white/10"
+            ? "border-up"
+            : "border-border"
         }`}
       >
         <input
@@ -83,13 +83,13 @@ export function NumberInput({
             onChange(nextValue);
           }}
           step={step}
-          className="min-w-0 flex-1 bg-transparent text-sm text-neutral-950 outline-none dark:text-neutral-50"
+          className="min-w-0 flex-1 bg-transparent text-sm text-primary outline-none"
         />
-        <span className="ml-2 text-sm text-neutral-500 dark:text-neutral-400">
+        <span className="ml-2 text-sm text-secondary">
           {suffix}
         </span>
       </div>
-      {error ? <p className="mt-1 text-xs text-negative">{error}</p> : null}
+      {error ? <p className="mt-1 text-xs text-up">{error}</p> : null}
     </div>
   );
 }
