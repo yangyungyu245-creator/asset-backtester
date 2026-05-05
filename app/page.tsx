@@ -3,14 +3,14 @@ import { MarketIndicesWidget } from "@/components/market/MarketIndicesWidget";
 
 const modes = [
   {
-    icon: "◎",
+    icon: "💰",
     title: "간단 모드",
     subtitle: "초기 금액과 월 적립액만 입력해 장기 복리 결과를 빠르게 확인합니다.",
     href: "/simple",
     badge: null,
   },
   {
-    icon: "▣",
+    icon: "📊",
     title: "고급 모드",
     subtitle: "실제 종목 과거 데이터로 포트폴리오를 백테스트하고 미래 시점까지 확장해 볼 수 있습니다.",
     href: "/advanced/dates",
