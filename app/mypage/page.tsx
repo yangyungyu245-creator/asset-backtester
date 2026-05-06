@@ -6,6 +6,7 @@ import { StockLogo } from "@/components/asset/StockLogo";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { getTickerName } from "@/lib/data/tickerUtils";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -119,9 +120,12 @@ export default async function MyPage() {
                 className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0"
               >
                 <div className="flex min-w-0 items-center gap-3">
-                  <StockLogo symbol={row.symbol} />
+                  <StockLogo symbol={row.symbol} name={getTickerName(row.symbol)} />
                   <div className="min-w-0">
-                    <p className="font-mono text-lg font-bold text-primary">
+                    <p className="truncate text-base font-bold text-primary">
+                      {getTickerName(row.symbol)}
+                    </p>
+                    <p className="mt-1 font-mono text-xs text-secondary">
                       {row.symbol}
                     </p>
                     <p className="mt-1 text-xs text-secondary">
