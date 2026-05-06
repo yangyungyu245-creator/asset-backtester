@@ -389,15 +389,15 @@ function AssetChartSvg({
         <>
           <text
             x={Math.min(width - 116, Math.max(padding.left, x(extreme.highIndex) - 38))}
-            y={Math.max(16, y(data[extreme.highIndex].high) - 8)}
-            className="fill-secondary text-[11px] font-semibold"
+            y={Math.max(padding.top + 24, y(data[extreme.highIndex].high) - 8)}
+            className="fill-primary text-[11px] font-semibold [paint-order:stroke] [stroke:var(--bg-card)] [stroke-width:5px]"
           >
             최고 {formatMoney(data[extreme.highIndex].high, asset, currencyMode, true)}
           </text>
           <text
             x={Math.min(width - 116, Math.max(padding.left, x(extreme.lowIndex) - 38))}
             y={Math.min(volumeY - 8, y(data[extreme.lowIndex].low) + 18)}
-            className="fill-secondary text-[11px] font-semibold"
+            className="fill-primary text-[11px] font-semibold [paint-order:stroke] [stroke:var(--bg-card)] [stroke-width:5px]"
           >
             최저 {formatMoney(data[extreme.lowIndex].low, asset, currencyMode, true)}
           </text>

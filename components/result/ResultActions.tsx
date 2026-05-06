@@ -91,7 +91,7 @@ function drawLineChart(
   drawSeries("value", "#FF6B35");
   drawSeries("contributions", "#8B95A1", true);
 
-  context.fillStyle = "#191F28";
+  context.fillStyle = "#F2F4F6";
   context.font = "20px sans-serif";
   context.fillText("자산 추이", x + 24, y + 30);
 
@@ -162,19 +162,19 @@ export function ResultActions() {
     }
 
     const gradient = context.createLinearGradient(0, 0, 1200, 900);
-    gradient.addColorStop(0, "#FFFFFF");
-    gradient.addColorStop(1, "#FAFBFC");
+    gradient.addColorStop(0, "#191F28");
+    gradient.addColorStop(1, "#111820");
     context.fillStyle = gradient;
     context.fillRect(0, 0, 1200, 900);
 
     context.fillStyle = "#FF6B35";
     context.fillRect(64, 64, 8, 760);
 
-    context.fillStyle = "#191F28";
+    context.fillStyle = "#F2F4F6";
     context.font = "900 56px sans-serif";
     context.fillText("FIRE LIFE 결과", 104, 132);
 
-    context.fillStyle = "#6B7684";
+    context.fillStyle = "#B0B8C1";
     context.font = "28px sans-serif";
     context.fillText(`${startDate} ~ ${endDate}`, 104, 184);
 
@@ -182,7 +182,7 @@ export function ResultActions() {
       .slice(0, 6)
       .map((item) => `${item.ticker} ${item.weight}%`)
       .join(" · ");
-    context.fillStyle = "#6B7684";
+    context.fillStyle = "#B0B8C1";
     context.font = "24px sans-serif";
     context.fillText(tickers || "포트폴리오 없음", 104, 226);
 
@@ -194,27 +194,27 @@ export function ResultActions() {
         formatCompactKRW(simulationResult.totalReturn),
         simulationResult.totalReturn >= 0 ? "#F04452" : "#3182F6",
       ],
-      ["CAGR", formatPercentValue(simulationResult.cagr * 100, 1), "#191F28"],
+      ["CAGR", formatPercentValue(simulationResult.cagr * 100, 1), "#F2F4F6"],
       ["최대 낙폭", formatPercentValue(simulationResult.maxDrawdown.percent, 1), "#3182F6"],
     ];
 
     metrics.forEach(([label, value, color], index) => {
       const metricX = 104 + (index % 5) * 205;
       const metricY = 315;
-      context.fillStyle = "#6B7684";
+      context.fillStyle = "#B0B8C1";
       context.font = "22px sans-serif";
       context.fillText(label, metricX, metricY);
-      context.fillStyle = color;
+      context.fillStyle = color === "#191F28" ? "#F2F4F6" : color;
       context.font = "700 34px sans-serif";
       context.fillText(value, metricX, metricY + 48);
     });
 
-    context.fillStyle = "#F2F4F6";
+    context.fillStyle = "#232B36";
     drawRoundedRect(context, 104, 430, 1010, 330, 16);
     context.fill();
     drawLineChart(context, simulationResult.timeSeries, 104, 430, 1010, 330);
 
-    context.fillStyle = "#6B7684";
+    context.fillStyle = "#B0B8C1";
     context.font = "22px sans-serif";
     context.fillText("firelife.vercel.app · Yahoo Finance 데이터 · made by 업로드", 104, 830);
 
