@@ -6,4 +6,4 @@ export function isAuthConfigured() {
 }
 
 export const authUnavailableMessage =
-  "로그인 기능은 아직 연결 중입니다. 기본 시뮬레이션은 그대로 사용 가능합니다.";
+  "Supabase 환경 변수가 아직 설정되지 않았습니다. 기본 시뮬레이션은 그대로 사용 가능합니다.";
