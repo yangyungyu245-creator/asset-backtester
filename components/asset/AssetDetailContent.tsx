@@ -78,6 +78,8 @@ const periods = [
   { value: "max", label: "전체" },
 ];
 
+const periodLabelMap = new Map(periods.map((item) => [item.value, item.label]));
+
 const tabs: Array<{ value: Tab; label: string }> = [
   { value: "chart", label: "차트" },
   { value: "info", label: "종목정보" },
@@ -200,6 +202,17 @@ function getPointChange(data: ChartPoint[], index: number) {
   return { change, changePercent: (change / previous.close) * 100 };
 }
 
+function getRangeChange(data: ChartPoint[]) {
+  const first = data[0];
+  const last = data[data.length - 1];
+  if (!first || !last || first.close <= 0) {
+    return { change: null, changePercent: null };
+  }
+
+  const change = last.close - first.close;
+  return { change, changePercent: (change / first.close) * 100 };
+}
+
 function calculateDomain(data: ChartPoint[]) {
   const values = data.flatMap((point) => [point.high, point.low, point.close]);
   const min = Math.min(...values);
@@ -268,9 +281,18 @@ function AssetChartSvg({
   const tooltipLeft = hoverX > width - 250;
 
   function getIndexFromClientX(clientX: number, svg: SVGSVGElement) {
-    const rect = svg.getBoundingClientRect();
-    const localX = ((clientX - rect.left) / rect.width) * width;
-    const raw = Math.round((localX - padding.left) / Math.max(step, 1));
+    const point = svg.createSVGPoint();
+    point.x = clientX;
+    point.y = 0;
+    const ctm = svg.getScreenCTM();
+    if (!ctm) return hoverIndex ?? 0;
+
+    const svgPoint = point.matrixTransform(ctm.inverse());
+    const plotLeft = padding.left;
+    const plotRight = padding.left + plotWidth;
+    const plotX = Math.max(plotLeft, Math.min(plotRight, svgPoint.x));
+    const ratio = (plotX - plotLeft) / Math.max(plotRight - plotLeft, 1);
+    const raw = Math.round(ratio * Math.max(data.length - 1, 0));
     return Math.max(0, Math.min(data.length - 1, raw));
   }
 
@@ -592,6 +614,12 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
       ? `${getUnit(asset, alternateMode)}${formatMoney(asset.latestPrice, asset, alternateMode)}`
       : "";
   const convertedChange = convertValue(asset?.change, asset, currencyMode);
+  const periodChange = useMemo(
+    () => (asset ? getRangeChange(asset.chart) : { change: null, changePercent: null }),
+    [asset],
+  );
+  const convertedPeriodChange = convertValue(periodChange.change, asset, currencyMode);
+  const periodLabel = periodLabelMap.get(period) ?? period;
   const metricItems = asset ? buildMetricItems(asset, currencyMode) : [];
   const companyItems = asset ? buildCompanyItems(asset) : [];
 
@@ -631,7 +659,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
 
             {isFiniteNumber(asset?.changePercent) ? (
               <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-                <Badge variant="neutral">장마감 기준</Badge>
+                <Badge variant="neutral">전 거래일 대비</Badge>
                 <span className={`font-bold text-numeric ${getTrendClassName(asset?.changePercent)}`}>
                   {formatSigned(convertedChange)} {unit} ({formatPercent(asset?.changePercent)})
                 </span>
@@ -719,6 +747,14 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
                   </button>
                 ))}
               </div>
+              {isFiniteNumber(periodChange.changePercent) ? (
+                <div className="flex flex-wrap items-baseline justify-start gap-2 rounded-lg bg-card-subtle px-3 py-2 text-sm sm:justify-end">
+                  <span className="text-secondary">{periodLabel} 등락</span>
+                  <span className={`font-bold text-numeric ${getTrendClassName(periodChange.changePercent)}`}>
+                    {formatSigned(convertedPeriodChange)} {unit} ({formatPercent(periodChange.changePercent)})
+                  </span>
+                </div>
+              ) : null}
               <div className="grid grid-cols-2 gap-1 rounded-lg bg-card-subtle p-1 sm:ml-auto sm:w-fit">
                 {(["line", "candle"] as const).map((mode) => (
                   <button
