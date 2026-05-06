@@ -67,7 +67,7 @@ export default function AdvancedDatesPage() {
   }, []);
 
   return (
-    <section className="py-4 sm:py-8">
+    <section className="min-w-0 overflow-hidden py-4 sm:py-8">
       <AdvancedStepper currentStep={1} />
       <div>
         <h1 className="text-3xl font-bold text-primary sm:text-[40px]">
@@ -91,7 +91,7 @@ export default function AdvancedDatesPage() {
       ) : null}
 
       <form
-        className="mt-6 grid min-w-0 gap-5 rounded-2xl border border-border bg-card p-5 shadow-subtle"
+        className="mt-6 grid min-w-0 gap-5 overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-subtle sm:p-5"
         onSubmit={(event) => {
           event.preventDefault();
           if (assetSymbol) {
@@ -102,8 +102,8 @@ export default function AdvancedDatesPage() {
           }
         }}
       >
-        <div className="grid min-w-0 gap-5 sm:grid-cols-2">
-          <label className="min-w-0 text-sm font-bold text-primary">
+        <div className="grid min-w-0 grid-cols-1 gap-5 sm:grid-cols-2">
+          <label className="block min-w-0 text-sm font-bold text-primary">
             시작 날짜
             <input
               type="date"
@@ -112,7 +112,7 @@ export default function AdvancedDatesPage() {
               className="mt-2 h-11 w-full min-w-0 rounded-md border border-border bg-card px-3 text-sm text-primary outline-none focus:ring-2 focus:ring-brand/30"
             />
           </label>
-          <label className="min-w-0 text-sm font-bold text-primary">
+          <label className="block min-w-0 text-sm font-bold text-primary">
             종료 날짜
             <input
               type="date"
@@ -167,8 +167,8 @@ export default function AdvancedDatesPage() {
         ) : null}
         {warning ? <p className="text-sm text-brand">{warning}</p> : null}
 
-        <div className="flex justify-end">
-          <Button type="submit" disabled={!validation.valid}>
+        <div className="flex min-w-0 justify-end">
+          <Button type="submit" disabled={!validation.valid} className="w-full sm:w-auto">
             다음
           </Button>
         </div>

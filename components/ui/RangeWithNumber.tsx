@@ -34,7 +34,7 @@ export function RangeWithNumber({
   const update = (nextValue: number) => onChange(clamp(nextValue, min, max));
 
   return (
-    <div>
+    <div className="min-w-0">
       {label ? (
         <label
           htmlFor={`${id}-range`}
@@ -43,7 +43,7 @@ export function RangeWithNumber({
           {label}
         </label>
       ) : null}
-      <div className="mt-2 grid grid-cols-[minmax(0,1fr)_6.5rem] items-center gap-3">
+      <div className="mt-2 grid min-w-0 grid-cols-1 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_6.5rem]">
         <input
           id={`${id}-range`}
           type="range"

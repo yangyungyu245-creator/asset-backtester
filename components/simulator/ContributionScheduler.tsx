@@ -55,9 +55,9 @@ export function ContributionScheduler({
         {periods.map((period, index) => (
           <div
             key={period.id}
-            className="grid gap-3 rounded-xl bg-card-subtle p-4 md:grid-cols-[1fr_1fr_1.3fr_auto] md:items-end"
-          >
-            <label className="text-sm font-bold text-primary">
+          className="grid min-w-0 grid-cols-1 gap-3 rounded-xl bg-card-subtle p-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.3fr)_auto] md:items-end"
+        >
+            <label className="block min-w-0 text-sm font-bold text-primary">
               시작 년월
               <input
                 type="month"
@@ -65,10 +65,10 @@ export function ContributionScheduler({
                 onChange={(event) =>
                   onUpdate(period.id, { startYearMonth: event.target.value })
                 }
-                className="mt-2 h-11 w-full rounded-md border border-border bg-card px-3 text-sm text-primary outline-none focus:ring-2 focus:ring-brand/30"
+                className="mt-2 h-11 w-full min-w-0 rounded-md border border-border bg-card px-3 text-sm text-primary outline-none focus:ring-2 focus:ring-brand/30"
               />
             </label>
-            <label className="text-sm font-bold text-primary">
+            <label className="block min-w-0 text-sm font-bold text-primary">
               종료 년월
               <input
                 type="month"
@@ -76,7 +76,7 @@ export function ContributionScheduler({
                 onChange={(event) =>
                   onUpdate(period.id, { endYearMonth: event.target.value })
                 }
-                className="mt-2 h-11 w-full rounded-md border border-border bg-card px-3 text-sm text-primary outline-none focus:ring-2 focus:ring-brand/30"
+                className="mt-2 h-11 w-full min-w-0 rounded-md border border-border bg-card px-3 text-sm text-primary outline-none focus:ring-2 focus:ring-brand/30"
               />
             </label>
             <NumberInput
@@ -93,7 +93,7 @@ export function ContributionScheduler({
               type="button"
               onClick={() => onRemove(period.id)}
               disabled={periods.length < 2}
-              className="inline-flex h-11 items-center justify-center rounded-lg border border-border px-3 text-sm font-bold text-secondary transition hover:bg-card disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex h-11 w-full items-center justify-center rounded-lg border border-border px-3 text-sm font-bold text-secondary transition hover:bg-card disabled:cursor-not-allowed disabled:opacity-40 md:w-auto"
             >
               삭제
             </button>

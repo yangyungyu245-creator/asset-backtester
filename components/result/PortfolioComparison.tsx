@@ -65,11 +65,11 @@ function PortfolioDonut({
   colorMap: Map<string, string>;
 }) {
   return (
-    <div className="rounded-xl bg-card-subtle p-4">
+    <div className="min-w-0 rounded-xl bg-card-subtle p-4">
       <h3 className="text-sm font-bold text-primary">
         {title}
       </h3>
-      <div className="mt-3 h-52">
+      <div className="mt-3 h-52 min-h-52 min-w-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -171,7 +171,7 @@ export function PortfolioComparison({
   const changes = createChanges(initialPortfolio, finalPortfolio);
 
   return (
-    <section className="rounded-2xl border border-border bg-card p-5 shadow-subtle">
+    <section className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-subtle sm:p-5">
       <div>
         <h2 className="text-[22px] font-bold text-primary">
           포트폴리오 변화
@@ -180,7 +180,7 @@ export function PortfolioComparison({
           시작 시점과 종료 시점의 종목 비중을 비교합니다.
         </p>
       </div>
-      <div className="mt-5 grid gap-4 lg:grid-cols-2">
+      <div className="mt-5 grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
         <PortfolioDonut title="시작" data={initialPortfolio} colorMap={colorMap} />
         <PortfolioDonut
           title={`종료 (${endDate})`}
@@ -188,7 +188,7 @@ export function PortfolioComparison({
           colorMap={colorMap}
         />
       </div>
-      <div className="mt-4 rounded-xl bg-card-subtle p-4">
+      <div className="mt-4 min-w-0 rounded-xl bg-card-subtle p-4">
         <h3 className="text-sm font-bold text-primary">
           비중 변화
         </h3>
@@ -212,7 +212,7 @@ export function PortfolioComparison({
                   </span>
                 ) : null}
               </div>
-              <div className="flex items-center gap-2 text-secondary">
+              <div className="flex min-w-0 flex-wrap items-center gap-2 text-secondary">
                 <span>{change.from.toFixed(1)}%</span>
                 <span className="text-secondary">→</span>
                 <span className="font-bold text-primary">

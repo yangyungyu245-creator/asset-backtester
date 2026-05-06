@@ -51,7 +51,7 @@ export function NumberInput({
     (max !== undefined && value > max);
 
   return (
-    <div>
+    <div className="min-w-0">
       <label
         htmlFor={id}
         className="text-sm font-semibold text-primary"
