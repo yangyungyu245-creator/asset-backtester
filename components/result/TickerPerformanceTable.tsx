@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { StockLogo } from "@/components/asset/StockLogo";
 import type { TickerPerformance } from "@/lib/simulation/types";
 import { formatCompactKRW, formatPercentValue } from "./format";
 
@@ -52,14 +53,23 @@ export function TickerPerformanceTable({ rows }: TickerPerformanceTableProps) {
             {rows.map((row) => (
               <tr key={row.ticker}>
                 <td className="py-3 pr-4">
-                  <Link
-                    href={`/asset/${encodeURIComponent(row.ticker)}`}
-                    className="font-mono font-bold text-primary underline-offset-4 hover:text-brand hover:underline"
-                  >
-                    {row.ticker}
-                  </Link>
-                  <div className="mt-1 max-w-52 truncate text-xs text-secondary">
-                    {row.name_ko || row.name || "데이터 준비 중"}
+                  <div className="flex min-w-0 items-center gap-3">
+                    <StockLogo
+                      symbol={row.ticker}
+                      name={row.name_ko || row.name}
+                      size="sm"
+                    />
+                    <div className="min-w-0">
+                      <Link
+                        href={`/asset/${encodeURIComponent(row.ticker)}`}
+                        className="font-mono font-bold text-primary underline-offset-4 hover:text-brand hover:underline"
+                      >
+                        {row.ticker}
+                      </Link>
+                      <div className="mt-1 max-w-52 truncate text-xs text-secondary">
+                        {row.name_ko || row.name || "데이터 준비 중"}
+                      </div>
+                    </div>
                   </div>
                 </td>
                 <td className="px-4 py-3 text-right text-secondary">

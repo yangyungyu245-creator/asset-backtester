@@ -652,7 +652,12 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
         <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <StockLogo symbol={symbol} name={displayName} size="lg" />
+              <StockLogo
+                symbol={symbol}
+                name={displayName}
+                assetType={asset?.kind}
+                size="lg"
+              />
               <h1 className="break-words text-[28px] font-bold leading-tight text-primary">
                 {displayName}
               </h1>

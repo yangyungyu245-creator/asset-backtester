@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { StockLogo } from "@/components/asset/StockLogo";
+import type { AssetLogoType } from "@/components/common/AssetLogo";
 
 const popularTickers = [
   "AAPL",
@@ -28,6 +29,13 @@ const popularTickers = [
   "SCHD",
   "069500.KS",
 ];
+
+function getTickerAssetType(category: TickerMeta["category"]): AssetLogoType {
+  if (category.includes("etf")) return "etf";
+  if (category === "crypto") return "crypto";
+  if (category.includes("stock")) return "stock";
+  return "other";
+}
 
 type TickerSearchProps = {
   tickers: TickerMeta[];
@@ -129,6 +137,7 @@ export function TickerSearch({
                   <StockLogo
                     symbol={ticker.ticker}
                     name={ticker.name_ko || ticker.name}
+                    assetType={getTickerAssetType(ticker.category)}
                     size="sm"
                     className="mb-2"
                   />

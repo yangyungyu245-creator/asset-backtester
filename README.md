@@ -40,6 +40,10 @@ npm install --ignore-scripts
 npm run dev
 ```
 
+### 종목 로고
+
+`.env.local`에 `NEXT_PUBLIC_LOGO_DEV_TOKEN`을 설정하면 주식/ETF/가상자산 로고를 Logo.dev로 먼저 시도합니다. 기존 매핑에 도메인이 있는 종목은 Logo.dev domain URL을 우선 사용하고, 토큰이 없거나 로고 로딩에 실패하면 기존 직접 매핑과 원형 fallback 배지를 사용합니다.
+
 ## 데이터 갱신
 
 ```bash

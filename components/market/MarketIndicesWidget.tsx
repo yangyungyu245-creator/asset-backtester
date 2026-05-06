@@ -71,6 +71,10 @@ function formatSigned(value: number | null, decimals: number) {
   return `${prefix}${formatNumber(Math.abs(value), decimals)}`;
 }
 
+function getMarketAssetType(symbol: string) {
+  return symbol.includes("=X") ? "fx" : "index";
+}
+
 function useMarketIndices() {
   const [data, setData] = useState<MarketIndicesResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -239,7 +243,12 @@ export function MarketIndicesWidget() {
               className="min-w-0 rounded-xl bg-card-subtle p-4 transition hover:bg-brand-bg focus:outline-none focus:ring-2 focus:ring-brand/35"
             >
               <div className="flex items-center gap-2">
-                <StockLogo symbol={item.symbol} name={item.label} size="sm" />
+                <StockLogo
+                  symbol={item.symbol}
+                  name={item.label}
+                  assetType={getMarketAssetType(item.symbol)}
+                  size="sm"
+                />
                 <p className="truncate text-xs font-semibold text-secondary">
                   {item.label}
                 </p>

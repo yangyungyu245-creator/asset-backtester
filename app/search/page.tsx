@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { StockLogo } from "@/components/asset/StockLogo";
+import type { AssetLogoType } from "@/components/common/AssetLogo";
 import { loadTickerIndex, type TickerMeta } from "@/lib/data/tickerIndex";
 import { createSearcher } from "@/lib/data/tickerSearch";
 
@@ -23,6 +24,13 @@ const popularTickers = [
   "SPY",
   "QQQ",
 ];
+
+function getTickerAssetType(category: TickerMeta["category"]): AssetLogoType {
+  if (category.includes("etf")) return "etf";
+  if (category === "crypto") return "crypto";
+  if (category.includes("stock")) return "stock";
+  return "other";
+}
 
 export default function SearchPage() {
   const [tickers, setTickers] = useState<TickerMeta[]>([]);
@@ -123,6 +131,7 @@ export default function SearchPage() {
                     <StockLogo
                       symbol={ticker.ticker}
                       name={ticker.name_ko || ticker.name}
+                      assetType={getTickerAssetType(ticker.category)}
                     />
                     <div className="min-w-0">
                     <p className="font-bold text-primary">{ticker.ticker}</p>
