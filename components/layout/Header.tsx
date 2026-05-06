@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { User } from "@supabase/supabase-js";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { isAuthConfigured } from "@/lib/auth/status";
+import { createClient } from "@/lib/supabase/client";
 
 const navItems = [
   { href: "/simple", label: "간단 모드" },
@@ -12,11 +15,41 @@ const navItems = [
   { href: "/about", label: "소개" },
 ];
 
-const showLogin = process.env.NEXT_PUBLIC_ENABLE_AUTH === "true";
-
 export function Header() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const authConfigured = isAuthConfigured();
+  const supabase = useMemo(
+    () => (authConfigured ? createClient() : null),
+    [authConfigured],
+  );
+  const loginHref = `/login?next=${encodeURIComponent(pathname || "/")}`;
+  const userLabel =
+    user?.user_metadata?.name ||
+    user?.user_metadata?.full_name ||
+    user?.email ||
+    "내 계정";
+
+  useEffect(() => {
+    if (!supabase) return undefined;
+
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+    });
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => data.subscription.unsubscribe();
+  }, [supabase]);
+
+  async function signOut() {
+    if (!supabase) return;
+    await supabase.auth.signOut();
+    setUser(null);
+    setIsOpen(false);
+  }
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-page/90 backdrop-blur">
@@ -54,14 +87,36 @@ export function Header() {
               );
             })}
           </nav>
-          {showLogin ? (
+          {user ? (
+            <>
+              <Link
+                href="/watchlist"
+                className="rounded-lg px-3 py-2 text-sm font-semibold text-secondary transition hover:bg-card-subtle hover:text-primary focus:outline-none focus:ring-2 focus:ring-brand/35"
+              >
+                관심종목
+              </Link>
+              <Link
+                href="/saved"
+                className="rounded-lg px-3 py-2 text-sm font-semibold text-secondary transition hover:bg-card-subtle hover:text-primary focus:outline-none focus:ring-2 focus:ring-brand/35"
+              >
+                저장
+              </Link>
+              <button
+                type="button"
+                onClick={signOut}
+                className="max-w-[150px] truncate rounded-lg px-3 py-2 text-sm font-semibold text-secondary transition hover:bg-card-subtle hover:text-primary focus:outline-none focus:ring-2 focus:ring-brand/35"
+              >
+                {userLabel} 로그아웃
+              </button>
+            </>
+          ) : (
             <Link
-              href="/login"
+              href={loginHref}
               className="rounded-lg px-3 py-2 text-sm font-semibold text-secondary transition hover:bg-card-subtle hover:text-primary focus:outline-none focus:ring-2 focus:ring-brand/35"
             >
               로그인
             </Link>
-          ) : null}
+          )}
           <ThemeToggle />
         </div>
 
@@ -121,15 +176,39 @@ export function Header() {
                 </Link>
               );
             })}
-            {showLogin ? (
+            {user ? (
+              <>
+                <Link
+                  href="/watchlist"
+                  onClick={() => setIsOpen(false)}
+                  className="rounded-xl px-4 py-4 text-base font-bold text-primary hover:bg-card-subtle"
+                >
+                  관심종목
+                </Link>
+                <Link
+                  href="/saved"
+                  onClick={() => setIsOpen(false)}
+                  className="rounded-xl px-4 py-4 text-base font-bold text-primary hover:bg-card-subtle"
+                >
+                  저장
+                </Link>
+                <button
+                  type="button"
+                  onClick={signOut}
+                  className="rounded-xl px-4 py-4 text-left text-base font-bold text-primary hover:bg-card-subtle"
+                >
+                  {userLabel} 로그아웃
+                </button>
+              </>
+            ) : (
               <Link
-                href="/login"
+                href={loginHref}
                 onClick={() => setIsOpen(false)}
                 className="rounded-xl px-4 py-4 text-base font-bold text-primary hover:bg-card-subtle"
               >
                 로그인
               </Link>
-            ) : null}
+            )}
           </div>
         </nav>
       ) : null}
