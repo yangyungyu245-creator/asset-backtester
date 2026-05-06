@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AssetGrowthChart } from "@/components/charts/AssetGrowthChart";
+import { SaveSimulationButton } from "@/components/saved/SaveSimulationButton";
 import { LoadingScreen } from "@/components/simulator/LoadingScreen";
 import { SimpleInputForm } from "@/components/simulator/SimpleInputForm";
 import { Badge } from "@/components/ui/Badge";
@@ -42,6 +43,19 @@ export default function SimplePage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setAssetSymbol(params.get("asset")?.trim().toUpperCase() ?? "");
+    if (params.get("restore") === "saved") {
+      const saved = window.localStorage.getItem("firelife.simpleSavedConfig");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved) as SimpleSimulationInput;
+          setInput(parsed);
+          setPhase("result");
+          window.localStorage.removeItem("firelife.simpleSavedConfig");
+        } catch {
+          window.localStorage.removeItem("firelife.simpleSavedConfig");
+        }
+      }
+    }
   }, []);
 
   const chartData = useMemo(
@@ -211,6 +225,12 @@ export default function SimplePage() {
           </Card>
 
           <div className="flex flex-col gap-3 sm:flex-row">
+            <SaveSimulationButton
+              label="설정 저장"
+              mode="simple"
+              defaultName="간단 백테스트"
+              config={input as unknown as Record<string, unknown>}
+            />
             <Button type="button" onClick={() => setPhase("input")} variant="secondary">
               다시 계산하기
             </Button>

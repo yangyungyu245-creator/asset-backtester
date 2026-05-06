@@ -8,7 +8,7 @@ import { ResultActions } from "@/components/result/ResultActions";
 import { ResultHeader } from "@/components/result/ResultHeader";
 import { TickerPerformanceTable } from "@/components/result/TickerPerformanceTable";
 import { YearlyTable } from "@/components/result/YearlyTable";
-import { SaveActionButton } from "@/components/saved/SaveActionButton";
+import { SaveSimulationButton } from "@/components/saved/SaveSimulationButton";
 import { AdPlaceholder } from "@/components/simulator/AdPlaceholder";
 import { Button } from "@/components/ui/Button";
 import { formatCompactKRW, formatPercentValue } from "@/components/result/format";
@@ -119,7 +119,25 @@ export default function AdvancedResultPage() {
         inflationAdjusted={options.inflationAdjusted}
       />
       <div className="flex justify-end">
-        <SaveActionButton label="전략 저장" />
+        <SaveSimulationButton
+          label="전략 저장"
+          mode="advanced"
+          defaultName={`${startDate} ~ ${endDate} 고급 백테스트`}
+          config={{
+            startDate,
+            endDate,
+            selectedTickers,
+            initialAmount,
+            contributionSchedule: contributionSchedule.map(
+              ({ startYearMonth, endYearMonth, monthlyAmount }) => ({
+                startYearMonth,
+                endYearMonth,
+                monthlyAmount,
+              }),
+            ),
+            options,
+          }}
+        />
       </div>
       <AssetChart
         data={simulationResult.timeSeries}
