@@ -233,7 +233,7 @@ export function ResultActions() {
 
     context.fillStyle = "#B0B8C1";
     context.font = "22px sans-serif";
-    context.fillText("firelife.vercel.app · Yahoo Finance 데이터 · made by 업로드", 104, 830);
+    context.fillText("firelife.vercel.app · Yahoo Finance 데이터 · made by 양클로드", 104, 830);
 
     const link = document.createElement("a");
     link.download = `fire-life-${new Date().toISOString().slice(0, 10)}.png`;
