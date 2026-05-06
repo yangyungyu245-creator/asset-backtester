@@ -1827,6 +1827,11 @@
       "category": "us_etf"
     },
     {
+      "ticker": "QLD",
+      "name_ko": "Qld",
+      "category": "us_etf"
+    },
+    {
       "ticker": "QQQM",
       "name_ko": "나스닥100",
       "category": "us_etf"

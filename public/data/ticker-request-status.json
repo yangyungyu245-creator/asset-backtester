@@ -1,13 +1,19 @@
 {
-  "last_updated": "2026-05-03T20:06:53+00:00",
+  "last_updated": "2026-05-06T11:31:09+00:00",
   "added": [
-    "DAL",
-    "AMR",
-    "CCL",
-    "RCL",
-    "QQQM"
+    "QLD"
   ],
-  "rejected": [],
+  "rejected": [
+    {
+      "ticker": "498400",
+      "reason": "KR ticker must look like 005930.KS or 035720.KQ."
+    }
+  ],
   "pending": [],
-  "invalid": []
+  "invalid": [
+    {
+      "ticker": "498400",
+      "reason": "KR ticker must look like 005930.KS or 035720.KQ."
+    }
+  ]
 }
