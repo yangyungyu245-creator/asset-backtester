@@ -388,20 +388,42 @@ function AssetChartSvg({
 
       {extreme ? (
         <>
-          <text
-            x={Math.min(width - 116, Math.max(padding.left, x(extreme.highIndex) - 38))}
-            y={Math.max(padding.top + 24, y(data[extreme.highIndex].high) - 8)}
-            className="fill-primary text-[11px] font-semibold [paint-order:stroke] [stroke:var(--bg-card)] [stroke-width:5px]"
-          >
-            최고 {formatMoney(data[extreme.highIndex].high, asset, currencyMode, true)}
-          </text>
-          <text
-            x={Math.min(width - 116, Math.max(padding.left, x(extreme.lowIndex) - 38))}
-            y={Math.min(volumeY - 8, y(data[extreme.lowIndex].low) + 18)}
-            className="fill-primary text-[11px] font-semibold [paint-order:stroke] [stroke:var(--bg-card)] [stroke-width:5px]"
-          >
-            최저 {formatMoney(data[extreme.lowIndex].low, asset, currencyMode, true)}
-          </text>
+          <g>
+            <rect
+              x={Math.min(width - 132, Math.max(padding.left, x(extreme.highIndex) - 44))}
+              y={Math.max(padding.top + 6, y(data[extreme.highIndex].high) - 28)}
+              width={132}
+              height={24}
+              rx={7}
+              fill="var(--bg-card)"
+              opacity={0.86}
+            />
+            <text
+              x={Math.min(width - 124, Math.max(padding.left + 8, x(extreme.highIndex) - 36))}
+              y={Math.max(padding.top + 22, y(data[extreme.highIndex].high) - 12)}
+              className="fill-primary text-[11px] font-semibold"
+            >
+              최고 {formatMoney(data[extreme.highIndex].high, asset, currencyMode, true)}
+            </text>
+          </g>
+          <g>
+            <rect
+              x={Math.min(width - 132, Math.max(padding.left, x(extreme.lowIndex) - 44))}
+              y={Math.min(volumeY - 30, y(data[extreme.lowIndex].low) + 2)}
+              width={132}
+              height={24}
+              rx={7}
+              fill="var(--bg-card)"
+              opacity={0.86}
+            />
+            <text
+              x={Math.min(width - 124, Math.max(padding.left + 8, x(extreme.lowIndex) - 36))}
+              y={Math.min(volumeY - 14, y(data[extreme.lowIndex].low) + 18)}
+              className="fill-primary text-[11px] font-semibold"
+            >
+              최저 {formatMoney(data[extreme.lowIndex].low, asset, currencyMode, true)}
+            </text>
+          </g>
         </>
       ) : null}
 

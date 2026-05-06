@@ -91,20 +91,17 @@ function drawLineChart(
   drawSeries("value", "#FF6B35");
   drawSeries("contributions", "#8B95A1", true);
 
-  context.fillStyle = "#F2F4F6";
-  context.font = "20px sans-serif";
-  context.fillText("자산 추이", x + 24, y + 30);
-
+  const maxLabel = formatCompactKRW(maxValue);
+  const minLabel = formatCompactKRW(minValue);
   context.font = "18px sans-serif";
-  context.fillStyle = "#FF6B35";
-  context.fillText("포트폴리오", x + width - 230, y + 30);
+  const maxLabelX = Math.min(chartX + chartWidth - 112, Math.max(chartX, chartX + 8));
+  const maxLabelY = Math.max(chartY + 24, chartY - 8);
+  context.fillStyle = "rgba(25, 31, 40, 0.86)";
+  drawRoundedRect(context, maxLabelX - 8, maxLabelY - 20, context.measureText(maxLabel).width + 16, 26, 8);
+  context.fill();
   context.fillStyle = "#8B95A1";
-  context.fillText("원금", x + width - 105, y + 30);
-
-  context.fillStyle = "#8B95A1";
-  context.font = "18px sans-serif";
-  context.fillText(formatCompactKRW(maxValue), chartX, chartY - 6);
-  context.fillText(formatCompactKRW(minValue), chartX, chartY + chartHeight + 22);
+  context.fillText(maxLabel, maxLabelX, maxLabelY);
+  context.fillText(minLabel, chartX, chartY + chartHeight + 22);
 }
 
 export function ResultActions() {
@@ -212,7 +209,27 @@ export function ResultActions() {
     context.fillStyle = "#232B36";
     drawRoundedRect(context, 104, 430, 1010, 330, 16);
     context.fill();
-    drawLineChart(context, simulationResult.timeSeries, 104, 430, 1010, 330);
+
+    context.fillStyle = "#F2F4F6";
+    context.font = "700 24px sans-serif";
+    context.fillText("자산 추이", 128, 468);
+
+    context.font = "18px sans-serif";
+    context.fillStyle = "#FF6B35";
+    context.fillRect(900, 458, 32, 4);
+    context.fillText("포트폴리오", 942, 466);
+    context.fillStyle = "#8B95A1";
+    context.setLineDash([8, 6]);
+    context.beginPath();
+    context.moveTo(1040, 460);
+    context.lineTo(1072, 460);
+    context.strokeStyle = "#8B95A1";
+    context.lineWidth = 4;
+    context.stroke();
+    context.setLineDash([]);
+    context.fillText("원금", 1082, 466);
+
+    drawLineChart(context, simulationResult.timeSeries, 104, 482, 1010, 250);
 
     context.fillStyle = "#B0B8C1";
     context.font = "22px sans-serif";
