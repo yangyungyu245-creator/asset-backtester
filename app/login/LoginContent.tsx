@@ -55,7 +55,7 @@ export function LoginContent() {
 
       {!supabase ? (
         <div className="rounded-xl border border-border bg-card-subtle p-4 text-sm leading-6 text-secondary">
-          Supabase 환경 변수를 설정하면 구글/카카오 로그인이 활성화됩니다.
+          Supabase 환경 변수를 설정하면 구글 로그인이 활성화됩니다.
         </div>
       ) : null}
 
@@ -70,16 +70,7 @@ export function LoginContent() {
         >
           {isPending === "google" ? "구글로 이동 중..." : "G 구글로 로그인"}
         </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          size="lg"
-          className="w-full border-transparent bg-[#FEE500] text-neutral-950 hover:bg-[#F6DD00]"
-          disabled={Boolean(isPending)}
-          onClick={() => signInWith("kakao")}
-        >
-          {isPending === "kakao" ? "카카오로 이동 중..." : "카카오로 로그인"}
-        </Button>
+        {/* 카카오 로그인은 동의항목 검수 완료 후 다시 활성화 예정입니다. */}
       </Card>
 
       <p className="text-center text-xs leading-5 text-secondary">
@@ -88,4 +79,3 @@ export function LoginContent() {
     </main>
   );
 }
-
