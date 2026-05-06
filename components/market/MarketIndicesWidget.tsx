@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 const REFRESH_INTERVAL = 15 * 60 * 1000;
+const STALE_AFTER = 30 * 60 * 1000;
 
 type MarketIndex = {
   symbol: string;
@@ -32,24 +33,19 @@ function formatNumber(value: number | null, decimals: number) {
   }).format(value);
 }
 
-function formatRelativeTime(value: Date | null) {
+function formatUpdateTime(value: Date | null) {
   if (!value) {
-    return "15분 지연";
+    return "갱신 대기 중";
   }
 
-  const diffMs = Date.now() - value.getTime();
-  const diffMinutes = Math.max(0, Math.floor(diffMs / 60_000));
-
-  if (diffMinutes < 1) {
-    return "방금 갱신";
-  }
-
-  if (diffMinutes < 60) {
-    return `${diffMinutes}분 전 갱신`;
-  }
-
-  const diffHours = Math.floor(diffMinutes / 60);
-  return `${diffHours}시간 전 갱신`;
+  return value.toLocaleString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
 }
 
 function getDirection(item: MarketIndex) {
@@ -95,7 +91,7 @@ function useMarketIndices() {
       const payload = (await response.json()) as MarketIndicesResponse;
 
       setData(payload);
-      setUpdatedAt(new Date());
+      setUpdatedAt(payload.updatedAt ? new Date(payload.updatedAt) : new Date());
       setHasError(!response.ok || Boolean(payload.error));
     } catch {
       setHasError(true);
@@ -134,7 +130,18 @@ function useMarketIndices() {
     isRefreshing,
     updatedAt,
     hasError,
+    reload: loadIndices,
   };
+}
+
+function MarketCardSkeleton() {
+  return (
+    <div className="h-[118px] animate-pulse rounded-xl bg-card-subtle p-4">
+      <div className="h-4 w-16 rounded bg-neutral-200 dark:bg-neutral-700" />
+      <div className="mt-4 h-7 w-24 rounded bg-neutral-200 dark:bg-neutral-700" />
+      <div className="mt-3 h-4 w-20 rounded bg-neutral-200 dark:bg-neutral-700" />
+    </div>
+  );
 }
 
 export function MarketPulseLine() {
@@ -169,47 +176,56 @@ export function MarketPulseLine() {
 }
 
 export function MarketIndicesWidget() {
-  const { indices, isLoading, isRefreshing, updatedAt, hasError } =
+  const { indices, isLoading, isRefreshing, updatedAt, hasError, reload } =
     useMarketIndices();
   const displayItems: Array<MarketIndex | null> = isLoading
     ? Array.from({ length: 6 }, () => null)
-    : indices;
+    : indices.length > 0
+      ? indices
+      : Array.from({ length: 6 }, () => null);
+  const isStale = updatedAt ? Date.now() - updatedAt.getTime() > STALE_AFTER : false;
 
   return (
-    <section className="rounded-2xl border border-border bg-card p-5 shadow-subtle">
-      <div className="flex items-start justify-between gap-4">
+    <section className="min-w-0 rounded-2xl border border-border bg-card p-4 shadow-subtle sm:p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-[22px] font-bold leading-tight text-primary">
             오늘의 시장
           </h2>
           <p className="mt-1 text-sm text-secondary">
-            USD/KRW, VIX, 미국·한국 주요 지수
+            USD/KRW, VIX, 미국/한국 주요 지수
           </p>
         </div>
-        <span className="shrink-0 rounded-sm bg-card-subtle px-2 py-1 text-xs font-semibold text-secondary">
+        <span
+          className={`shrink-0 rounded-sm bg-card-subtle px-2 py-1 text-xs font-semibold ${
+            isStale ? "text-amber-500" : "text-secondary"
+          }`}
+        >
           {isLoading
             ? "불러오는 중"
             : isRefreshing
               ? "갱신 중"
-              : formatRelativeTime(updatedAt)}
+              : `마지막 갱신: ${formatUpdateTime(updatedAt)}`}
         </span>
       </div>
 
       {hasError && !isLoading ? (
-        <div className="mt-4 rounded-lg bg-card-subtle px-4 py-4 text-sm text-secondary">
-          일부 시장 지수 데이터를 불러오지 못했습니다. 표시 가능한 항목만 보여드립니다.
+        <div className="mt-4 flex flex-col gap-3 rounded-lg bg-card-subtle px-4 py-4 text-sm text-secondary sm:flex-row sm:items-center sm:justify-between">
+          <span>시장 데이터를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.</span>
+          <button
+            type="button"
+            onClick={() => reload()}
+            className="inline-flex h-9 items-center justify-center rounded-lg border border-border px-3 text-sm font-bold text-primary transition hover:bg-card focus:outline-none focus:ring-2 focus:ring-brand/35"
+          >
+            다시 시도
+          </button>
         </div>
       ) : null}
 
-      <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+      <div className="mt-5 grid min-w-0 grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
         {displayItems.map((item, index) => {
           if (!item) {
-            return (
-              <div
-                key={index}
-                className="h-[118px] animate-pulse rounded-xl bg-card-subtle"
-              />
-            );
+            return <MarketCardSkeleton key={index} />;
           }
 
           const direction = getDirection(item);
@@ -219,15 +235,15 @@ export function MarketIndicesWidget() {
             <Link
               key={item.symbol}
               href={`/asset/${encodeURIComponent(item.symbol)}`}
-              className="rounded-xl bg-card-subtle p-4 transition hover:bg-brand-bg focus:outline-none focus:ring-2 focus:ring-brand/35"
+              className="min-w-0 rounded-xl bg-card-subtle p-4 transition hover:bg-brand-bg focus:outline-none focus:ring-2 focus:ring-brand/35"
             >
-              <p className="text-xs font-semibold text-secondary">
+              <p className="truncate text-xs font-semibold text-secondary">
                 {item.label}
               </p>
-              <p className="mt-3 text-xl font-bold tabular-nums text-primary">
+              <p className="mt-3 truncate text-xl font-bold tabular-nums text-primary">
                 {formatNumber(item.price, item.decimals)}
               </p>
-              <p className={`mt-2 text-xs font-bold tabular-nums ${changeClassName}`}>
+              <p className={`mt-2 truncate text-xs font-bold tabular-nums ${changeClassName}`}>
                 {formatSigned(item.change, item.decimals)} ·{" "}
                 {formatSigned(item.changePercent, 2)}%
               </p>
