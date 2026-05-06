@@ -5,7 +5,7 @@ import { type TouchEvent, useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { SaveActionButton } from "@/components/saved/SaveActionButton";
+import { WatchlistButton } from "@/components/watchlist/WatchlistButton";
 import { formatCompactKRW, formatPercentValue } from "@/components/result/format";
 
 type ChartPoint = {
@@ -689,8 +689,8 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
                 ))}
               </div>
             ) : null}
-            <SaveActionButton
-              label="♡ 관심종목"
+            <WatchlistButton
+              symbol={symbol}
               className="inline-flex h-10 items-center justify-center rounded-lg border border-border px-4 text-sm font-bold text-primary transition hover:bg-card-subtle focus:outline-none focus:ring-2 focus:ring-brand/35"
             />
             <Button href={`/advanced/dates?asset=${encodeURIComponent(symbol)}`} className="hidden md:inline-flex">
@@ -846,8 +846,8 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
 
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-page/95 p-3 backdrop-blur md:hidden">
         <div className="mx-auto flex max-w-5xl gap-2">
-          <SaveActionButton
-            label="♡ 관심종목"
+          <WatchlistButton
+            symbol={symbol}
             className="inline-flex h-[52px] flex-1 items-center justify-center rounded-lg border border-border px-4 text-sm font-bold text-primary transition hover:bg-card-subtle"
           />
           <Button
