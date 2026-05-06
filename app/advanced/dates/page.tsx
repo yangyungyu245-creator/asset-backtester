@@ -102,7 +102,7 @@ export default function AdvancedDatesPage() {
           }
         }}
       >
-        <div className="grid min-w-0 grid-cols-1 gap-5 sm:grid-cols-2">
+        <div className="flex min-w-0 flex-col gap-3 overflow-hidden md:flex-row md:gap-4">
           <label className="block min-w-0 text-sm font-bold text-primary">
             시작 날짜
             <input

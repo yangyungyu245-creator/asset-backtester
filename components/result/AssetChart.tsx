@@ -151,7 +151,7 @@ export function AssetChart({ data, futureStartDate }: AssetChartProps) {
   const hasFuture = chartData.some((point) => point.isFuture);
 
   return (
-    <section className="rounded-2xl border border-border bg-card p-4 shadow-subtle sm:p-5">
+    <section className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-subtle sm:p-5">
       <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="text-[22px] font-bold text-primary">
@@ -162,7 +162,7 @@ export function AssetChart({ data, futureStartDate }: AssetChartProps) {
           </p>
         </div>
       </div>
-      <div className="h-[280px] w-full md:h-[360px]">
+      <div className="h-[280px] w-full min-w-0 max-w-full md:h-[360px]">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart
             data={chartData}

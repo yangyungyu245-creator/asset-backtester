@@ -55,7 +55,7 @@ export function ContributionScheduler({
         {periods.map((period, index) => (
           <div
             key={period.id}
-          className="grid min-w-0 grid-cols-1 gap-3 rounded-xl bg-card-subtle p-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.3fr)_auto] md:items-end"
+          className="grid min-w-0 grid-cols-1 gap-3 overflow-hidden rounded-xl bg-card-subtle p-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.3fr)_auto] md:items-end"
         >
             <label className="block min-w-0 text-sm font-bold text-primary">
               시작 년월

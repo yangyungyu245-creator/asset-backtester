@@ -26,7 +26,7 @@ export function TickerPerformanceTable({ rows }: TickerPerformanceTableProps) {
   }
 
   return (
-    <section className="rounded-2xl border border-border bg-card p-5 shadow-subtle">
+    <section className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-subtle sm:p-5">
       <div>
         <h2 className="text-[22px] font-bold text-primary">
           종목별 최종 성과
@@ -36,7 +36,7 @@ export function TickerPerformanceTable({ rows }: TickerPerformanceTableProps) {
         </p>
       </div>
 
-      <div className="mt-5 overflow-x-auto">
+      <div className="mt-5 max-w-full overflow-x-auto">
         <table className="min-w-[760px] w-full text-left text-sm">
           <thead className="border-b border-border text-xs uppercase text-secondary">
             <tr>

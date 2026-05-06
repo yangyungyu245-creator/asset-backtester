@@ -64,7 +64,7 @@ export function YearlyTable({ rows, timeSeries, initialAmount }: YearlyTableProp
   let cumulativePrincipal = initialAmount;
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-subtle">
+    <section className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card shadow-subtle">
       <div className="flex flex-col gap-4 border-b border-border p-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-[22px] font-bold text-primary">
@@ -99,7 +99,7 @@ export function YearlyTable({ rows, timeSeries, initialAmount }: YearlyTableProp
           </button>
         </div>
       </div>
-      <div className="max-h-[520px] overflow-auto">
+      <div className="max-h-[520px] max-w-full overflow-auto">
         <table className="w-full min-w-[44rem] border-collapse text-sm">
           <thead className="sticky top-0 z-10 bg-card-subtle text-secondary">
             <tr>

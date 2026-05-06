@@ -34,7 +34,7 @@ export function ResultHeader({
   const badges = getOptionBadges(options);
 
   return (
-    <header className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+    <header className="flex min-w-0 flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
       <div className="min-w-0">
         <h1 className="text-3xl font-bold tracking-normal text-primary sm:text-[40px]">
           고급 백테스트 결과
@@ -53,7 +53,7 @@ export function ResultHeader({
           ))}
         </div>
       </div>
-      <Button asChild href="/advanced/dates" variant="outline" className="shrink-0">
+      <Button asChild href="/advanced/dates" variant="outline" className="w-full shrink-0 sm:w-auto">
         다른 시나리오
       </Button>
     </header>

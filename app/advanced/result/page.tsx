@@ -85,7 +85,7 @@ export default function AdvancedResultPage() {
   const futureProjection = simulationResult.futureProjection;
 
   return (
-    <section className="grid gap-6 py-4 sm:py-6">
+    <section className="grid min-w-0 gap-6 overflow-hidden py-4 sm:py-6">
       <ResultHeader
         startDate={startDate}
         endDate={endDate}
@@ -118,8 +118,9 @@ export default function AdvancedResultPage() {
         initialAmount={initialAmount}
         inflationAdjusted={options.inflationAdjusted}
       />
-      <div className="flex justify-end">
+      <div className="flex min-w-0 justify-end">
         <SaveSimulationButton
+          className="inline-flex h-10 w-full items-center justify-center rounded-lg border border-border px-4 text-sm font-bold text-primary transition hover:bg-card-subtle focus:outline-none focus:ring-2 focus:ring-brand/35 disabled:opacity-60 sm:w-auto"
           label="전략 저장"
           mode="advanced"
           defaultName={`${startDate} ~ ${endDate} 고급 백테스트`}

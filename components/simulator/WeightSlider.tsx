@@ -51,7 +51,7 @@ export function WeightSlider({
           return (
             <div
               key={item.ticker}
-              className="grid gap-3 rounded-xl bg-card-subtle p-4 md:grid-cols-[10rem_minmax(0,1fr)_8rem] md:items-center"
+              className="grid min-w-0 gap-3 overflow-hidden rounded-xl bg-card-subtle p-4 md:grid-cols-[10rem_minmax(0,1fr)_8rem] md:items-center"
             >
               <div className="min-w-0">
                 <p className="font-bold text-primary">
@@ -68,9 +68,9 @@ export function WeightSlider({
                 step={1}
                 value={item.weight}
                 onChange={(event) => onChange(item.ticker, Number(event.target.value))}
-                className="w-full accent-brand"
+                className="w-full min-w-0 accent-brand"
               />
-              <label className="flex h-11 items-center rounded-md border border-border bg-card px-3 focus-within:ring-2 focus-within:ring-brand/30">
+              <label className="flex h-11 min-w-0 items-center rounded-md border border-border bg-card px-3 focus-within:ring-2 focus-within:ring-brand/30">
                 <input
                   type="number"
                   min={0}
