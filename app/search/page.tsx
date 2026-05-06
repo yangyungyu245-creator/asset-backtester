@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { StockLogo } from "@/components/asset/StockLogo";
 import { loadTickerIndex, type TickerMeta } from "@/lib/data/tickerIndex";
 import { createSearcher } from "@/lib/data/tickerSearch";
 
@@ -118,7 +119,12 @@ export default function SearchPage() {
                 className="rounded-xl bg-card-subtle p-4 transition hover:bg-brand-bg focus:outline-none focus:ring-2 focus:ring-brand/35"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <StockLogo
+                      symbol={ticker.ticker}
+                      name={ticker.name_ko || ticker.name}
+                    />
+                    <div className="min-w-0">
                     <p className="font-bold text-primary">{ticker.ticker}</p>
                     <p className="mt-1 truncate text-sm text-primary">
                       {ticker.name_ko || ticker.name}
@@ -126,6 +132,7 @@ export default function SearchPage() {
                     <p className="mt-1 truncate text-xs text-secondary">
                       {ticker.name}
                     </p>
+                    </div>
                   </div>
                   <Badge variant="neutral">{ticker.exchange}</Badge>
                 </div>

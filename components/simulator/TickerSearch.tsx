@@ -9,6 +9,7 @@ import type { SelectedTicker } from "@/store/useSimulationStore";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { StockLogo } from "@/components/asset/StockLogo";
 
 const popularTickers = [
   "AAPL",
@@ -125,6 +126,12 @@ export function TickerSearch({
                 }`}
               >
                 <div className="min-w-0">
+                  <StockLogo
+                    symbol={ticker.ticker}
+                    name={ticker.name_ko || ticker.name}
+                    size="sm"
+                    className="mb-2"
+                  />
                   <div className="flex flex-wrap items-center gap-2">
                     <Link
                       href={`/asset/${encodeURIComponent(ticker.ticker)}`}
@@ -192,6 +199,7 @@ export function TickerSearch({
                 key={item.ticker}
                 className="inline-flex items-center gap-2 rounded-sm bg-card-subtle px-3 py-1 text-sm font-bold text-primary"
               >
+                <StockLogo symbol={item.ticker} size="sm" />
                 {item.ticker}
                 <button
                   type="button"

@@ -5,6 +5,7 @@ import { type TouchEvent, useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { StockLogo } from "@/components/asset/StockLogo";
 import { WatchlistButton } from "@/components/watchlist/WatchlistButton";
 import { formatCompactKRW, formatPercentValue } from "@/components/result/format";
 
@@ -629,6 +630,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
         <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
+              <StockLogo symbol={symbol} name={displayName} size="lg" />
               <h1 className="break-words text-[28px] font-bold leading-tight text-primary">
                 {displayName}
               </h1>

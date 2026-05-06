@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { StockLogo } from "@/components/asset/StockLogo";
 
 const REFRESH_INTERVAL = 15 * 60 * 1000;
 const STALE_AFTER = 30 * 60 * 1000;
@@ -237,9 +238,12 @@ export function MarketIndicesWidget() {
               href={`/asset/${encodeURIComponent(item.symbol)}`}
               className="min-w-0 rounded-xl bg-card-subtle p-4 transition hover:bg-brand-bg focus:outline-none focus:ring-2 focus:ring-brand/35"
             >
-              <p className="truncate text-xs font-semibold text-secondary">
-                {item.label}
-              </p>
+              <div className="flex items-center gap-2">
+                <StockLogo symbol={item.symbol} name={item.label} size="sm" />
+                <p className="truncate text-xs font-semibold text-secondary">
+                  {item.label}
+                </p>
+              </div>
               <p className="mt-3 truncate text-xl font-bold tabular-nums text-primary">
                 {formatNumber(item.price, item.decimals)}
               </p>

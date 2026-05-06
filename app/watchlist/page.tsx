@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { StockLogo } from "@/components/asset/StockLogo";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -63,7 +64,9 @@ export default async function WatchlistPage() {
                 href={`/asset/${encodeURIComponent(row.symbol)}`}
                 className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0"
               >
-                <div className="min-w-0">
+                <div className="flex min-w-0 items-center gap-3">
+                  <StockLogo symbol={row.symbol} />
+                  <div className="min-w-0">
                   <p className="font-mono text-lg font-bold text-primary">
                     {row.symbol}
                   </p>
@@ -71,6 +74,7 @@ export default async function WatchlistPage() {
                     추가일 {new Date(row.added_at).toLocaleDateString("ko-KR")}
                   </p>
                 </div>
+                  </div>
                 <span className="shrink-0 text-sm font-bold text-brand">
                   보기 →
                 </span>
@@ -94,4 +98,3 @@ export default async function WatchlistPage() {
     </section>
   );
 }
-
