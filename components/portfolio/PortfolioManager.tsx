@@ -964,24 +964,37 @@ function MonthlyDividendChart({
           세금 0% 적용
         </span>
       </div>
-      <div className="mt-5 flex h-40 items-end gap-1">
+      <div className="mt-5 flex items-stretch gap-1.5" style={{ height: 180 }}>
         {monthly.map((amount, index) => {
-          const heightPercent = (amount / max) * 100;
+          const heightPercent = max > 0 ? (amount / max) * 100 : 0;
+          const hasValue = amount > 0;
+          const isCurrentMonth = currentMonth === index;
 
           return (
-            <div key={monthLabels[index]} className="flex min-w-0 flex-1 flex-col items-center justify-end gap-1">
+            <div key={monthLabels[index]} className="flex h-full min-w-0 flex-1 flex-col items-center gap-1">
               <span className="max-w-full truncate text-[10px] font-semibold tabular-nums text-secondary">
-                {amount > 0 ? formatDisplayCurrency(amount, displayCurrency).replace(/\s/g, "") : "0"}
+                {hasValue ? formatDisplayCurrency(amount, displayCurrency).replace(/\s/g, "") : "0"}
               </span>
-              <div
-                className={`w-full rounded-t transition-all ${currentMonth === index ? "bg-brand" : "bg-secondary/35"}`}
-                style={{ height: `${Math.max(2, heightPercent)}%` }}
-              />
+              <div className="flex min-h-0 w-full flex-1 items-end">
+                <div
+                  className={`w-full rounded-t transition-all duration-300 ${
+                    hasValue
+                      ? isCurrentMonth
+                        ? "bg-brand"
+                        : "bg-secondary/35"
+                      : "bg-secondary/15"
+                  }`}
+                  style={{
+                    height: hasValue ? `${Math.max(heightPercent, 3)}%` : 2,
+                    minHeight: hasValue ? 4 : 2,
+                  }}
+                />
+              </div>
             </div>
           );
         })}
       </div>
-      <div className="mt-2 flex justify-between text-[10px] font-bold text-secondary">
+      <div className="mt-2 flex gap-1.5 text-[10px] font-bold text-secondary">
         {monthLabels.map((month) => (
           <span key={month} className="flex-1 text-center">
             {month.replace("월", "")}
