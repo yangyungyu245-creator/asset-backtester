@@ -15,6 +15,7 @@ import {
   type LineData,
   type Time,
 } from "lightweight-charts";
+import { useQuotes } from "@/hooks/useQuotes";
 
 export type ChartMode = "line" | "candle";
 export type Period = "1d" | "1w" | "3m" | "1y" | "5y" | "max";
@@ -29,10 +30,17 @@ export type OHLCVData = {
 };
 
 type AssetChartProps = {
+  symbol?: string;
   data: OHLCVData[];
   currentPeriod: Period;
   onPeriodChange: (period: Period) => void;
+  realtimePriceMultiplier?: number;
   className?: string;
+};
+
+type RealtimeSeries = {
+  update: (data: LineData | CandlestickData) => void;
+  priceToCoordinate: (price: number) => number | null;
 };
 
 const periods: Array<{ value: Period; label: string }> = [
@@ -70,6 +78,28 @@ function normalizeTime(date: string): Time {
   return date.includes("T") ? (Math.floor(new Date(date).getTime() / 1000) as Time) : (date as Time);
 }
 
+function toMillis(date: string) {
+  return new Date(date.includes("T") ? date : `${date}T00:00:00Z`).getTime();
+}
+
+function getDisplayData(data: OHLCVData[], period: Period) {
+  if (period === "max" || data.length === 0) return data;
+  if (period === "1d") return data.slice(-78);
+  if (period === "1w") return data.slice(-130);
+
+  const daysByPeriod: Record<Exclude<Period, "1d" | "1w" | "max">, number> = {
+    "3m": 92,
+    "1y": 366,
+    "5y": 365 * 5 + 2,
+  };
+  const last = data[data.length - 1];
+  const since = new Date(toMillis(last.date));
+  since.setUTCDate(since.getUTCDate() - daysByPeriod[period]);
+  const sinceTime = since.getTime();
+
+  return data.filter((point) => toMillis(point.date) >= sinceTime);
+}
+
 function movingAverage(data: OHLCVData[], period: number): LineData[] {
   if (data.length < period) return [];
 
@@ -95,18 +125,29 @@ function movingAverage(data: OHLCVData[], period: number): LineData[] {
 }
 
 export default function AssetChart({
+  symbol,
   data,
   currentPeriod,
   onPeriodChange,
+  realtimePriceMultiplier = 1,
   className = "",
 }: AssetChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
+  const mainSeriesRef = useRef<RealtimeSeries | null>(null);
+  const latestCandleRef = useRef<CandlestickData | null>(null);
+  const latestLineTimeRef = useRef<Time | null>(null);
   const [mode, setMode] = useState<ChartMode>("line");
   const [showMA5, setShowMA5] = useState(false);
   const [showMA20, setShowMA20] = useState(false);
   const [showMA60, setShowMA60] = useState(false);
+  const [currentPriceY, setCurrentPriceY] = useState<number | null>(null);
   const darkModeSignal = useDarkModeSignal();
+  const { quotes } = useQuotes(symbol ? [symbol] : [], 60_000);
+  const latestQuote = symbol ? quotes.get(symbol.toUpperCase()) : undefined;
+  const latestRealtimePrice = latestQuote
+    ? latestQuote.price * realtimePriceMultiplier
+    : null;
   const safeData = useMemo(
     () =>
       data.filter(
@@ -118,13 +159,20 @@ export default function AssetChart({
       ),
     [data],
   );
+  const displayData = useMemo(
+    () => getDisplayData(safeData, currentPeriod),
+    [currentPeriod, safeData],
+  );
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container || safeData.length === 0) return;
+    if (!container || displayData.length === 0) return;
 
     chartRef.current?.remove();
     chartRef.current = null;
+    mainSeriesRef.current = null;
+    latestCandleRef.current = null;
+    latestLineTimeRef.current = null;
 
     const isDark = document.documentElement.classList.contains("dark");
     const chart = createChart(container, {
@@ -174,7 +222,7 @@ export default function AssetChart({
         wickUpColor: "#F04452",
         wickDownColor: "#3182F6",
       });
-      const candleData: CandlestickData[] = safeData.map((point) => ({
+      const candleData: CandlestickData[] = displayData.map((point) => ({
         time: normalizeTime(point.date),
         open: point.open,
         high: point.high,
@@ -182,6 +230,8 @@ export default function AssetChart({
         close: point.close,
       }));
       candleSeries.setData(candleData);
+      latestCandleRef.current = candleData[candleData.length - 1] ?? null;
+      mainSeriesRef.current = candleSeries;
     } else {
       const lineSeries = chart.addSeries(LineSeries, {
         color: "#FF6B35",
@@ -190,14 +240,17 @@ export default function AssetChart({
         crosshairMarkerRadius: 4,
         crosshairMarkerBackgroundColor: "#FF6B35",
       });
-      lineSeries.setData(
-        safeData.map((point) => ({
-          time: normalizeTime(point.date),
-          value: point.close,
-        })),
-      );
+      const lineData = displayData.map((point) => ({
+        time: normalizeTime(point.date),
+        value: point.close,
+      }));
+      lineSeries.setData(lineData);
+      latestLineTimeRef.current = lineData[lineData.length - 1]?.time ?? null;
+      mainSeriesRef.current = lineSeries;
     }
 
+    const displayStart = displayData[0];
+    const displayStartTime = displayStart ? toMillis(displayStart.date) : 0;
     movingAverageSeries
       .filter(({ period }) => {
         if (period === 5) return showMA5;
@@ -205,7 +258,13 @@ export default function AssetChart({
         return showMA60;
       })
       .forEach(({ period, color }) => {
-        const maData = movingAverage(safeData, period);
+        const maData = movingAverage(safeData, period).filter((point) => {
+          const time =
+            typeof point.time === "number"
+              ? point.time * 1000
+              : toMillis(String(point.time));
+          return time >= displayStartTime;
+        });
         if (maData.length === 0) return;
         const maSeries = chart.addSeries(LineSeries, {
           color,
@@ -231,8 +290,8 @@ export default function AssetChart({
       scaleMargins: { top: 0.8, bottom: 0 },
     });
 
-    const volumeData: HistogramData[] = safeData.map((point, index) => {
-      const previousClose = index > 0 ? safeData[index - 1].close : point.open;
+    const volumeData: HistogramData[] = displayData.map((point, index) => {
+      const previousClose = index > 0 ? displayData[index - 1].close : point.open;
       const isUp = point.close >= previousClose;
       return {
         time: normalizeTime(point.date),
@@ -253,6 +312,8 @@ export default function AssetChart({
     const handleResize = () => {
       chart.applyOptions({ height: window.innerWidth < 640 ? 280 : 400 });
       chart.timeScale().fitContent();
+      const price = displayData[displayData.length - 1]?.close;
+      setCurrentPriceY(price ? mainSeriesRef.current?.priceToCoordinate(price) ?? null : null);
     };
     const observer = new ResizeObserver(handleResize);
     observer.observe(container);
@@ -263,8 +324,36 @@ export default function AssetChart({
       window.removeEventListener("resize", handleResize);
       chart.remove();
       chartRef.current = null;
+      mainSeriesRef.current = null;
+      latestCandleRef.current = null;
+      latestLineTimeRef.current = null;
     };
-  }, [currentPeriod, darkModeSignal, mode, safeData, showMA5, showMA20, showMA60]);
+  }, [currentPeriod, darkModeSignal, displayData, mode, safeData, showMA5, showMA20, showMA60]);
+
+  useEffect(() => {
+    if (!latestRealtimePrice || !mainSeriesRef.current) return;
+
+    if (mode === "candle" && latestCandleRef.current) {
+      const current = latestCandleRef.current;
+      const next = {
+        ...current,
+        high: Math.max(current.high, latestRealtimePrice),
+        low: Math.min(current.low, latestRealtimePrice),
+        close: latestRealtimePrice,
+      };
+      latestCandleRef.current = next;
+      mainSeriesRef.current.update(next);
+    } else if (latestLineTimeRef.current) {
+      mainSeriesRef.current.update({
+        time: latestLineTimeRef.current,
+        value: latestRealtimePrice,
+      });
+    }
+
+    requestAnimationFrame(() => {
+      setCurrentPriceY(mainSeriesRef.current?.priceToCoordinate(latestRealtimePrice) ?? null);
+    });
+  }, [latestRealtimePrice, mode]);
 
   return (
     <div className={className}>
@@ -324,7 +413,24 @@ export default function AssetChart({
         </div>
       </div>
 
-      <div ref={containerRef} className="mt-3 h-[280px] w-full sm:h-[400px]" />
+      <div className="relative mt-3">
+        <div ref={containerRef} className="h-[280px] w-full sm:h-[400px]" />
+        {latestRealtimePrice && currentPriceY !== null ? (
+          <div
+            className="pointer-events-none absolute"
+            style={{
+              right: 60,
+              top: currentPriceY,
+              transform: "translate(50%, -50%)",
+            }}
+          >
+            <span className="relative flex h-3 w-3">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-75" />
+              <span className="relative inline-flex h-3 w-3 rounded-full bg-brand" />
+            </span>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }

@@ -217,6 +217,29 @@ function getRangeChange(data: ChartPoint[]) {
   return { change, changePercent: (change / first.close) * 100 };
 }
 
+function getDisplayChartData(data: ChartPoint[], period: Period) {
+  if (period === "max" || data.length === 0) return data;
+  if (period === "1d") return data.slice(-78);
+  if (period === "1w") return data.slice(-130);
+
+  const daysByPeriod: Record<Exclude<Period, "1d" | "1w" | "max">, number> = {
+    "3m": 92,
+    "1y": 366,
+    "5y": 365 * 5 + 2,
+  };
+  const last = data[data.length - 1]?.date;
+  if (!last) return data;
+
+  const since = new Date(last.includes("T") ? last : `${last}T00:00:00Z`);
+  since.setUTCDate(since.getUTCDate() - daysByPeriod[period]);
+  const sinceTime = since.getTime();
+
+  return data.filter((point) => {
+    const time = new Date(point.date.includes("T") ? point.date : `${point.date}T00:00:00Z`).getTime();
+    return time >= sinceTime;
+  });
+}
+
 function calculateDomain(data: ChartPoint[]) {
   const values = data.flatMap((point) => [point.high, point.low, point.close]);
   const min = Math.min(...values);
@@ -641,8 +664,8 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
       : "";
   const convertedChange = convertValue(asset?.change, asset, currencyMode);
   const periodChange = useMemo(
-    () => (asset ? getRangeChange(asset.chart) : { change: null, changePercent: null }),
-    [asset],
+    () => (asset ? getRangeChange(getDisplayChartData(asset.chart, period)) : { change: null, changePercent: null }),
+    [asset, period],
   );
   const convertedPeriodChange = convertValue(periodChange.change, asset, currencyMode);
   const periodLabel = periodLabelMap.get(period) ?? period;
@@ -814,6 +837,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
               <div className="h-[280px] animate-pulse rounded-xl bg-card-subtle sm:h-[400px]" />
             ) : asset && asset.chart.length > 0 ? (
               <AssetChart
+                symbol={symbol}
                 data={asset.chart.map((point) => ({
                   date: point.date,
                   open: convertValue(point.open, asset, currencyMode) ?? point.open,
@@ -824,6 +848,13 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
                 }))}
                 currentPeriod={period}
                 onPeriodChange={setPeriod}
+                realtimePriceMultiplier={
+                  currencyMode === "krw" && asset.currency !== "KRW"
+                    ? isFiniteNumber(asset.fields.usdKrw)
+                      ? asset.fields.usdKrw
+                      : FALLBACK_USD_KRW
+                    : 1
+                }
               />
             ) : (
               <div className="grid h-[280px] place-items-center rounded-xl bg-card-subtle text-sm text-secondary sm:h-[400px]">
