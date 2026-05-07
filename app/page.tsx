@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MarketIndicesWidget, MarketPulseLine } from "@/components/market/MarketIndicesWidget";
+import NewsFeed from "@/components/news/NewsFeed";
 
 const categories = [
   {
@@ -73,6 +74,8 @@ export default function HomePage() {
       </section>
 
       <MarketIndicesWidget />
+
+      <NewsFeed />
     </div>
   );
 }
