@@ -7,6 +7,21 @@ import type { SimulationPoint } from "@/lib/simulation/types";
 import { useSimulationStore } from "@/store/useSimulationStore";
 import { formatCompactKRW, formatPercentValue } from "./format";
 
+declare global {
+  interface Window {
+    __firelifeResultChartScreenshot?: () => string | null;
+  }
+}
+
+function loadImage(src: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
+}
+
 function drawRoundedRect(
   context: CanvasRenderingContext2D,
   x: number,
@@ -142,7 +157,7 @@ export function ResultActions() {
     }
   }
 
-  function handleDownloadImage() {
+  async function handleDownloadImage() {
     if (!simulationResult) {
       setMessage("저장할 시뮬레이션 결과가 없습니다.");
       return;
@@ -229,7 +244,17 @@ export function ResultActions() {
     context.setLineDash([]);
     context.fillText("원금", 1082, 466);
 
-    drawLineChart(context, simulationResult.timeSeries, 104, 482, 1010, 250);
+    const chartScreenshot = window.__firelifeResultChartScreenshot?.();
+    if (chartScreenshot) {
+      try {
+        const chartImage = await loadImage(chartScreenshot);
+        context.drawImage(chartImage, 128, 488, 940, 230);
+      } catch {
+        drawLineChart(context, simulationResult.timeSeries, 104, 482, 1010, 250);
+      }
+    } else {
+      drawLineChart(context, simulationResult.timeSeries, 104, 482, 1010, 250);
+    }
 
     context.fillStyle = "#B0B8C1";
     context.font = "22px sans-serif";
