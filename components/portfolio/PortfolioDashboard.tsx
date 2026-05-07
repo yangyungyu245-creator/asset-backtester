@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import AssetLogo from "@/components/common/AssetLogo";
+import { hierarchy, treemap, treemapSquarify, type HierarchyRectangularNode } from "d3-hierarchy";
 import { getSector } from "@/lib/data/sectors";
 import { getHoldings, getPortfolios } from "@/lib/portfolio/actions";
 import { calculatePortfolioStats } from "@/lib/portfolio/stats";
@@ -12,25 +12,86 @@ import { useQuotes } from "@/hooks/useQuotes";
 type TreemapItem = {
   symbol: string;
   name: string;
-  weight: number;
+  value: number;
   changePercent: number;
   sector: string;
+  displayValue: string;
+};
+
+type TreemapGroup = {
+  name: string;
+  children: TreemapItem[];
 };
 
 function formatPercent(value: number) {
   return `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
 }
 
+function formatMoney(value: number) {
+  return `₩${Math.round(value).toLocaleString("ko-KR")}`;
+}
+
 function getHeatColor(changePercent: number) {
-  const alpha = Math.min(0.82, 0.2 + Math.abs(changePercent) * 0.05);
-  const rgb = changePercent >= 0 ? "240, 68, 82" : "49, 130, 246";
+  if (Math.abs(changePercent) < 0.01) return "rgba(107, 118, 132, 0.3)";
+
+  const alpha = Math.min(0.9, 0.3 + Math.abs(changePercent) * 0.06);
+  const rgb = changePercent >= 0 ? "220, 38, 38" : "34, 197, 94";
   return `rgba(${rgb}, ${alpha})`;
 }
 
-function Treemap({ items }: { items: TreemapItem[] }) {
-  const sorted = [...items].sort((a, b) => b.weight - a.weight);
+function useElementSize() {
+  const [element, setElement] = useState<HTMLDivElement | null>(null);
+  const [width, setWidth] = useState(0);
 
-  if (sorted.length === 0) {
+  useEffect(() => {
+    if (!element) return;
+
+    const observer = new ResizeObserver(([entry]) => {
+      setWidth(entry.contentRect.width);
+    });
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, [element]);
+
+  return { ref: setElement, width };
+}
+
+function calculateTreemapLayout(items: TreemapItem[], width: number, height: number) {
+  const grouped = items.reduce<Record<string, TreemapItem[]>>((acc, item) => {
+    acc[item.sector] = acc[item.sector] ?? [];
+    acc[item.sector].push(item);
+    return acc;
+  }, {});
+
+  const root = hierarchy<{ children: TreemapGroup[] } | TreemapGroup | TreemapItem>({
+    children: Object.entries(grouped).map(([sector, children]) => ({
+      name: sector,
+      children,
+    })),
+  })
+    .sum((node) => ("value" in node ? node.value : 0))
+    .sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
+
+  const layout = treemap<typeof root.data>()
+    .size([width, height])
+    .tile(treemapSquarify.ratio(1.2))
+    .paddingOuter(2)
+    .paddingInner(2)
+    .paddingTop(18);
+
+  return layout(root);
+}
+
+function PortfolioTreemap({ items }: { items: TreemapItem[] }) {
+  const { ref, width } = useElementSize();
+  const height = width > 0 ? Math.max(240, Math.min(420, width * 0.52)) : 280;
+  const root = useMemo(
+    () => (width > 0 ? calculateTreemapLayout(items, width, height) : null),
+    [height, items, width],
+  );
+
+  if (items.length === 0) {
     return (
       <div className="flex min-h-[180px] items-center justify-center rounded-lg bg-card-subtle px-4 text-sm text-secondary">
         가격 정보를 불러오는 중입니다.
@@ -40,35 +101,85 @@ function Treemap({ items }: { items: TreemapItem[] }) {
 
   return (
     <div
-      className="grid min-h-[220px] auto-rows-[72px] gap-0.5 overflow-hidden rounded-lg sm:auto-rows-[88px]"
-      style={{ gridTemplateColumns: "repeat(auto-fill, minmax(92px, 1fr))" }}
+      ref={ref}
+      className="relative w-full overflow-hidden rounded-xl bg-card-subtle"
+      style={{ height }}
     >
-      {sorted.map((item) => {
-        const span = item.weight > 0.25 ? 2 : 1;
-        const rowSpan = item.weight > 0.32 ? 2 : 1;
+      {root?.children?.map((sector) => (
+        <div
+          key={(sector.data as TreemapGroup).name}
+          className="absolute overflow-hidden rounded-[3px] bg-black/10"
+          style={{
+            left: sector.x0,
+            top: sector.y0,
+            width: sector.x1 - sector.x0,
+            height: sector.y1 - sector.y0,
+          }}
+        >
+          <div className="h-[18px] truncate px-1.5 py-0.5 text-[10px] font-semibold text-white/55">
+            {(sector.data as TreemapGroup).name}
+          </div>
 
-        return (
-          <Link
-            key={item.symbol}
-            href={`/asset/${encodeURIComponent(item.symbol)}`}
-            className="flex min-w-0 flex-col justify-end p-3 text-white transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-white/45"
-            style={{
-              backgroundColor: getHeatColor(item.changePercent),
-              gridColumn: `span ${span}`,
-              gridRow: `span ${rowSpan}`,
-            }}
-          >
-            <span className="truncate text-[10px] font-semibold text-white/70">
-              {item.sector}
-            </span>
-            <span className="mt-1 truncate text-sm font-black">{item.symbol}</span>
-            <span className="mt-0.5 text-xs font-bold text-white/85">
-              {formatPercent(item.changePercent)}
-            </span>
-          </Link>
-        );
-      })}
+          {sector.children?.map((leaf) => {
+            const data = leaf.data as TreemapItem;
+            const cellWidth = leaf.x1 - leaf.x0;
+            const cellHeight = leaf.y1 - leaf.y0;
+            const showPercent = cellHeight > 38;
+            const showValue = cellWidth > 82 && cellHeight > 56;
+
+            return (
+              <TreemapCell
+                key={data.symbol}
+                leaf={leaf}
+                sector={sector}
+                showPercent={showPercent}
+                showValue={showValue}
+              />
+            );
+          })}
+        </div>
+      ))}
     </div>
+  );
+}
+
+function TreemapCell({
+  leaf,
+  sector,
+  showPercent,
+  showValue,
+}: {
+  leaf: HierarchyRectangularNode<{ children: TreemapGroup[] } | TreemapGroup | TreemapItem>;
+  sector: HierarchyRectangularNode<{ children: TreemapGroup[] } | TreemapGroup | TreemapItem>;
+  showPercent: boolean;
+  showValue: boolean;
+}) {
+  const data = leaf.data as TreemapItem;
+
+  return (
+    <Link
+      href={`/asset/${encodeURIComponent(data.symbol)}`}
+      className="absolute flex min-w-0 flex-col justify-end overflow-hidden rounded-[3px] p-1.5 text-white transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-white/45"
+      style={{
+        left: leaf.x0 - sector.x0,
+        top: leaf.y0 - sector.y0,
+        width: leaf.x1 - leaf.x0,
+        height: leaf.y1 - leaf.y0,
+        backgroundColor: getHeatColor(data.changePercent),
+      }}
+    >
+      <span className="truncate text-sm font-black leading-tight">{data.symbol}</span>
+      {showPercent && (
+        <span className="mt-0.5 truncate text-xs font-bold text-white/90">
+          {formatPercent(data.changePercent)}
+        </span>
+      )}
+      {showValue && (
+        <span className="mt-0.5 truncate text-[10px] font-semibold text-white/75">
+          {data.displayValue}
+        </span>
+      )}
+    </Link>
   );
 }
 
@@ -111,13 +222,14 @@ export function PortfolioDashboard() {
   }, []);
 
   const symbols = useMemo(
-    () => portfolio?.holdings.map((holding) => holding.symbol) ?? [],
+    () => (portfolio ? [...portfolio.holdings.map((holding) => holding.symbol), "KRW=X"] : []),
     [portfolio],
   );
   const { quotes } = useQuotes(symbols, 60_000);
 
   const dashboardData = useMemo(() => {
     if (!portfolio) return null;
+    const krwPerUsd = quotes.get("KRW=X")?.price || 1380;
 
     const holdings = portfolio.holdings
       .map((holding) => {
@@ -127,32 +239,39 @@ export function PortfolioDashboard() {
         const currentValue = holding.shares * price;
         const previousValue = holding.shares * previousClose;
         const change = quote ? holding.shares * quote.change : 0;
+        const multiplier = holding.currency === "KRW" || quote?.currency === "KRW" ? 1 : krwPerUsd;
+        const currentValueKrw = currentValue * multiplier;
+        const previousValueKrw = previousValue * multiplier;
+        const todayChangeKrw = change * multiplier;
 
         return {
           ...holding,
           currentValue,
-          previousValue,
-          todayChange: change,
+          currentValueKrw,
+          previousValueKrw,
+          todayChangeKrw,
           changePercent: quote?.changePercent ?? 0,
         };
       })
-      .filter((holding) => holding.currentValue > 0);
+      .filter((holding) => holding.currentValueKrw > 0);
 
-    const totalValue = holdings.reduce((sum, holding) => sum + holding.currentValue, 0);
-    const totalPreviousValue = holdings.reduce((sum, holding) => sum + holding.previousValue, 0);
-    const todayReturn = holdings.reduce((sum, holding) => sum + holding.todayChange, 0);
+    const totalValueKrw = holdings.reduce((sum, holding) => sum + holding.currentValueKrw, 0);
+    const totalPreviousValueKrw = holdings.reduce((sum, holding) => sum + holding.previousValueKrw, 0);
+    const todayReturnKrw = holdings.reduce((sum, holding) => sum + holding.todayChangeKrw, 0);
     const todayReturnPercent =
-      totalPreviousValue > 0 ? (todayReturn / totalPreviousValue) * 100 : 0;
+      totalPreviousValueKrw > 0 ? (todayReturnKrw / totalPreviousValueKrw) * 100 : 0;
     const treemapItems: TreemapItem[] = holdings.map((holding) => ({
       symbol: holding.symbol,
       name: holding.name,
-      weight: totalValue > 0 ? holding.currentValue / totalValue : 0,
+      value: holding.currentValueKrw,
       changePercent: holding.changePercent,
       sector: getSector(holding.symbol),
+      displayValue: formatMoney(holding.currentValueKrw),
     }));
 
     return {
-      todayReturn,
+      totalValueKrw,
+      todayReturnKrw,
       todayReturnPercent,
       treemapItems,
     };
@@ -180,17 +299,17 @@ export function PortfolioDashboard() {
                 dashboardData.todayReturnPercent >= 0 ? "text-[#F04452]" : "text-[#3182F6]"
               }`}
             >
-              {formatPercent(dashboardData.todayReturnPercent)}
+              {formatMoney(dashboardData.totalValueKrw)}
               <span className="text-base font-bold text-secondary">&gt;</span>
             </Link>
             <p className="mt-1 text-sm font-semibold text-secondary">
-              총 수익 {formatPercent(portfolio.totalReturnPercent)}
+              일간 수익 {dashboardData.todayReturnKrw >= 0 ? "+" : ""}
+              {formatMoney(dashboardData.todayReturnKrw)} ({formatPercent(dashboardData.todayReturnPercent)})
             </p>
           </div>
-          <AssetLogo symbol={portfolio.holdings[0]?.symbol ?? "FIRE"} size="md" />
         </div>
 
-        <Treemap items={dashboardData.treemapItems} />
+        <PortfolioTreemap items={dashboardData.treemapItems} />
       </div>
 
       <Link
