@@ -26,6 +26,8 @@ type YahooQuote = {
   regularMarketChange?: number;
   regularMarketChangePercent?: number;
   marketCap?: number;
+  dividendRate?: number;
+  trailingAnnualDividendRate?: number;
   trailingAnnualDividendYield?: number;
   dividendYield?: number;
   totalAssets?: number;
@@ -59,6 +61,7 @@ type YahooQuoteSummary = {
     result?: Array<{
       summaryDetail?: {
         previousClose?: YahooSummaryValue;
+        dividendRate?: YahooSummaryValue;
         dividendYield?: YahooSummaryValue;
         totalAssets?: YahooSummaryValue;
         navPrice?: YahooSummaryValue;
@@ -359,6 +362,10 @@ export async function GET(request: Request, { params }: AssetRouteContext) {
       rawValue(summary?.summaryDetail?.dividendYield) ??
       undefined,
   );
+  const dividendRate =
+    quote?.dividendRate ??
+    quote?.trailingAnnualDividendRate ??
+    rawValue(summary?.summaryDetail?.dividendRate);
   const assetType = getAssetKindLabel(kind);
   const fiftyTwoWeekLow =
     quote?.fiftyTwoWeekLow ?? rawValue(summary?.summaryDetail?.fiftyTwoWeekLow);
@@ -388,6 +395,7 @@ export async function GET(request: Request, { params }: AssetRouteContext) {
     chartSource,
     fields: {
       marketCap: quote?.marketCap ?? null,
+      dividendRate: dividendRate ?? null,
       dividendYield,
       aum:
         quote?.totalAssets ??
