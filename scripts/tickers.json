@@ -1847,6 +1847,11 @@
       "category": "us_stock"
     },
     {
+      "ticker": "TECL",
+      "name_ko": "Tecl",
+      "category": "us_stock"
+    },
+    {
       "ticker": "UAL",
       "name_ko": "유나이티드 항공",
       "category": "us_stock"
