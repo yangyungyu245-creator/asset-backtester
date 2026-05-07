@@ -90,6 +90,16 @@ export function Header() {
           {user ? (
             <>
               <Link
+                href="/portfolio"
+                className={`rounded-lg px-3 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-brand/35 ${
+                  pathname.startsWith("/portfolio")
+                    ? "bg-card-subtle text-primary"
+                    : "text-secondary hover:bg-card-subtle hover:text-primary"
+                }`}
+              >
+                포트폴리오
+              </Link>
+              <Link
                 href="/mypage"
                 className="max-w-[150px] truncate rounded-lg px-3 py-2 text-sm font-semibold text-secondary transition hover:bg-card-subtle hover:text-primary focus:outline-none focus:ring-2 focus:ring-brand/35"
               >
@@ -178,6 +188,17 @@ export function Header() {
                   className="rounded-xl px-4 py-4 text-base font-bold text-primary hover:bg-card-subtle"
                 >
                   마이페이지
+                </Link>
+                <Link
+                  href="/portfolio"
+                  onClick={() => setIsOpen(false)}
+                  className={`rounded-xl px-4 py-4 text-base font-bold transition ${
+                    pathname.startsWith("/portfolio")
+                      ? "bg-card-subtle text-primary"
+                      : "text-primary hover:bg-card-subtle"
+                  }`}
+                >
+                  포트폴리오
                 </Link>
                 <button
                   type="button"
