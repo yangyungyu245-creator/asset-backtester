@@ -257,13 +257,14 @@ export function PortfolioDashboard() {
     async function loadDashboard() {
       try {
         const portfolios = await getPortfolios();
-        const firstPortfolio = portfolios[0];
-        if (!firstPortfolio) return;
+        const displayPortfolio =
+          portfolios.find((item) => item.is_primary) ?? portfolios[0];
+        if (!displayPortfolio) return;
 
-        const holdings = await getHoldings(firstPortfolio.id);
+        const holdings = await getHoldings(displayPortfolio.id);
         if (holdings.length === 0) return;
 
-        const stats = await calculatePortfolioStats(firstPortfolio, holdings);
+        const stats = await calculatePortfolioStats(displayPortfolio, holdings);
         if (alive) {
           setPortfolio(stats);
         }

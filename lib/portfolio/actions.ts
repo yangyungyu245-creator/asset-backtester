@@ -16,6 +16,7 @@ export async function getPortfolios(): Promise<Portfolio[]> {
   const { data, error } = await supabase
     .from("portfolios")
     .select("*")
+    .order("is_primary", { ascending: false })
     .order("updated_at", { ascending: false });
 
   if (error) throw error;
@@ -66,6 +67,33 @@ export async function updatePortfolio(
     .eq("id", id);
 
   if (error) throw error;
+}
+
+export async function setPrimaryPortfolio(portfolioId: string): Promise<void> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("로그인이 필요합니다.");
+
+  const { error: clearError } = await supabase
+    .from("portfolios")
+    .update({ is_primary: false })
+    .eq("user_id", user.id);
+
+  if (clearError) throw clearError;
+
+  const { error: setError } = await supabase
+    .from("portfolios")
+    .update({
+      is_primary: true,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", portfolioId)
+    .eq("user_id", user.id);
+
+  if (setError) throw setError;
 }
 
 export async function getHoldings(portfolioId: string): Promise<PortfolioHolding[]> {

@@ -16,6 +16,7 @@ import {
   deletePortfolio,
   getHoldings,
   getPortfolios,
+  setPrimaryPortfolio,
   updatePortfolio,
   upsertHolding,
 } from "@/lib/portfolio/actions";
@@ -430,6 +431,23 @@ export function PortfolioManager() {
     }
   }
 
+  async function makePrimaryPortfolio(portfolio: PortfolioWithStats) {
+    setSaving(true);
+    setError(null);
+    try {
+      await setPrimaryPortfolio(portfolio.id);
+      await refreshPortfolios(portfolio.id);
+    } catch (primaryError) {
+      setError(
+        primaryError instanceof Error
+          ? primaryError.message
+          : "메인 포트폴리오를 설정하지 못했습니다.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
   if (!authChecked || loading) {
     return (
       <section className="py-8">
@@ -484,10 +502,17 @@ export function PortfolioManager() {
                 const values = getPortfolioDisplayValues(portfolio);
 
                 return (
-                  <button
+                  <div
                     key={portfolio.id}
-                    type="button"
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setSelectedId(portfolio.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setSelectedId(portfolio.id);
+                      }
+                    }}
                     className={`rounded-2xl border p-5 text-left shadow-subtle transition ${
                       selectedPortfolio?.id === portfolio.id
                         ? "border-brand bg-brand-bg"
@@ -503,7 +528,26 @@ export function PortfolioManager() {
                           {portfolio.holdings.length}개 종목
                         </p>
                       </div>
-                      <span className="text-sm font-bold text-brand">상세</span>
+                      <div className="flex shrink-0 flex-col items-end gap-2">
+                        {portfolio.is_primary ? (
+                          <span className="rounded-full bg-brand/15 px-2 py-0.5 text-xs font-bold text-brand">
+                            메인
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={saving}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              makePrimaryPortfolio(portfolio);
+                            }}
+                            className="text-xs font-bold text-secondary transition hover:text-brand disabled:opacity-50"
+                          >
+                            메인으로 설정
+                          </button>
+                        )}
+                        <span className="text-sm font-bold text-brand">상세</span>
+                      </div>
                     </div>
                     <p className="mt-4 text-2xl font-bold tabular-nums text-primary">
                       {formatDisplayCurrency(values.totalValue, displayCurrency)}
@@ -517,7 +561,7 @@ export function PortfolioManager() {
                         월 배당 {formatDisplayCurrency(values.monthlyDividend, displayCurrency)}
                       </span>
                     </div>
-                  </button>
+                  </div>
                 );
               })()
             ))}
