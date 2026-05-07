@@ -38,12 +38,18 @@ export default function AdvancedSetupPage() {
   const [tickers, setTickers] = useState<TickerMeta[]>([]);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const assetSymbol = params.get("asset")?.trim().toUpperCase() ?? "";
+    if (assetSymbol) {
+      window.sessionStorage.setItem("firelife.pendingAsset", assetSymbol);
+    }
+
     if (!startDate || !endDate) {
-      router.replace("/advanced/dates");
+      router.replace(assetSymbol ? `/advanced/dates?asset=${encodeURIComponent(assetSymbol)}` : "/advanced/dates");
       return;
     }
     if (selectedTickers.length === 0) {
-      router.replace("/advanced/tickers");
+      router.replace(assetSymbol ? `/advanced/tickers?asset=${encodeURIComponent(assetSymbol)}` : "/advanced/tickers");
       return;
     }
 

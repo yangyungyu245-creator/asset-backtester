@@ -42,7 +42,9 @@ export default function AdvancedTickersPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    setAssetSymbol(params.get("asset")?.trim().toUpperCase() ?? "");
+    const queryAsset = params.get("asset")?.trim().toUpperCase() ?? "";
+    const pendingAsset = window.sessionStorage.getItem("firelife.pendingAsset")?.trim().toUpperCase() ?? "";
+    setAssetSymbol(queryAsset || pendingAsset);
   }, []);
 
   useEffect(() => {
