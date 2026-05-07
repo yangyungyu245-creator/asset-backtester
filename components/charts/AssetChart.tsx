@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type MutableRefObject, type RefObject, useEffect, useMemo, useRef, useState } from "react";
 import {
   CandlestickSeries,
   ColorType,
@@ -41,6 +41,14 @@ type AssetChartProps = {
 type RealtimeSeries = {
   update: (data: LineData | CandlestickData) => void;
   priceToCoordinate: (price: number) => number | null;
+};
+
+type PulseDotProps = {
+  chartRef: MutableRefObject<IChartApi | null>;
+  seriesRef: MutableRefObject<RealtimeSeries | null>;
+  containerRef: RefObject<HTMLDivElement>;
+  price: number | null;
+  time: Time | null;
 };
 
 const periods: Array<{ value: Period; label: string }> = [
@@ -124,6 +132,72 @@ function movingAverage(data: OHLCVData[], period: number): LineData[] {
   return points;
 }
 
+function PulseDot({ chartRef, seriesRef, containerRef, price, time }: PulseDotProps) {
+  const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
+
+  useEffect(() => {
+    if (!price || !time) {
+      setPosition(null);
+      return undefined;
+    }
+
+    let rafId = 0;
+    let nestedRafId = 0;
+
+    const updatePosition = () => {
+      const chart = chartRef.current;
+      const series = seriesRef.current;
+      const container = containerRef.current;
+      if (!chart || !series || !container) return;
+
+      const y = series.priceToCoordinate(price);
+      if (y === null) {
+        setPosition(null);
+        return;
+      }
+
+      const x = chart.timeScale().timeToCoordinate(time) ?? container.clientWidth - 80;
+      setPosition({ x, y });
+    };
+
+    rafId = requestAnimationFrame(() => {
+      nestedRafId = requestAnimationFrame(updatePosition);
+    });
+
+    const subscribedChart = chartRef.current;
+    subscribedChart?.subscribeCrosshairMove(updatePosition);
+    subscribedChart?.timeScale().subscribeVisibleTimeRangeChange(updatePosition);
+    window.addEventListener("resize", updatePosition);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      cancelAnimationFrame(nestedRafId);
+      subscribedChart?.unsubscribeCrosshairMove(updatePosition);
+      subscribedChart?.timeScale().unsubscribeVisibleTimeRangeChange(updatePosition);
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [chartRef, containerRef, price, seriesRef, time]);
+
+  if (!position) return null;
+
+  return (
+    <div
+      className="pointer-events-none absolute"
+      style={{
+        left: position.x,
+        top: position.y,
+        transform: "translate(-50%, -50%)",
+        zIndex: 10,
+      }}
+    >
+      <span className="relative flex h-3 w-3">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#FF6B35] opacity-75" />
+        <span className="relative inline-flex h-3 w-3 rounded-full bg-[#FF6B35]" />
+      </span>
+    </div>
+  );
+}
+
 export default function AssetChart({
   symbol,
   data,
@@ -141,7 +215,6 @@ export default function AssetChart({
   const [showMA5, setShowMA5] = useState(false);
   const [showMA20, setShowMA20] = useState(false);
   const [showMA60, setShowMA60] = useState(false);
-  const [currentPriceY, setCurrentPriceY] = useState<number | null>(null);
   const darkModeSignal = useDarkModeSignal();
   const { quotes } = useQuotes(symbol ? [symbol] : [], 60_000);
   const latestQuote = symbol ? quotes.get(symbol.toUpperCase()) : undefined;
@@ -312,8 +385,6 @@ export default function AssetChart({
     const handleResize = () => {
       chart.applyOptions({ height: window.innerWidth < 640 ? 280 : 400 });
       chart.timeScale().fitContent();
-      const price = displayData[displayData.length - 1]?.close;
-      setCurrentPriceY(price ? mainSeriesRef.current?.priceToCoordinate(price) ?? null : null);
     };
     const observer = new ResizeObserver(handleResize);
     observer.observe(container);
@@ -349,11 +420,11 @@ export default function AssetChart({
         value: latestRealtimePrice,
       });
     }
-
-    requestAnimationFrame(() => {
-      setCurrentPriceY(mainSeriesRef.current?.priceToCoordinate(latestRealtimePrice) ?? null);
-    });
   }, [latestRealtimePrice, mode]);
+
+  const pulseTime = mode === "candle"
+    ? latestCandleRef.current?.time ?? null
+    : latestLineTimeRef.current;
 
   return (
     <div className={className}>
@@ -415,21 +486,13 @@ export default function AssetChart({
 
       <div className="relative mt-3">
         <div ref={containerRef} className="h-[280px] w-full sm:h-[400px]" />
-        {latestRealtimePrice && currentPriceY !== null ? (
-          <div
-            className="pointer-events-none absolute"
-            style={{
-              right: 60,
-              top: currentPriceY,
-              transform: "translate(50%, -50%)",
-            }}
-          >
-            <span className="relative flex h-3 w-3">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-75" />
-              <span className="relative inline-flex h-3 w-3 rounded-full bg-brand" />
-            </span>
-          </div>
-        ) : null}
+        <PulseDot
+          chartRef={chartRef}
+          seriesRef={mainSeriesRef}
+          containerRef={containerRef}
+          price={latestRealtimePrice}
+          time={pulseTime}
+        />
       </div>
     </div>
   );
