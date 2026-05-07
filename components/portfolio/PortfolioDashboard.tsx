@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { hierarchy, treemap, treemapSquarify, type HierarchyRectangularNode } from "d3-hierarchy";
 import { getSector } from "@/lib/data/sectors";
@@ -110,7 +111,7 @@ function calculateTreemapLayout(items: TreemapItem[], width: number, height: num
   return layout(root);
 }
 
-function PortfolioTreemap({ items }: { items: TreemapItem[] }) {
+function PortfolioTreemap({ items, masked }: { items: TreemapItem[]; masked: boolean }) {
   const { ref, width } = useElementSize();
   const height = width > 0 ? Math.max(240, Math.min(420, width * 0.52)) : 280;
   const root = useMemo(
@@ -161,6 +162,7 @@ function PortfolioTreemap({ items }: { items: TreemapItem[] }) {
                 leaf={leaf}
                 sector={sector}
                 fontSize={getTreemapFontSize(cellWidth, cellHeight)}
+                masked={masked}
                 showPercent={showPercent}
                 showValue={showValue}
               />
@@ -172,16 +174,34 @@ function PortfolioTreemap({ items }: { items: TreemapItem[] }) {
   );
 }
 
+function MaskedValue({
+  children,
+  masked,
+  className = "",
+}: {
+  children: ReactNode;
+  masked: boolean;
+  className?: string;
+}) {
+  return (
+    <span className={`inline-block transition-all ${masked ? "select-none blur-md hover:blur-none" : ""} ${className}`}>
+      {children}
+    </span>
+  );
+}
+
 function TreemapCell({
   leaf,
   sector,
   fontSize,
+  masked,
   showPercent,
   showValue,
 }: {
   leaf: HierarchyRectangularNode<{ children: TreemapGroup[] } | TreemapGroup | TreemapItem>;
   sector: HierarchyRectangularNode<{ children: TreemapGroup[] } | TreemapGroup | TreemapItem>;
   fontSize: { symbol: number; percent: number; value: number };
+  masked: boolean;
   showPercent: boolean;
   showValue: boolean;
 }) {
@@ -218,7 +238,7 @@ function TreemapCell({
           className="mt-0.5 truncate font-bold leading-tight text-white/75"
           style={{ fontSize: fontSize.value }}
         >
-          {data.displayValue}
+          <MaskedValue masked={masked}>{data.displayValue}</MaskedValue>
         </span>
       )}
     </Link>
@@ -229,6 +249,7 @@ export function PortfolioDashboard() {
   const [portfolio, setPortfolio] = useState<PortfolioWithStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [displayCurrency, setDisplayCurrency] = useState<DisplayCurrency>("KRW");
+  const [isMasked, setIsMasked] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -360,38 +381,62 @@ export function PortfolioDashboard() {
                 dashboardData.todayReturnPercent >= 0 ? "text-[#F04452]" : "text-[#3182F6]"
               }`}
             >
-              {formatDisplayMoney(
-                displayCurrency === "KRW" ? dashboardData.totalValueKrw : dashboardData.totalValueUsd,
-                displayCurrency,
-              )}
+              <MaskedValue masked={isMasked}>
+                {formatDisplayMoney(
+                  displayCurrency === "KRW" ? dashboardData.totalValueKrw : dashboardData.totalValueUsd,
+                  displayCurrency,
+                )}
+              </MaskedValue>
               <span className="text-base font-bold text-secondary">&gt;</span>
             </Link>
             <p className="mt-1 text-sm font-semibold text-secondary">
               일간 수익 {dashboardData.todayReturnKrw >= 0 ? "+" : ""}
-              {formatDisplayMoney(
-                displayCurrency === "KRW" ? dashboardData.todayReturnKrw : dashboardData.todayReturnUsd,
-                displayCurrency,
-              )}{" "}
+              <MaskedValue masked={isMasked}>
+                {formatDisplayMoney(
+                  displayCurrency === "KRW" ? dashboardData.todayReturnKrw : dashboardData.todayReturnUsd,
+                  displayCurrency,
+                )}
+              </MaskedValue>{" "}
               ({formatPercent(dashboardData.todayReturnPercent)})
             </p>
           </div>
-          <div className="grid grid-cols-2 rounded-md border border-border bg-card-subtle p-0.5 text-xs font-black">
-            {(["KRW", "USD"] as const).map((currency) => (
-              <button
-                key={currency}
-                type="button"
-                onClick={() => setDisplayCurrency(currency)}
-                className={`h-7 rounded px-2 transition ${
-                  displayCurrency === currency ? "bg-card text-primary shadow-subtle" : "text-secondary"
-                }`}
-              >
-                {currency === "KRW" ? "₩" : "$"}
-              </button>
-            ))}
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsMasked((value) => !value)}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-secondary transition hover:bg-card-subtle hover:text-primary"
+              aria-label={isMasked ? "금액 보이기" : "금액 숨기기"}
+            >
+              {isMasked ? (
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <rect x="5" y="9" width="10" height="8" rx="1" />
+                  <path d="M7 9V6a3 3 0 016 0v3" />
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <rect x="5" y="9" width="10" height="8" rx="1" />
+                  <path d="M7 9V6a3 3 0 016 0" />
+                </svg>
+              )}
+            </button>
+            <div className="grid grid-cols-2 rounded-md border border-border bg-card-subtle p-0.5 text-xs font-black">
+              {(["KRW", "USD"] as const).map((currency) => (
+                <button
+                  key={currency}
+                  type="button"
+                  onClick={() => setDisplayCurrency(currency)}
+                  className={`h-7 rounded px-2 transition ${
+                    displayCurrency === currency ? "bg-card text-primary shadow-subtle" : "text-secondary"
+                  }`}
+                >
+                  {currency === "KRW" ? "₩" : "$"}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        <PortfolioTreemap items={dashboardData.treemapItems} />
+        <PortfolioTreemap items={dashboardData.treemapItems} masked={isMasked} />
       </div>
 
       <Link
