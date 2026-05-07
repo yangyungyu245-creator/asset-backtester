@@ -70,6 +70,7 @@ type AssetDetailViewProps = {
 type Tab = "chart" | "info" | "simulate";
 type ChartMode = "line" | "candle";
 type CurrencyMode = "native" | "krw";
+const FALLBACK_USD_KRW = 1380;
 
 const periods: Array<{ value: Period; label: string }> = [
   { value: "1d", label: "1일" },
@@ -159,15 +160,15 @@ function convertValue(
   mode: CurrencyMode,
 ) {
   if (!isFiniteNumber(value) || !asset) return null;
-  if (mode === "krw" && asset.currency !== "KRW" && isFiniteNumber(asset.fields.usdKrw)) {
-    return value * asset.fields.usdKrw;
+  if (mode === "krw" && asset.currency !== "KRW") {
+    return value * (isFiniteNumber(asset.fields.usdKrw) ? asset.fields.usdKrw : FALLBACK_USD_KRW);
   }
   return value;
 }
 
 function getDisplayCurrency(asset: AssetDetail | null, mode: CurrencyMode) {
   if (!asset) return "";
-  if (mode === "krw" && asset.currency !== "KRW" && asset.fields.usdKrw) return "KRW";
+  if (mode === "krw" && asset.currency !== "KRW") return "KRW";
   return asset.currency ?? "";
 }
 
@@ -621,7 +622,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
   }, [period, symbol]);
 
   useEffect(() => {
-    if (asset?.currency !== "KRW" && asset?.fields.usdKrw) {
+    if (asset?.currency !== "KRW") {
       setCurrencyMode("krw");
     } else {
       setCurrencyMode("native");
@@ -629,7 +630,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
   }, [asset?.currency, asset?.fields.usdKrw]);
 
   const displayName = asset?.displayName || asset?.nameKo || asset?.name || symbol;
-  const canConvert = Boolean(asset && asset.currency !== "KRW" && asset.fields.usdKrw);
+  const canConvert = Boolean(asset && asset.currency !== "KRW");
   const latest = formatMoney(asset?.latestPrice, asset, currencyMode);
   const unit = getUnit(asset, currencyMode);
   const alternateMode: CurrencyMode = currencyMode === "krw" ? "native" : "krw";
