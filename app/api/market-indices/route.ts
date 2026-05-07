@@ -19,7 +19,20 @@ type YahooQuote = {
   regularMarketChange?: number;
   regularMarketChangePercent?: number;
   regularMarketPreviousClose?: number;
+  regularMarketTime?: number;
 };
+
+type MarketIndex = {
+  symbol: string;
+  label: string;
+  decimals: number;
+  price: number | null;
+  change: number | null;
+  changePercent: number | null;
+  error?: string;
+};
+
+let lastSuccessData: MarketIndex[] | null = null;
 
 async function fetchJson<T>(url: string): Promise<T> {
   const response = await fetch(url, {
@@ -27,7 +40,8 @@ async function fetchJson<T>(url: string): Promise<T> {
     signal: AbortSignal.timeout(8_000),
     headers: {
       Accept: "application/json",
-      "User-Agent": "FIRE LIFE market indices widget",
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 FIRE-LIFE/1.0",
     },
   });
 
@@ -38,26 +52,10 @@ async function fetchJson<T>(url: string): Promise<T> {
   return (await response.json()) as T;
 }
 
-async function fetchQuote(symbol: string) {
-  const quoteUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(
-    symbol,
-  )}`;
-  const payload = await fetchJson<{
-    quoteResponse?: { result?: YahooQuote[] };
-  }>(quoteUrl);
-  const quote = payload.quoteResponse?.result?.[0];
-
-  if (!quote) {
-    throw new Error(`No quote returned for ${symbol}`);
-  }
-
-  return quote;
-}
-
 async function fetchChartQuote(symbol: string): Promise<YahooQuote> {
   const chartUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(
     symbol,
-  )}?range=5d&interval=1d`;
+  )}?range=1d&interval=1m&includePrePost=false`;
   const payload = await fetchJson<{
     chart?: {
       result?: Array<{
@@ -65,6 +63,8 @@ async function fetchChartQuote(symbol: string): Promise<YahooQuote> {
           symbol?: string;
           regularMarketPrice?: number;
           previousClose?: number;
+          chartPreviousClose?: number;
+          regularMarketTime?: number;
         };
         indicators?: { quote?: Array<{ close?: Array<number | null> }> };
       }>;
@@ -78,7 +78,10 @@ async function fetchChartQuote(symbol: string): Promise<YahooQuote> {
   const price =
     result?.meta?.regularMarketPrice ?? closes[closes.length - 1] ?? undefined;
   const previousClose =
-    result?.meta?.previousClose ?? closes[closes.length - 2] ?? undefined;
+    result?.meta?.previousClose ??
+    result?.meta?.chartPreviousClose ??
+    closes[closes.length - 2] ??
+    undefined;
 
   if (price === undefined) {
     throw new Error(`No chart price returned for ${symbol}`);
@@ -91,6 +94,7 @@ async function fetchChartQuote(symbol: string): Promise<YahooQuote> {
     symbol: result?.meta?.symbol ?? symbol,
     regularMarketPrice: price,
     regularMarketPreviousClose: previousClose,
+    regularMarketTime: result?.meta?.regularMarketTime,
     regularMarketChange: change,
     regularMarketChangePercent:
       change !== undefined && previousClose ? (change / previousClose) * 100 : undefined,
@@ -98,19 +102,14 @@ async function fetchChartQuote(symbol: string): Promise<YahooQuote> {
 }
 
 async function fetchMarketIndex(symbol: string) {
-  try {
-    return await fetchQuote(symbol);
-  } catch (quoteError) {
-    console.error(`[market-indices] quote failed for ${symbol}`, quoteError);
-    return fetchChartQuote(symbol);
-  }
+  return fetchChartQuote(symbol);
 }
 
 export async function GET() {
   const results = await Promise.allSettled(
     MARKET_INDICES.map((item) => fetchMarketIndex(item.symbol)),
   );
-  const indices = MARKET_INDICES.map((item, index) => {
+  const indices: MarketIndex[] = MARKET_INDICES.map((item, index) => {
     const result = results[index];
     const quote = result.status === "fulfilled" ? result.value : null;
 
@@ -141,10 +140,16 @@ export async function GET() {
     };
   });
   const hasAnyPrice = indices.some((item) => item.price !== null);
+  const data = hasAnyPrice ? indices : lastSuccessData ?? indices;
+
+  if (hasAnyPrice) {
+    lastSuccessData = indices;
+  }
 
   return NextResponse.json(
     {
-      indices,
+      indices: data,
+      stale: !hasAnyPrice,
       updatedAt: new Date().toISOString(),
       error: hasAnyPrice ? undefined : "Failed to load market indices.",
     },

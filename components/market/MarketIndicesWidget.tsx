@@ -20,6 +20,7 @@ type MarketIndex = {
 type MarketIndicesResponse = {
   indices: MarketIndex[];
   updatedAt: string;
+  stale?: boolean;
   error?: string;
 };
 
@@ -81,6 +82,7 @@ function useMarketIndices() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
   const [hasError, setHasError] = useState(false);
+  const [isServerStale, setIsServerStale] = useState(false);
 
   const loadIndices = useCallback(async (background = false) => {
     if (background) {
@@ -97,9 +99,11 @@ function useMarketIndices() {
 
       setData(payload);
       setUpdatedAt(payload.updatedAt ? new Date(payload.updatedAt) : new Date());
+      setIsServerStale(Boolean(payload.stale));
       setHasError(!response.ok || Boolean(payload.error));
     } catch {
       setHasError(true);
+      setIsServerStale(true);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -135,6 +139,7 @@ function useMarketIndices() {
     isRefreshing,
     updatedAt,
     hasError,
+    isServerStale,
     reload: loadIndices,
   };
 }
@@ -181,14 +186,15 @@ export function MarketPulseLine() {
 }
 
 export function MarketIndicesWidget() {
-  const { indices, isLoading, isRefreshing, updatedAt, hasError, reload } =
+  const { indices, isLoading, isRefreshing, updatedAt, hasError, isServerStale, reload } =
     useMarketIndices();
   const displayItems: Array<MarketIndex | null> = isLoading
     ? Array.from({ length: 6 }, () => null)
     : indices.length > 0
       ? indices
       : Array.from({ length: 6 }, () => null);
-  const isStale = updatedAt ? Date.now() - updatedAt.getTime() > STALE_AFTER : false;
+  const isStale =
+    isServerStale || (updatedAt ? Date.now() - updatedAt.getTime() > STALE_AFTER : false);
 
   return (
     <section className="min-w-0 rounded-2xl border border-border bg-card p-4 shadow-subtle sm:p-5">
