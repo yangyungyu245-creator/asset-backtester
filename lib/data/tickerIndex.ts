@@ -8,6 +8,7 @@ export type TickerMeta = {
   category:
     | "us_stock"
     | "us_etf"
+    | "bond_etf"
     | "kr_stock"
     | "kr_etf"
     | "intl_stock"
