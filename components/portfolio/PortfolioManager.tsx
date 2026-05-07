@@ -7,6 +7,7 @@ import { StockLogo } from "@/components/asset/StockLogo";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useQuotes } from "@/hooks/useQuotes";
+import { getSector } from "@/lib/data/sectors";
 import { createSearcher } from "@/lib/data/tickerSearch";
 import { loadTickerIndex, type TickerMeta } from "@/lib/data/tickerIndex";
 import {
@@ -73,6 +74,38 @@ const emptyHoldingForm: HoldingFormState = {
   avgPrice: "",
   currency: "USD",
 };
+
+const DIVIDEND_MONTHS: Record<string, number[]> = {
+  AAPL: [2, 5, 8, 11],
+  MSFT: [2, 5, 8, 11],
+  JNJ: [2, 5, 8, 11],
+  JPM: [0, 3, 6, 9],
+  V: [2, 5, 8, 11],
+  KO: [2, 5, 8, 11],
+  PG: [1, 4, 7, 10],
+  SPY: [2, 5, 8, 11],
+  VOO: [2, 5, 8, 11],
+  QQQ: [2, 5, 8, 11],
+  SCHD: [2, 5, 8, 11],
+  JEPI: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+  O: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+};
+
+const SECTOR_COLORS: Record<string, string> = {
+  IT: "#DC2626",
+  첨단기술: "#F59E0B",
+  ETF: "#3B82F6",
+  채권: "#1E40AF",
+  금융: "#10B981",
+  자동차: "#8B5CF6",
+  기타: "#6B7280",
+};
+
+const monthLabels = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"];
+
+function getDividendMonths(symbol: string) {
+  return DIVIDEND_MONTHS[symbol.toUpperCase()] ?? [2, 5, 8, 11];
+}
 
 function formatDisplayCurrency(value: number, currency: DisplayCurrency) {
   return new Intl.NumberFormat("ko-KR", {
@@ -566,6 +599,21 @@ export function PortfolioManager() {
                         valueClass="text-success"
                       />
                     </div>
+                    {selectedPortfolio.holdings.length > 0 ? (
+                      <div className="mt-6 grid gap-4">
+                        <MonthlyDividendChart
+                          holdings={selectedPortfolio.holdings}
+                          displayCurrency={displayCurrency}
+                          getHoldingDisplayValues={getHoldingDisplayValues}
+                        />
+                        <SectorBreakdown
+                          holdings={selectedPortfolio.holdings}
+                          totalValue={selectedValues.totalValue}
+                          displayCurrency={displayCurrency}
+                          getHoldingDisplayValues={getHoldingDisplayValues}
+                        />
+                      </div>
+                    ) : null}
                   </>
                 );
               })()}
@@ -777,6 +825,140 @@ function Metric({
     <div className="rounded-xl bg-card-subtle p-4">
       <p className="text-xs font-bold text-secondary">{label}</p>
       <p className={`mt-2 text-lg font-bold tabular-nums ${valueClass}`}>{value}</p>
+    </div>
+  );
+}
+
+function MonthlyDividendChart({
+  holdings,
+  displayCurrency,
+  getHoldingDisplayValues,
+}: {
+  holdings: HoldingWithStats[];
+  displayCurrency: DisplayCurrency;
+  getHoldingDisplayValues: (holding: HoldingWithStats) => HoldingDisplayValues;
+}) {
+  const monthly = useMemo(() => {
+    const values = Array.from({ length: 12 }, () => 0);
+
+    holdings.forEach((holding) => {
+      const months = getDividendMonths(holding.symbol);
+      if (months.length === 0) return;
+
+      const annualDividend = getHoldingDisplayValues(holding).annualDividend;
+      if (annualDividend <= 0) return;
+
+      const perPayment = annualDividend / months.length;
+      months.forEach((month) => {
+        values[month] += perPayment;
+      });
+    });
+
+    return values;
+  }, [getHoldingDisplayValues, holdings]);
+  const max = Math.max(...monthly, 1);
+  const currentMonth = new Date().getMonth();
+
+  return (
+    <div className="rounded-xl bg-card-subtle p-4">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-base font-bold text-primary">
+          예상 배당금 <span className="text-xs text-secondary">({displayCurrency})</span>
+        </h3>
+        <span className="rounded bg-card px-2 py-0.5 text-xs font-bold text-secondary">
+          세금 0% 적용
+        </span>
+      </div>
+      <div className="mt-5 flex h-40 items-end gap-1">
+        {monthly.map((amount, index) => {
+          const heightPercent = (amount / max) * 100;
+
+          return (
+            <div key={monthLabels[index]} className="flex min-w-0 flex-1 flex-col items-center justify-end gap-1">
+              <span className="max-w-full truncate text-[10px] font-semibold tabular-nums text-secondary">
+                {amount > 0 ? formatDisplayCurrency(amount, displayCurrency).replace(/\s/g, "") : "0"}
+              </span>
+              <div
+                className={`w-full rounded-t transition-all ${currentMonth === index ? "bg-brand" : "bg-secondary/35"}`}
+                style={{ height: `${Math.max(2, heightPercent)}%` }}
+              />
+            </div>
+          );
+        })}
+      </div>
+      <div className="mt-2 flex justify-between text-[10px] font-bold text-secondary">
+        {monthLabels.map((month) => (
+          <span key={month} className="flex-1 text-center">
+            {month.replace("월", "")}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SectorBreakdown({
+  holdings,
+  totalValue,
+  displayCurrency,
+  getHoldingDisplayValues,
+}: {
+  holdings: HoldingWithStats[];
+  totalValue: number;
+  displayCurrency: DisplayCurrency;
+  getHoldingDisplayValues: (holding: HoldingWithStats) => HoldingDisplayValues;
+}) {
+  const sectorValues = useMemo(() => {
+    const values = new Map<string, number>();
+
+    holdings.forEach((holding) => {
+      const sector = getSector(holding.symbol);
+      values.set(sector, (values.get(sector) ?? 0) + getHoldingDisplayValues(holding).currentValue);
+    });
+
+    return Array.from(values.entries())
+      .map(([sector, value]) => ({
+        sector,
+        value,
+        percent: totalValue > 0 ? (value / totalValue) * 100 : 0,
+      }))
+      .filter((item) => item.value > 0)
+      .sort((a, b) => b.value - a.value);
+  }, [getHoldingDisplayValues, holdings, totalValue]);
+
+  if (sectorValues.length === 0) return null;
+
+  return (
+    <div className="rounded-xl bg-card-subtle p-4">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-base font-bold text-primary">분야별 비중</h3>
+        <span className="text-xs font-bold text-secondary">{displayCurrency} 기준</span>
+      </div>
+      <div className="mt-4 flex h-3 overflow-hidden rounded-full bg-card">
+        {sectorValues.map((item) => (
+          <div
+            key={item.sector}
+            style={{
+              width: `${item.percent}%`,
+              backgroundColor: SECTOR_COLORS[item.sector] ?? SECTOR_COLORS["기타"],
+            }}
+            title={`${item.sector} ${item.percent.toFixed(2)}%`}
+          />
+        ))}
+      </div>
+      <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
+        {sectorValues.map((item) => (
+          <div key={item.sector} className="flex items-center gap-1.5">
+            <span
+              className="h-2.5 w-2.5 rounded-sm"
+              style={{ backgroundColor: SECTOR_COLORS[item.sector] ?? SECTOR_COLORS["기타"] }}
+            />
+            <span className="text-xs font-bold text-primary">
+              {item.sector} {item.percent.toFixed(2)}%
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
