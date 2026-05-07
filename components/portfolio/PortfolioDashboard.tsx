@@ -23,12 +23,23 @@ type TreemapGroup = {
   children: TreemapItem[];
 };
 
+type DisplayCurrency = "KRW" | "USD";
+
 function formatPercent(value: number) {
   return `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
 }
 
 function formatMoney(value: number) {
   return `₩${Math.round(value).toLocaleString("ko-KR")}`;
+}
+
+function formatDisplayMoney(value: number, currency: DisplayCurrency) {
+  if (currency === "KRW") return formatMoney(value);
+
+  return `$${value.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
 function getHeatColor(changePercent: number) {
@@ -186,6 +197,7 @@ function TreemapCell({
 export function PortfolioDashboard() {
   const [portfolio, setPortfolio] = useState<PortfolioWithStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [displayCurrency, setDisplayCurrency] = useState<DisplayCurrency>("KRW");
 
   useEffect(() => {
     let alive = true;
@@ -243,21 +255,32 @@ export function PortfolioDashboard() {
         const currentValueKrw = currentValue * multiplier;
         const previousValueKrw = previousValue * multiplier;
         const todayChangeKrw = change * multiplier;
+        const annualDividendKrw = holding.annualDividend * multiplier;
 
         return {
           ...holding,
           currentValue,
           currentValueKrw,
+          currentValueUsd: currentValueKrw / krwPerUsd,
           previousValueKrw,
+          previousValueUsd: previousValueKrw / krwPerUsd,
           todayChangeKrw,
+          todayChangeUsd: todayChangeKrw / krwPerUsd,
+          annualDividendKrw,
+          annualDividendUsd: annualDividendKrw / krwPerUsd,
           changePercent: quote?.changePercent ?? 0,
         };
       })
       .filter((holding) => holding.currentValueKrw > 0);
 
     const totalValueKrw = holdings.reduce((sum, holding) => sum + holding.currentValueKrw, 0);
+    const totalValueUsd = totalValueKrw / krwPerUsd;
     const totalPreviousValueKrw = holdings.reduce((sum, holding) => sum + holding.previousValueKrw, 0);
     const todayReturnKrw = holdings.reduce((sum, holding) => sum + holding.todayChangeKrw, 0);
+    const todayReturnUsd = todayReturnKrw / krwPerUsd;
+    const monthlyDividendKrw =
+      holdings.reduce((sum, holding) => sum + holding.annualDividendKrw, 0) / 12;
+    const monthlyDividendUsd = monthlyDividendKrw / krwPerUsd;
     const todayReturnPercent =
       totalPreviousValueKrw > 0 ? (todayReturnKrw / totalPreviousValueKrw) * 100 : 0;
     const treemapItems: TreemapItem[] = holdings.map((holding) => ({
@@ -266,16 +289,23 @@ export function PortfolioDashboard() {
       value: holding.currentValueKrw,
       changePercent: holding.changePercent,
       sector: getSector(holding.symbol),
-      displayValue: formatMoney(holding.currentValueKrw),
+      displayValue: formatDisplayMoney(
+        displayCurrency === "KRW" ? holding.currentValueKrw : holding.currentValueUsd,
+        displayCurrency,
+      ),
     }));
 
     return {
       totalValueKrw,
+      totalValueUsd,
       todayReturnKrw,
+      todayReturnUsd,
       todayReturnPercent,
+      monthlyDividendKrw,
+      monthlyDividendUsd,
       treemapItems,
     };
-  }, [portfolio, quotes]);
+  }, [displayCurrency, portfolio, quotes]);
 
   if (loading || !portfolio || !dashboardData) return null;
 
@@ -299,13 +329,34 @@ export function PortfolioDashboard() {
                 dashboardData.todayReturnPercent >= 0 ? "text-[#F04452]" : "text-[#3182F6]"
               }`}
             >
-              {formatMoney(dashboardData.totalValueKrw)}
+              {formatDisplayMoney(
+                displayCurrency === "KRW" ? dashboardData.totalValueKrw : dashboardData.totalValueUsd,
+                displayCurrency,
+              )}
               <span className="text-base font-bold text-secondary">&gt;</span>
             </Link>
             <p className="mt-1 text-sm font-semibold text-secondary">
               일간 수익 {dashboardData.todayReturnKrw >= 0 ? "+" : ""}
-              {formatMoney(dashboardData.todayReturnKrw)} ({formatPercent(dashboardData.todayReturnPercent)})
+              {formatDisplayMoney(
+                displayCurrency === "KRW" ? dashboardData.todayReturnKrw : dashboardData.todayReturnUsd,
+                displayCurrency,
+              )}{" "}
+              ({formatPercent(dashboardData.todayReturnPercent)})
             </p>
+          </div>
+          <div className="grid grid-cols-2 rounded-md border border-border bg-card-subtle p-0.5 text-xs font-black">
+            {(["KRW", "USD"] as const).map((currency) => (
+              <button
+                key={currency}
+                type="button"
+                onClick={() => setDisplayCurrency(currency)}
+                className={`h-7 rounded px-2 transition ${
+                  displayCurrency === currency ? "bg-card text-primary shadow-subtle" : "text-secondary"
+                }`}
+              >
+                {currency === "KRW" ? "₩" : "$"}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -325,7 +376,11 @@ export function PortfolioDashboard() {
           </span>
         </span>
         <span className="shrink-0 text-base font-black text-primary">
-          ₩{Math.round(portfolio.monthlyDividend).toLocaleString("ko-KR")} &gt;
+          {formatDisplayMoney(
+            displayCurrency === "KRW" ? dashboardData.monthlyDividendKrw : dashboardData.monthlyDividendUsd,
+            displayCurrency,
+          )}{" "}
+          &gt;
         </span>
       </Link>
     </section>
