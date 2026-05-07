@@ -27,6 +27,8 @@ const popularTickers = [
   { symbol: "035420.KS", name: "NAVER" },
 ];
 
+const SEARCH_QUOTE_LIMIT = 15;
+
 function getTickerAssetType(category: TickerMeta["category"]): AssetLogoType {
   if (category.includes("etf")) return "etf";
   if (category === "crypto") return "crypto";
@@ -135,8 +137,8 @@ export default function SearchPage() {
   const quoteSymbols = useMemo(() => {
     const symbols = popularTickers.map((ticker) => ticker.symbol);
 
-    if (debouncedQuery && results.length <= 10) {
-      symbols.push(...results.map((ticker) => ticker.ticker));
+    if (debouncedQuery && results.length <= SEARCH_QUOTE_LIMIT) {
+      symbols.push(...results.slice(0, SEARCH_QUOTE_LIMIT).map((ticker) => ticker.ticker));
     }
 
     return Array.from(new Set(symbols)).slice(0, 20);
@@ -310,7 +312,7 @@ export default function SearchPage() {
                   </Link>
                   <div className="flex shrink-0 items-start gap-1">
                     <WatchHeart symbol={ticker.ticker} />
-                    {results.length <= 10 && (quotesLoading || quotes.has(ticker.ticker)) ? (
+                    {results.length <= SEARCH_QUOTE_LIMIT ? (
                       <QuoteValue quote={quotes.get(ticker.ticker)} loading={quotesLoading} />
                     ) : (
                       <Badge variant="neutral">{ticker.exchange}</Badge>
@@ -319,6 +321,11 @@ export default function SearchPage() {
                 </div>
               </div>
             ))}
+            {results.length > SEARCH_QUOTE_LIMIT ? (
+              <div className="rounded-xl bg-card-subtle p-4 text-sm font-semibold text-secondary sm:col-span-2">
+                검색 결과가 많아 가격 표시는 생략했습니다. 종목명이나 티커를 더 구체적으로 입력해 주세요.
+              </div>
+            ) : null}
           </div>
         )}
       </Card>
