@@ -117,6 +117,16 @@ function formatDisplayCurrency(value: number, currency: DisplayCurrency) {
   }).format(Number.isFinite(value) ? value : 0);
 }
 
+function formatNativePrice(value: number, currency: string) {
+  if (currency === "KRW" || currency === "USD") {
+    return formatDisplayCurrency(value, currency);
+  }
+
+  return `${new Intl.NumberFormat("ko-KR", {
+    maximumFractionDigits: 2,
+  }).format(Number.isFinite(value) ? value : 0)} ${currency}`;
+}
+
 function convertNativeAmount(
   value: number,
   nativeCurrency: string,
@@ -196,18 +206,27 @@ export function PortfolioManager() {
 
   const selectedPortfolio =
     portfolios.find((portfolio) => portfolio.id === selectedId) ?? portfolios[0] ?? null;
-  const quoteSymbols = useMemo(
-    () => (selectedPortfolio ? [...selectedPortfolio.holdings.map((holding) => holding.symbol), "KRW=X"] : ["KRW=X"]),
-    [selectedPortfolio],
-  );
-  const { quotes } = useQuotes(quoteSymbols, 60_000);
-  const exchangeRate = quotes.get("KRW=X")?.price || 1380;
   const searcher = useMemo(() => createSearcher(tickers), [tickers]);
   const tickerResults = useMemo(() => {
     const query = tickerQuery.trim();
-    if (!query) return tickers.filter((ticker) => ticker.category.includes("etf")).slice(0, 8);
-    return searcher.search(query).slice(0, 8).map((result) => result.item);
+    if (!query) return tickers.filter((ticker) => ticker.category.includes("etf")).slice(0, 20);
+    return searcher.search(query).slice(0, 20).map((result) => result.item);
   }, [searcher, tickerQuery, tickers]);
+  const quoteSymbols = useMemo(() => {
+    const symbols = [
+      ...(selectedPortfolio?.holdings.map((holding) => holding.symbol) ?? []),
+      ...tickerResults.map((ticker) => ticker.ticker),
+      holdingForm.symbol,
+      "KRW=X",
+    ];
+
+    return Array.from(new Set(symbols.map((symbol) => symbol.trim().toUpperCase()).filter(Boolean))).slice(0, 100);
+  }, [holdingForm.symbol, selectedPortfolio, tickerResults]);
+  const { quotes } = useQuotes(quoteSymbols, 60_000);
+  const exchangeRate = quotes.get("KRW=X")?.price || 1380;
+  const selectedHoldingQuote = holdingForm.symbol
+    ? quotes.get(holdingForm.symbol.trim().toUpperCase())
+    : undefined;
 
   function getHoldingDisplayValues(holding: HoldingWithStats): HoldingDisplayValues {
     const quote = quotes.get(holding.symbol);
@@ -769,33 +788,51 @@ export function PortfolioManager() {
             </label>
             {tickerResults.length > 0 ? (
               <div className="grid max-h-52 gap-2 overflow-y-auto rounded-xl bg-card-subtle p-2">
-                {tickerResults.map((ticker) => (
-                  <button
-                    key={ticker.ticker}
-                    type="button"
-                    onClick={() => {
-                      setHoldingForm((form) => ({
-                        ...form,
-                        symbol: ticker.ticker,
-                        currency: ticker.currency,
-                      }));
-                      setTickerQuery(ticker.ticker);
-                    }}
-                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-card"
-                  >
-                    <StockLogo symbol={ticker.ticker} name={ticker.name_ko || ticker.name} />
-                    <span className="min-w-0">
-                      <span className="block font-bold text-primary">{ticker.ticker}</span>
-                      <span className="block truncate text-xs text-secondary">
-                        {ticker.name_ko || ticker.name}
+                {tickerResults.map((ticker) => {
+                  const quote = quotes.get(ticker.ticker.toUpperCase());
+                  const isUp = (quote?.changePercent ?? 0) >= 0;
+
+                  return (
+                    <button
+                      key={ticker.ticker}
+                      type="button"
+                      onClick={() => {
+                        setHoldingForm((form) => ({
+                          ...form,
+                          symbol: ticker.ticker,
+                          currency: ticker.currency,
+                        }));
+                        setTickerQuery(ticker.ticker);
+                      }}
+                      className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-card"
+                    >
+                      <span className="flex min-w-0 items-center gap-3">
+                        <StockLogo symbol={ticker.ticker} name={ticker.name_ko || ticker.name} />
+                        <span className="min-w-0">
+                          <span className="block font-bold text-primary">{ticker.ticker}</span>
+                          <span className="block truncate text-xs text-secondary">
+                            {ticker.name_ko || ticker.name}
+                          </span>
+                        </span>
                       </span>
-                    </span>
-                  </button>
-                ))}
+                      {quote ? (
+                        <span className="shrink-0 text-right">
+                          <span className="block text-sm font-bold tabular-nums text-primary">
+                            {formatNativePrice(quote.price, quote.currency)}
+                          </span>
+                          <span className={`block text-xs font-bold tabular-nums ${isUp ? "text-up" : "text-down"}`}>
+                            {isUp ? "+" : ""}
+                            {quote.changePercent.toFixed(2)}%
+                          </span>
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
               </div>
             ) : null}
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="grid gap-2 text-sm font-bold text-primary">
+            <div className="flex flex-col gap-3 md:flex-row">
+              <label className="grid min-w-0 flex-1 gap-2 text-sm font-bold text-primary">
                 보유 주수
                 <input
                   type="number"
@@ -808,18 +845,38 @@ export function PortfolioManager() {
                   className="h-11 rounded-md border border-border bg-card px-3 text-base font-medium outline-none focus:ring-2 focus:ring-brand/30"
                 />
               </label>
-              <label className="grid gap-2 text-sm font-bold text-primary">
+              <label className="grid min-w-0 flex-1 gap-2 text-sm font-bold text-primary">
                 평균 매수가
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={holdingForm.avgPrice}
-                  onChange={(event) =>
-                    setHoldingForm((form) => ({ ...form, avgPrice: event.target.value }))
-                  }
-                  className="h-11 rounded-md border border-border bg-card px-3 text-base font-medium outline-none focus:ring-2 focus:ring-brand/30"
-                />
+                <span className="flex min-w-0 gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={holdingForm.avgPrice}
+                    onChange={(event) =>
+                      setHoldingForm((form) => ({ ...form, avgPrice: event.target.value }))
+                    }
+                    className="h-11 min-w-0 flex-1 rounded-md border border-border bg-card px-3 text-base font-medium outline-none focus:ring-2 focus:ring-brand/30"
+                  />
+                  <button
+                    type="button"
+                    disabled={!selectedHoldingQuote?.price}
+                    onClick={() =>
+                      setHoldingForm((form) => ({
+                        ...form,
+                        avgPrice: selectedHoldingQuote ? String(selectedHoldingQuote.price) : form.avgPrice,
+                      }))
+                    }
+                    className="h-11 shrink-0 rounded-md border border-border px-3 text-xs font-bold text-primary transition hover:bg-card-subtle disabled:opacity-40"
+                  >
+                    현재가 입력
+                  </button>
+                </span>
+                {selectedHoldingQuote ? (
+                  <span className="text-xs font-semibold text-secondary">
+                    현재가: {formatNativePrice(selectedHoldingQuote.price, selectedHoldingQuote.currency)}
+                  </span>
+                ) : null}
               </label>
             </div>
             <label className="grid gap-2 text-sm font-bold text-primary">
