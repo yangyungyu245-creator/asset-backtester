@@ -11,7 +11,7 @@ import AssetChart, { type Period } from "@/components/charts/AssetChart";
 import { AddToPortfolioButton } from "@/components/portfolio/AddToPortfolioButton";
 import { WatchlistButton } from "@/components/watchlist/WatchlistButton";
 import { formatCompactKRW, formatPercentValue } from "@/components/result/format";
-import { useQuotes } from "@/hooks/useQuotes";
+import { useQuotes, type Quote } from "@/hooks/useQuotes";
 
 type ChartPoint = {
   date: string;
@@ -569,39 +569,55 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 
 function AssetMetaCards({
   asset,
+  quote,
   currencyMode,
 }: {
   asset: AssetDetail;
+  quote?: Quote;
   currencyMode: CurrencyMode;
 }) {
   const f = asset.fields;
+  const marketCap = quote?.marketCap || f.marketCap;
+  const fiftyTwoWeekHigh = quote?.fiftyTwoWeekHigh || f.fiftyTwoWeekHigh;
+  const fiftyTwoWeekLow = quote?.fiftyTwoWeekLow || f.fiftyTwoWeekLow;
+  const volume = quote?.volume || f.volume;
+  const averageVolume = quote?.averageDailyVolume3Month || f.averageVolume;
+  const peRatio = quote?.trailingPE || f.peRatio;
+  const forwardPE = quote?.forwardPE || f.forwardPE;
+  const priceToBook = quote?.priceToBook || f.priceToBook;
+  const eps = quote?.trailingEps || f.eps;
+  const beta = quote?.beta || f.beta;
+  const dividendRate = quote?.trailingAnnualDividendRate || f.dividendRate;
+  const dividendYield = quote?.trailingAnnualDividendYield || f.dividendYield;
+  const exDividendDate = quote?.exDividendDate ?? f.exDividendDate;
+  const dividendDate = quote?.dividendDate ?? f.dividendDate;
 
   return (
     <div className="grid gap-4 md:grid-cols-3">
       <Card rounded="2xl" padding="lg">
         <h3 className="mb-3 text-sm font-semibold text-secondary">기업 정보</h3>
-        <InfoRow label="시가총액" value={formatCompact(f.marketCap, asset.currency) || "-"} />
-        <InfoRow label="52주 최고" value={isFiniteNumber(f.fiftyTwoWeekHigh) ? `${formatMoney(f.fiftyTwoWeekHigh, asset, currencyMode)} ${getUnit(asset, currencyMode)}` : "-"} />
-        <InfoRow label="52주 최저" value={isFiniteNumber(f.fiftyTwoWeekLow) ? `${formatMoney(f.fiftyTwoWeekLow, asset, currencyMode)} ${getUnit(asset, currencyMode)}` : "-"} />
-        <InfoRow label="거래량" value={formatVolume(f.volume)} />
-        <InfoRow label="3개월 평균" value={formatVolume(f.averageVolume)} />
+        <InfoRow label="시가총액" value={formatCompact(marketCap, quote?.currency ?? asset.currency) || "-"} />
+        <InfoRow label="52주 최고" value={isFiniteNumber(fiftyTwoWeekHigh) && fiftyTwoWeekHigh > 0 ? `${formatMoney(fiftyTwoWeekHigh, asset, currencyMode)} ${getUnit(asset, currencyMode)}` : "-"} />
+        <InfoRow label="52주 최저" value={isFiniteNumber(fiftyTwoWeekLow) && fiftyTwoWeekLow > 0 ? `${formatMoney(fiftyTwoWeekLow, asset, currencyMode)} ${getUnit(asset, currencyMode)}` : "-"} />
+        <InfoRow label="거래량" value={formatVolume(volume)} />
+        <InfoRow label="3개월 평균" value={formatVolume(averageVolume)} />
       </Card>
 
       <Card rounded="2xl" padding="lg">
         <h3 className="mb-3 text-sm font-semibold text-secondary">밸류에이션</h3>
-        <InfoRow label="PER" value={isFiniteNumber(f.peRatio) && f.peRatio > 0 ? f.peRatio.toFixed(2) : "-"} />
-        <InfoRow label="추정 PER" value={isFiniteNumber(f.forwardPE) && f.forwardPE > 0 ? f.forwardPE.toFixed(2) : "-"} />
-        <InfoRow label="PBR" value={isFiniteNumber(f.priceToBook) && f.priceToBook > 0 ? f.priceToBook.toFixed(2) : "-"} />
-        <InfoRow label="EPS" value={isFiniteNumber(f.eps) && f.eps !== 0 ? `${formatNumber(f.eps, 2)} ${asset.currency ?? ""}`.trim() : "-"} />
-        <InfoRow label="베타" value={isFiniteNumber(f.beta) && f.beta > 0 ? f.beta.toFixed(2) : "-"} />
+        <InfoRow label="PER" value={isFiniteNumber(peRatio) && peRatio > 0 ? peRatio.toFixed(2) : "-"} />
+        <InfoRow label="추정 PER" value={isFiniteNumber(forwardPE) && forwardPE > 0 ? forwardPE.toFixed(2) : "-"} />
+        <InfoRow label="PBR" value={isFiniteNumber(priceToBook) && priceToBook > 0 ? priceToBook.toFixed(2) : "-"} />
+        <InfoRow label="EPS" value={isFiniteNumber(eps) && eps !== 0 ? `${formatNumber(eps, 2)} ${quote?.currency ?? asset.currency ?? ""}`.trim() : "-"} />
+        <InfoRow label="베타" value={isFiniteNumber(beta) && beta > 0 ? beta.toFixed(2) : "-"} />
       </Card>
 
       <Card rounded="2xl" padding="lg">
         <h3 className="mb-3 text-sm font-semibold text-secondary">배당</h3>
-        <InfoRow label="연 배당금" value={isFiniteNumber(f.dividendRate) && f.dividendRate > 0 ? `${formatMoney(f.dividendRate, asset, currencyMode)} ${getUnit(asset, currencyMode)}` : "없음"} />
-        <InfoRow label="배당수익률" value={isFiniteNumber(f.dividendYield) && f.dividendYield > 0 ? `${f.dividendYield.toFixed(2)}%` : "-"} />
-        <InfoRow label="배당락일" value={formatUnixDate(f.exDividendDate)} />
-        <InfoRow label="지급일" value={formatUnixDate(f.dividendDate)} />
+        <InfoRow label="연 배당금" value={isFiniteNumber(dividendRate) && dividendRate > 0 ? `${formatMoney(dividendRate, asset, currencyMode)} ${getUnit(asset, currencyMode)}` : "없음"} />
+        <InfoRow label="배당수익률" value={isFiniteNumber(dividendYield) && dividendYield > 0 ? `${dividendYield.toFixed(2)}%` : "-"} />
+        <InfoRow label="배당락일" value={formatUnixDate(exDividendDate)} />
+        <InfoRow label="지급일" value={formatUnixDate(dividendDate)} />
       </Card>
     </div>
   );
@@ -867,7 +883,13 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
         </div>
       </Card>
 
-      {asset ? <AssetMetaCards asset={asset} currencyMode={currencyMode} /> : null}
+      {asset ? (
+        <AssetMetaCards
+          asset={asset}
+          quote={realtimeQuote}
+          currencyMode={currencyMode}
+        />
+      ) : null}
 
       <div className="sticky top-16 z-20 -mx-4 border-b border-border bg-page/95 px-4 backdrop-blur sm:-mx-6 sm:px-6">
         <nav className="mx-auto flex max-w-5xl gap-6" aria-label="자산 상세 탭">

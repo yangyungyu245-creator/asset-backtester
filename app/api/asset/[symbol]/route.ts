@@ -138,7 +138,8 @@ async function fetchJson<T>(url: string): Promise<T> {
     signal: AbortSignal.timeout(8_000),
     headers: {
       Accept: "application/json",
-      "User-Agent": "FIRE LIFE asset detail",
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 FIRE-LIFE/1.0",
     },
   });
 
