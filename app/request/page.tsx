@@ -1,8 +1,6 @@
 import { RequestBoard } from "@/components/request/RequestBoard";
 import type { TickerRequest } from "@/components/request/types";
-import { StockLogo } from "@/components/asset/StockLogo";
 import { Card } from "@/components/ui/Card";
-import processedRequests from "@/lib/data/processed-requests.json";
 
 export const revalidate = 300;
 
@@ -10,13 +8,6 @@ type RequestPageProps = {
   searchParams?: {
     ticker?: string;
   };
-};
-
-type ProcessedRequest = {
-  ticker: string;
-  name: string;
-  date: string;
-  status: "added";
 };
 
 function getCell(row: Record<string, string>, index: number, ...names: string[]) {
@@ -149,32 +140,6 @@ export default async function RequestPage({ searchParams }: RequestPageProps) {
         initialTicker={initialTicker}
         csvConfigured={csvConfigured}
       />
-
-      <section className="mt-2 grid gap-3">
-        <h2 className="text-base font-bold text-primary">최근 처리된 요청</h2>
-        <div className="grid gap-2">
-          {(processedRequests as ProcessedRequest[]).map((item) => (
-            <div
-              key={`${item.ticker}-${item.date}`}
-              className="flex flex-col gap-3 rounded-lg bg-card px-4 py-3 shadow-subtle sm:flex-row sm:items-center sm:justify-between"
-            >
-              <div className="flex min-w-0 items-center gap-3">
-                <StockLogo symbol={item.ticker} name={item.name} size="sm" />
-                <div className="min-w-0">
-                  <span className="font-bold text-primary">{item.ticker}</span>
-                  <span className="ml-2 text-sm text-secondary">{item.name}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="rounded bg-green-500/10 px-2 py-0.5 text-xs font-bold text-green-500">
-                  추가 완료
-                </span>
-                <span className="text-xs text-secondary">{item.date}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
     </section>
   );
 }
