@@ -12,6 +12,7 @@ from urllib.request import urlopen
 ROOT_DIR = Path(__file__).resolve().parents[1]
 TICKERS_PATH = ROOT_DIR / "scripts" / "tickers.json"
 STATUS_PATH = ROOT_DIR / "public" / "data" / "ticker-request-status.json"
+PROCESSED_PATH = ROOT_DIR / "lib" / "data" / "processed-requests.json"
 
 VALID_CATEGORIES = {
     "us_stock",
@@ -70,6 +71,7 @@ def main() -> None:
     }
 
     added: list[str] = []
+    processed: list[dict[str, str]] = []
     rejected: list[dict[str, str]] = []
     pending: list[str] = []
     invalid: list[dict[str, str]] = []
@@ -99,6 +101,14 @@ def main() -> None:
             )
             existing.add(ticker)
             added.append(ticker)
+            processed.append(
+                {
+                    "ticker": ticker,
+                    "name": name_ko or ticker,
+                    "date": datetime.now(timezone.utc).date().isoformat(),
+                    "status": "added",
+                }
+            )
         elif status in REJECTED:
             rejected.append({"ticker": ticker, "reason": reason or "관리자 검토 결과 거부"})
         else:
@@ -118,6 +128,9 @@ def main() -> None:
             "invalid": invalid,
         },
     )
+
+    if processed:
+        save_json(PROCESSED_PATH, processed)
 
     print(f"Added requests: {len(added)}")
     print(f"Rejected requests: {len(rejected)}")
