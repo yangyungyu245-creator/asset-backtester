@@ -964,6 +964,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
                       : FALLBACK_USD_KRW
                     : 1
                 }
+                priceLabel={unit}
               />
             ) : (
               <div className="grid h-[280px] place-items-center rounded-xl bg-card-subtle text-sm text-secondary sm:h-[400px]">

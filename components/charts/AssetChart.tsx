@@ -13,6 +13,7 @@ import {
   type HistogramData,
   type IChartApi,
   type LineData,
+  type MouseEventParams,
   type Time,
 } from "lightweight-charts";
 import { useQuotes } from "@/hooks/useQuotes";
@@ -35,6 +36,7 @@ type AssetChartProps = {
   currentPeriod: Period;
   onPeriodChange: (period: Period) => void;
   realtimePriceMultiplier?: number;
+  priceLabel?: string;
   className?: string;
 };
 
@@ -49,6 +51,15 @@ type PulseDotProps = {
   containerRef: RefObject<HTMLDivElement>;
   price: number | null;
   time: Time | null;
+};
+
+type HoverData = {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number | null;
 };
 
 const periods: Array<{ value: Period; label: string }> = [
@@ -84,6 +95,14 @@ function useDarkModeSignal() {
 
 function normalizeTime(date: string): Time {
   return date.includes("T") ? (Math.floor(new Date(date).getTime() / 1000) as Time) : (date as Time);
+}
+
+function getTimeKey(time: Time) {
+  if (typeof time === "string" || typeof time === "number") {
+    return String(time);
+  }
+
+  return `${time.year}-${String(time.month).padStart(2, "0")}-${String(time.day).padStart(2, "0")}`;
 }
 
 function toMillis(date: string) {
@@ -130,6 +149,32 @@ function movingAverage(data: OHLCVData[], period: number): LineData[] {
   });
 
   return points;
+}
+
+function formatTooltipNumber(value: number, suffix?: string) {
+  const formatted = new Intl.NumberFormat("ko-KR", {
+    maximumFractionDigits: value >= 1000 ? 0 : 2,
+  }).format(value);
+
+  return suffix ? `${formatted} ${suffix}` : formatted;
+}
+
+function formatTooltipVolume(value: number | null) {
+  if (!value) return "-";
+
+  return new Intl.NumberFormat("ko-KR", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
+}
+
+function TooltipRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex min-w-0 justify-between gap-3">
+      <span className="text-secondary">{label}</span>
+      <span className="text-right font-semibold text-primary text-numeric">{value}</span>
+    </div>
+  );
 }
 
 function PulseDot({ chartRef, seriesRef, containerRef, price, time }: PulseDotProps) {
@@ -204,6 +249,7 @@ export default function AssetChart({
   currentPeriod,
   onPeriodChange,
   realtimePriceMultiplier = 1,
+  priceLabel,
   className = "",
 }: AssetChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -215,6 +261,7 @@ export default function AssetChart({
   const [showMA5, setShowMA5] = useState(false);
   const [showMA20, setShowMA20] = useState(false);
   const [showMA60, setShowMA60] = useState(false);
+  const [hoverData, setHoverData] = useState<HoverData | null>(null);
   const darkModeSignal = useDarkModeSignal();
   const { quotes } = useQuotes(symbol ? [symbol] : [], 60_000);
   const latestQuote = symbol ? quotes.get(symbol.toUpperCase()) : undefined;
@@ -236,6 +283,9 @@ export default function AssetChart({
     () => getDisplayData(safeData, currentPeriod),
     [currentPeriod, safeData],
   );
+  const displayDataByTime = useMemo(() => {
+    return new Map(displayData.map((point) => [getTimeKey(normalizeTime(point.date)), point]));
+  }, [displayData]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -380,6 +430,18 @@ export default function AssetChart({
     });
     volumeSeries.setData(volumeData);
 
+    const handleCrosshairMove = (param: MouseEventParams<Time>) => {
+      if (!param.time || !param.point) {
+        setHoverData(null);
+        return;
+      }
+
+      const point = displayDataByTime.get(getTimeKey(param.time));
+      setHoverData(point ?? null);
+    };
+
+    chart.subscribeCrosshairMove(handleCrosshairMove);
+
     chart.timeScale().fitContent();
 
     const handleResize = () => {
@@ -393,13 +455,14 @@ export default function AssetChart({
     return () => {
       observer.disconnect();
       window.removeEventListener("resize", handleResize);
+      chart.unsubscribeCrosshairMove(handleCrosshairMove);
       chart.remove();
       chartRef.current = null;
       mainSeriesRef.current = null;
       latestCandleRef.current = null;
       latestLineTimeRef.current = null;
     };
-  }, [currentPeriod, darkModeSignal, displayData, mode, safeData, showMA5, showMA20, showMA60]);
+  }, [currentPeriod, darkModeSignal, displayData, displayDataByTime, mode, safeData, showMA5, showMA20, showMA60]);
 
   useEffect(() => {
     if (!latestRealtimePrice || !mainSeriesRef.current) return;
@@ -485,6 +548,20 @@ export default function AssetChart({
       </div>
 
       <div className="relative mt-3">
+        {hoverData ? (
+          <div className="pointer-events-none absolute left-2 top-2 z-20 w-[230px] rounded-lg border border-border bg-card/95 px-3 py-2 text-xs shadow-medium backdrop-blur-sm">
+            <div className="mb-1.5 font-semibold text-secondary">{hoverData.date}</div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+              <TooltipRow label="시가" value={formatTooltipNumber(hoverData.open, priceLabel)} />
+              <TooltipRow label="종가" value={formatTooltipNumber(hoverData.close, priceLabel)} />
+              <TooltipRow label="고가" value={formatTooltipNumber(hoverData.high, priceLabel)} />
+              <TooltipRow label="저가" value={formatTooltipNumber(hoverData.low, priceLabel)} />
+              <div className="col-span-2 mt-1 border-t border-border pt-1">
+                <TooltipRow label="거래량" value={formatTooltipVolume(hoverData.volume)} />
+              </div>
+            </div>
+          </div>
+        ) : null}
         <div ref={containerRef} className="h-[280px] w-full sm:h-[400px]" />
         <PulseDot
           chartRef={chartRef}
