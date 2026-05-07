@@ -44,6 +44,12 @@ const periods: Array<{ value: Period; label: string }> = [
   { value: "max", label: "전체" },
 ];
 
+const movingAverageSeries = [
+  { period: 5, color: "#FFBB00", label: "MA5" },
+  { period: 20, color: "#06C167", label: "MA20" },
+  { period: 60, color: "#8B5CF6", label: "MA60" },
+] as const;
+
 function useDarkModeSignal() {
   const [signal, setSignal] = useState(0);
 
@@ -97,7 +103,9 @@ export default function AssetChart({
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const [mode, setMode] = useState<ChartMode>("line");
-  const [showMovingAverages, setShowMovingAverages] = useState(false);
+  const [showMA5, setShowMA5] = useState(false);
+  const [showMA20, setShowMA20] = useState(false);
+  const [showMA60, setShowMA60] = useState(false);
   const darkModeSignal = useDarkModeSignal();
   const safeData = useMemo(
     () =>
@@ -190,12 +198,13 @@ export default function AssetChart({
       );
     }
 
-    if (showMovingAverages) {
-      [
-        { period: 5, color: "#FFBB00" },
-        { period: 20, color: "#06C167" },
-        { period: 60, color: "#8B5CF6" },
-      ].forEach(({ period, color }) => {
+    movingAverageSeries
+      .filter(({ period }) => {
+        if (period === 5) return showMA5;
+        if (period === 20) return showMA20;
+        return showMA60;
+      })
+      .forEach(({ period, color }) => {
         const maData = movingAverage(safeData, period);
         if (maData.length === 0) return;
         const maSeries = chart.addSeries(LineSeries, {
@@ -204,10 +213,12 @@ export default function AssetChart({
           crosshairMarkerVisible: false,
           lastValueVisible: false,
           priceLineVisible: false,
+          autoscaleInfoProvider: () => ({
+            priceRange: null,
+          }),
         });
         maSeries.setData(maData);
       });
-    }
 
     const volumeSeries = chart.addSeries(HistogramSeries, {
       priceFormat: { type: "volume" },
@@ -253,7 +264,7 @@ export default function AssetChart({
       chart.remove();
       chartRef.current = null;
     };
-  }, [currentPeriod, darkModeSignal, mode, safeData, showMovingAverages]);
+  }, [currentPeriod, darkModeSignal, mode, safeData, showMA5, showMA20, showMA60]);
 
   return (
     <div className={className}>
@@ -288,34 +299,30 @@ export default function AssetChart({
             </button>
           ))}
         </div>
-        <button
-          type="button"
-          onClick={() => setShowMovingAverages((value) => !value)}
-          aria-pressed={showMovingAverages}
-          className={`h-10 rounded-lg px-4 text-xs font-bold transition sm:h-8 ${
-            showMovingAverages ? "bg-primary text-white shadow-subtle" : "bg-card-subtle text-secondary hover:text-primary"
-          }`}
-        >
-          이평선 {showMovingAverages ? "ON" : "OFF"}
-        </button>
-      </div>
+        <div className="flex gap-1 rounded-lg bg-card-subtle p-1 sm:w-fit">
+          {movingAverageSeries.map(({ period, color, label }) => {
+            const active = period === 5 ? showMA5 : period === 20 ? showMA20 : showMA60;
+            const toggle = period === 5 ? setShowMA5 : period === 20 ? setShowMA20 : setShowMA60;
 
-      {showMovingAverages && (
-        <div className="mt-3 flex flex-wrap gap-3 px-1 text-xs font-semibold text-secondary">
-          <span className="inline-flex items-center gap-1.5">
-            <span className="h-0.5 w-4 rounded-full bg-[#FFBB00]" />
-            MA5
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="h-0.5 w-4 rounded-full bg-[#06C167]" />
-            MA20
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="h-0.5 w-4 rounded-full bg-[#8B5CF6]" />
-            MA60
-          </span>
+            return (
+              <button
+                key={period}
+                type="button"
+                onClick={() => toggle((value) => !value)}
+                aria-pressed={active}
+                className="h-8 rounded-md border px-2.5 text-xs font-semibold transition-colors"
+                style={{
+                  backgroundColor: active ? `${color}33` : "transparent",
+                  borderColor: active ? `${color}66` : "transparent",
+                  color: active ? color : "var(--text-secondary)",
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
-      )}
+      </div>
 
       <div ref={containerRef} className="mt-3 h-[280px] w-full sm:h-[400px]" />
     </div>
