@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MarketIndicesWidget, MarketPulseLine } from "@/components/market/MarketIndicesWidget";
 import NewsFeed from "@/components/news/NewsFeed";
+import PortfolioDashboard from "@/components/portfolio/PortfolioDashboard";
 
 const categories = [
   {
@@ -64,6 +65,8 @@ export default function HomePage() {
           자기 자산의 미래를 설계하는 툴
         </p>
       </section>
+
+      <PortfolioDashboard />
 
       <section aria-label="백테스트 시작">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
