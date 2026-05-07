@@ -26,6 +26,7 @@ function todayString() {
 export default function AdvancedDatesPage() {
   const router = useRouter();
   const [assetSymbol, setAssetSymbol] = useState("");
+  const [portfolioId, setPortfolioId] = useState("");
   const { startDate, endDate, options, setStartDate, setEndDate, updateOptions } =
     useSimulationStore();
 
@@ -64,6 +65,7 @@ export default function AdvancedDatesPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setAssetSymbol(params.get("asset")?.trim().toUpperCase() ?? "");
+    setPortfolioId(params.get("portfolio")?.trim() ?? "");
   }, []);
 
   return (
@@ -97,8 +99,17 @@ export default function AdvancedDatesPage() {
           if (assetSymbol) {
             window.sessionStorage.setItem("firelife.pendingAsset", assetSymbol);
           }
+          if (portfolioId) {
+            window.sessionStorage.setItem("firelife.pendingPortfolio", portfolioId);
+          }
           if (validation.valid) {
-            router.push(assetSymbol ? `/advanced/tickers?asset=${encodeURIComponent(assetSymbol)}` : "/advanced/tickers");
+            router.push(
+              portfolioId
+                ? `/advanced/setup?portfolio=${encodeURIComponent(portfolioId)}`
+                : assetSymbol
+                  ? `/advanced/tickers?asset=${encodeURIComponent(assetSymbol)}`
+                  : "/advanced/tickers",
+            );
           }
         }}
       >

@@ -39,6 +39,7 @@ export type SimulationStore = SimulationState & {
   setStartDate: (date: string) => void;
   setEndDate: (date: string) => void;
   addTicker: (ticker: string) => void;
+  setSelectedTickers: (tickers: SelectedTicker[]) => void;
   removeTicker: (ticker: string) => void;
   updateWeight: (ticker: string, weight: number) => void;
   distributeWeightsEqually: () => void;
@@ -207,6 +208,15 @@ export const useSimulationStore = create<SimulationStore>()(
               weight: weights[index],
             })),
           };
+        }),
+      setSelectedTickers: (tickers) =>
+        set({
+          selectedTickers: tickers.slice(0, 10).map((item) => ({
+            ticker: item.ticker.trim().toUpperCase(),
+            weight: clampWeight(item.weight),
+          })),
+          simulationResult: null,
+          simulationError: null,
         }),
       removeTicker: (ticker) =>
         set((state) => {
