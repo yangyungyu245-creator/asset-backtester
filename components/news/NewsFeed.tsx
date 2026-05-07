@@ -134,6 +134,7 @@ export default function NewsFeed() {
               className="flex gap-3 rounded-xl p-3 transition hover:bg-card-subtle focus:outline-none focus:ring-2 focus:ring-brand/35"
             >
               {thumbnail ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={thumbnail}
                   alt=""
