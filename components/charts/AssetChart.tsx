@@ -97,6 +97,7 @@ export default function AssetChart({
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const [mode, setMode] = useState<ChartMode>("line");
+  const [showMovingAverages, setShowMovingAverages] = useState(false);
   const darkModeSignal = useDarkModeSignal();
   const safeData = useMemo(
     () =>
@@ -189,22 +190,24 @@ export default function AssetChart({
       );
     }
 
-    [
-      { period: 5, color: "#FFBB00" },
-      { period: 20, color: "#06C167" },
-      { period: 60, color: "#8B5CF6" },
-    ].forEach(({ period, color }) => {
-      const maData = movingAverage(safeData, period);
-      if (maData.length === 0) return;
-      const maSeries = chart.addSeries(LineSeries, {
-        color,
-        lineWidth: 1,
-        crosshairMarkerVisible: false,
-        lastValueVisible: false,
-        priceLineVisible: false,
+    if (showMovingAverages) {
+      [
+        { period: 5, color: "#FFBB00" },
+        { period: 20, color: "#06C167" },
+        { period: 60, color: "#8B5CF6" },
+      ].forEach(({ period, color }) => {
+        const maData = movingAverage(safeData, period);
+        if (maData.length === 0) return;
+        const maSeries = chart.addSeries(LineSeries, {
+          color,
+          lineWidth: 1,
+          crosshairMarkerVisible: false,
+          lastValueVisible: false,
+          priceLineVisible: false,
+        });
+        maSeries.setData(maData);
       });
-      maSeries.setData(maData);
-    });
+    }
 
     const volumeSeries = chart.addSeries(HistogramSeries, {
       priceFormat: { type: "volume" },
@@ -250,7 +253,7 @@ export default function AssetChart({
       chart.remove();
       chartRef.current = null;
     };
-  }, [currentPeriod, darkModeSignal, mode, safeData]);
+  }, [currentPeriod, darkModeSignal, mode, safeData, showMovingAverages]);
 
   return (
     <div className={className}>
@@ -285,22 +288,34 @@ export default function AssetChart({
             </button>
           ))}
         </div>
+        <button
+          type="button"
+          onClick={() => setShowMovingAverages((value) => !value)}
+          aria-pressed={showMovingAverages}
+          className={`h-10 rounded-lg px-4 text-xs font-bold transition sm:h-8 ${
+            showMovingAverages ? "bg-primary text-white shadow-subtle" : "bg-card-subtle text-secondary hover:text-primary"
+          }`}
+        >
+          이평선 {showMovingAverages ? "ON" : "OFF"}
+        </button>
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-3 px-1 text-xs font-semibold text-secondary">
-        <span className="inline-flex items-center gap-1.5">
-          <span className="h-0.5 w-4 rounded-full bg-[#FFBB00]" />
-          MA5
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span className="h-0.5 w-4 rounded-full bg-[#06C167]" />
-          MA20
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span className="h-0.5 w-4 rounded-full bg-[#8B5CF6]" />
-          MA60
-        </span>
-      </div>
+      {showMovingAverages && (
+        <div className="mt-3 flex flex-wrap gap-3 px-1 text-xs font-semibold text-secondary">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-0.5 w-4 rounded-full bg-[#FFBB00]" />
+            MA5
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-0.5 w-4 rounded-full bg-[#06C167]" />
+            MA20
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-0.5 w-4 rounded-full bg-[#8B5CF6]" />
+            MA60
+          </span>
+        </div>
+      )}
 
       <div ref={containerRef} className="mt-3 h-[280px] w-full sm:h-[400px]" />
     </div>
