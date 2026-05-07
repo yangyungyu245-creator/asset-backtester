@@ -6,6 +6,7 @@ import type { User } from "@supabase/supabase-js";
 import { StockLogo } from "@/components/asset/StockLogo";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { CurrencyToggle } from "@/components/ui/CurrencyToggle";
 import { useQuotes } from "@/hooks/useQuotes";
 import { getSector } from "@/lib/data/sectors";
 import { createSearcher } from "@/lib/data/tickerSearch";
@@ -586,20 +587,13 @@ export function PortfolioManager() {
                         ) : null}
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        <div className="grid grid-cols-2 rounded-md border border-border bg-card-subtle p-0.5 text-xs font-black">
-                          {(["KRW", "USD"] as const).map((currency) => (
-                            <button
-                              key={currency}
-                              type="button"
-                              onClick={() => setDisplayCurrency(currency)}
-                              className={`h-8 rounded px-3 transition ${
-                                displayCurrency === currency ? "bg-card text-primary shadow-subtle" : "text-secondary"
-                              }`}
-                            >
-                              {currency === "KRW" ? "₩" : "$"}
-                            </button>
-                          ))}
-                        </div>
+                        <CurrencyToggle
+                          value={displayCurrency === "KRW" ? "₩" : "$"}
+                          ariaLabel="통화 전환"
+                          onToggle={() =>
+                            setDisplayCurrency((currency) => (currency === "KRW" ? "USD" : "KRW"))
+                          }
+                        />
                         <Button
                           type="button"
                           variant="outline"

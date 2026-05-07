@@ -5,6 +5,7 @@ import { type TouchEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { CurrencyToggle } from "@/components/ui/CurrencyToggle";
 import { StockLogo } from "@/components/asset/StockLogo";
 import AssetChart, { type Period } from "@/components/charts/AssetChart";
 import { AddToPortfolioButton } from "@/components/portfolio/AddToPortfolioButton";
@@ -842,20 +843,13 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
 
           <div className="flex flex-wrap items-center gap-2 md:justify-end">
             {canConvert ? (
-              <div className="grid grid-cols-2 rounded-lg bg-card-subtle p-1">
-                {(["krw", "native"] as const).map((mode) => (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => setCurrencyMode(mode)}
-                    className={`h-9 rounded-md px-4 text-sm font-bold transition ${
-                      currencyMode === mode ? "bg-card text-primary shadow-subtle" : "text-secondary"
-                    }`}
-                  >
-                    {mode === "krw" ? "원" : asset?.currency ?? "$"}
-                  </button>
-                ))}
-              </div>
+              <CurrencyToggle
+                value={currencyMode === "krw" ? "₩" : asset?.currency === "USD" ? "$" : asset?.currency ?? "$"}
+                ariaLabel="통화 전환"
+                onToggle={() =>
+                  setCurrencyMode((mode) => (mode === "krw" ? "native" : "krw"))
+                }
+              />
             ) : null}
             <WatchlistButton
               symbol={symbol}

@@ -9,6 +9,7 @@ import { getHoldings, getPortfolios } from "@/lib/portfolio/actions";
 import { calculatePortfolioStats } from "@/lib/portfolio/stats";
 import type { PortfolioWithStats } from "@/lib/types/portfolio";
 import { useQuotes } from "@/hooks/useQuotes";
+import { CurrencyToggle } from "@/components/ui/CurrencyToggle";
 
 type TreemapItem = {
   symbol: string;
@@ -420,20 +421,13 @@ export function PortfolioDashboard() {
                 </svg>
               )}
             </button>
-            <div className="grid grid-cols-2 rounded-md border border-border bg-card-subtle p-0.5 text-xs font-black">
-              {(["KRW", "USD"] as const).map((currency) => (
-                <button
-                  key={currency}
-                  type="button"
-                  onClick={() => setDisplayCurrency(currency)}
-                  className={`h-7 rounded px-2 transition ${
-                    displayCurrency === currency ? "bg-card text-primary shadow-subtle" : "text-secondary"
-                  }`}
-                >
-                  {currency === "KRW" ? "₩" : "$"}
-                </button>
-              ))}
-            </div>
+            <CurrencyToggle
+              value={displayCurrency === "KRW" ? "₩" : "$"}
+              ariaLabel="통화 전환"
+              onToggle={() =>
+                setDisplayCurrency((currency) => (currency === "KRW" ? "USD" : "KRW"))
+              }
+            />
           </div>
         </div>
 
