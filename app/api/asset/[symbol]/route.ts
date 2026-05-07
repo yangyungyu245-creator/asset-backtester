@@ -30,6 +30,14 @@ type YahooQuote = {
   trailingAnnualDividendRate?: number;
   trailingAnnualDividendYield?: number;
   dividendYield?: number;
+  forwardPE?: number;
+  epsForward?: number;
+  epsTrailingTwelveMonths?: number;
+  beta?: number;
+  regularMarketDayHigh?: number;
+  regularMarketDayLow?: number;
+  dividendDate?: number;
+  exDividendDate?: number;
   totalAssets?: number;
   netAssets?: number;
   navPrice?: number;
@@ -397,6 +405,7 @@ export async function GET(request: Request, { params }: AssetRouteContext) {
       marketCap: quote?.marketCap ?? null,
       dividendRate: dividendRate ?? null,
       dividendYield,
+      forwardPE: quote?.forwardPE ?? null,
       aum:
         quote?.totalAssets ??
         quote?.netAssets ??
@@ -412,7 +421,9 @@ export async function GET(request: Request, { params }: AssetRouteContext) {
         (kind === "index" ? displayName : null),
       issuer: quote?.fundFamily ?? null,
       peRatio: quote?.trailingPE ?? rawValue(summary?.summaryDetail?.trailingPE),
-      eps: quote?.trailingEps ?? null,
+      eps: quote?.epsTrailingTwelveMonths ?? quote?.trailingEps ?? null,
+      forwardEps: quote?.epsForward ?? null,
+      beta: quote?.beta ?? null,
       priceToBook:
         quote?.priceToBook ??
         rawValue(summary?.defaultKeyStatistics?.priceToBook) ??
@@ -422,6 +433,10 @@ export async function GET(request: Request, { params }: AssetRouteContext) {
       sector: quote?.sector ?? summary?.assetProfile?.sector ?? null,
       industry: quote?.industry ?? summary?.assetProfile?.industry ?? null,
       previousClose: previousClose ?? null,
+      dayHigh: quote?.regularMarketDayHigh ?? null,
+      dayLow: quote?.regularMarketDayLow ?? null,
+      dividendDate: quote?.dividendDate ?? null,
+      exDividendDate: quote?.exDividendDate ?? null,
       latestTradingDate:
         quote?.regularMarketTime
           ? new Date(quote.regularMarketTime * 1000).toISOString().slice(0, 10)

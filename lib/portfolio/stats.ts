@@ -5,48 +5,24 @@ import type {
   PortfolioHolding,
   PortfolioWithStats,
 } from "@/lib/types/portfolio";
+import type { AssetMeta } from "@/lib/types/quotes";
 
-type AssetQuote = {
-  regularMarketPrice: number;
-  trailingAnnualDividendRate: number;
-  dividendYield: number;
-};
-
-type AssetApiResponse = {
-  latestPrice?: number | null;
-  fields?: {
-    dividendRate?: number | null;
-    dividendYield?: number | null;
-  };
-};
-
-async function fetchQuotes(symbols: string[]): Promise<Record<string, AssetQuote>> {
+async function fetchQuotes(symbols: string[]): Promise<Record<string, AssetMeta>> {
   const uniqueSymbols = Array.from(new Set(symbols.map((symbol) => symbol.toUpperCase())));
-  const results: Record<string, AssetQuote> = {};
+  if (uniqueSymbols.length === 0) return {};
 
-  await Promise.allSettled(
-    uniqueSymbols.map(async (symbol) => {
-      const response = await fetch(`/api/asset/${encodeURIComponent(symbol)}?period=1m`, {
-        cache: "no-store",
-      });
+  const response = await fetch(`/api/quotes?symbols=${encodeURIComponent(uniqueSymbols.join(","))}`, {
+    cache: "no-store",
+  });
 
-      if (!response.ok) return;
+  if (!response.ok) return {};
 
-      const data = (await response.json()) as AssetApiResponse;
-      const price = Number(data.latestPrice) || 0;
-      const dividendYield = Number(data.fields?.dividendYield) || 0;
-      const dividendRate =
-        Number(data.fields?.dividendRate) || (price > 0 ? price * (dividendYield / 100) : 0);
+  const data = (await response.json()) as { quotes?: AssetMeta[] };
 
-      results[symbol] = {
-        regularMarketPrice: price,
-        trailingAnnualDividendRate: dividendRate,
-        dividendYield,
-      };
-    }),
-  );
-
-  return results;
+  return (data.quotes ?? []).reduce<Record<string, AssetMeta>>((acc, quote) => {
+    acc[quote.symbol.toUpperCase()] = quote;
+    return acc;
+  }, {});
 }
 
 export async function calculatePortfolioStats(
@@ -60,7 +36,7 @@ export async function calculatePortfolioStats(
     const quote = quotes[symbol];
     const shares = Number(holding.shares) || 0;
     const avgPrice = Number(holding.avg_price) || 0;
-    const currentPrice = quote?.regularMarketPrice ?? 0;
+    const currentPrice = quote?.price ?? 0;
     const currentValue = shares * currentPrice;
     const cost = shares * avgPrice;
     const annualDividendPerShare = quote?.trailingAnnualDividendRate ?? 0;
@@ -76,7 +52,7 @@ export async function calculatePortfolioStats(
       currentValue,
       returnAmount: currentValue - cost,
       returnPercent: cost > 0 ? ((currentValue - cost) / cost) * 100 : 0,
-      dividendYield: quote?.dividendYield ?? 0,
+      dividendYield: quote?.trailingAnnualDividendYield ?? 0,
       annualDividendPerShare,
       annualDividend,
     };

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { type TouchEvent, useEffect, useMemo, useState } from "react";
+import { type TouchEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -10,6 +10,7 @@ import AssetChart, { type Period } from "@/components/charts/AssetChart";
 import { AddToPortfolioButton } from "@/components/portfolio/AddToPortfolioButton";
 import { WatchlistButton } from "@/components/watchlist/WatchlistButton";
 import { formatCompactKRW, formatPercentValue } from "@/components/result/format";
+import { useQuotes } from "@/hooks/useQuotes";
 
 type ChartPoint = {
   date: string;
@@ -38,6 +39,14 @@ type AssetDetail = {
   fields: {
     marketCap: number | null;
     dividendYield: number | null;
+    dividendRate: number | null;
+    forwardPE: number | null;
+    forwardEps: number | null;
+    beta: number | null;
+    dayHigh: number | null;
+    dayLow: number | null;
+    dividendDate: number | null;
+    exDividendDate: number | null;
     aum: number | null;
     nav: number | null;
     premiumDiscount: number | null;
@@ -142,6 +151,32 @@ function formatCompact(value: number | null | undefined, currency?: string | nul
     notation: "compact",
     maximumFractionDigits: 2,
   }).format(value)}${currency ? ` ${currency}` : ""}`;
+}
+
+function formatVolume(value: number | null | undefined) {
+  if (!isFiniteNumber(value)) return "-";
+  return new Intl.NumberFormat("ko-KR", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
+}
+
+function formatUnixDate(value: number | null | undefined) {
+  if (!isFiniteNumber(value)) return "-";
+  return new Intl.DateTimeFormat("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(value * 1000));
+}
+
+function formatClock(value: string | null | undefined) {
+  if (!value) return "";
+  return new Intl.DateTimeFormat("ko-KR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date(value));
 }
 
 function formatPercent(value: number | null | undefined) {
@@ -522,6 +557,55 @@ function KeyMetricCard({ label, value }: { label: string; value: string }) {
   );
 }
 
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between gap-4 py-1.5 text-sm">
+      <span className="text-secondary">{label}</span>
+      <span className="text-right font-semibold text-primary text-numeric">{value}</span>
+    </div>
+  );
+}
+
+function AssetMetaCards({
+  asset,
+  currencyMode,
+}: {
+  asset: AssetDetail;
+  currencyMode: CurrencyMode;
+}) {
+  const f = asset.fields;
+
+  return (
+    <div className="grid gap-4 md:grid-cols-3">
+      <Card rounded="2xl" padding="lg">
+        <h3 className="mb-3 text-sm font-semibold text-secondary">기업 정보</h3>
+        <InfoRow label="시가총액" value={formatCompact(f.marketCap, asset.currency) || "-"} />
+        <InfoRow label="52주 최고" value={isFiniteNumber(f.fiftyTwoWeekHigh) ? `${formatMoney(f.fiftyTwoWeekHigh, asset, currencyMode)} ${getUnit(asset, currencyMode)}` : "-"} />
+        <InfoRow label="52주 최저" value={isFiniteNumber(f.fiftyTwoWeekLow) ? `${formatMoney(f.fiftyTwoWeekLow, asset, currencyMode)} ${getUnit(asset, currencyMode)}` : "-"} />
+        <InfoRow label="거래량" value={formatVolume(f.volume)} />
+        <InfoRow label="3개월 평균" value={formatVolume(f.averageVolume)} />
+      </Card>
+
+      <Card rounded="2xl" padding="lg">
+        <h3 className="mb-3 text-sm font-semibold text-secondary">밸류에이션</h3>
+        <InfoRow label="PER" value={isFiniteNumber(f.peRatio) && f.peRatio > 0 ? f.peRatio.toFixed(2) : "-"} />
+        <InfoRow label="추정 PER" value={isFiniteNumber(f.forwardPE) && f.forwardPE > 0 ? f.forwardPE.toFixed(2) : "-"} />
+        <InfoRow label="PBR" value={isFiniteNumber(f.priceToBook) && f.priceToBook > 0 ? f.priceToBook.toFixed(2) : "-"} />
+        <InfoRow label="EPS" value={isFiniteNumber(f.eps) && f.eps !== 0 ? `${formatNumber(f.eps, 2)} ${asset.currency ?? ""}`.trim() : "-"} />
+        <InfoRow label="베타" value={isFiniteNumber(f.beta) && f.beta > 0 ? f.beta.toFixed(2) : "-"} />
+      </Card>
+
+      <Card rounded="2xl" padding="lg">
+        <h3 className="mb-3 text-sm font-semibold text-secondary">배당</h3>
+        <InfoRow label="연 배당금" value={isFiniteNumber(f.dividendRate) && f.dividendRate > 0 ? `${formatMoney(f.dividendRate, asset, currencyMode)} ${getUnit(asset, currencyMode)}` : "없음"} />
+        <InfoRow label="배당수익률" value={isFiniteNumber(f.dividendYield) && f.dividendYield > 0 ? `${f.dividendYield.toFixed(2)}%` : "-"} />
+        <InfoRow label="배당락일" value={formatUnixDate(f.exDividendDate)} />
+        <InfoRow label="지급일" value={formatUnixDate(f.dividendDate)} />
+      </Card>
+    </div>
+  );
+}
+
 function buildMetricItems(asset: AssetDetail, currencyMode: CurrencyMode) {
   const f = asset.fields;
   const items = [
@@ -611,6 +695,10 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
   const [asset, setAsset] = useState<AssetDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isPriceUpdating, setIsPriceUpdating] = useState(false);
+  const previousRealtimePriceRef = useRef<number | null>(null);
+  const { quotes, updatedAt: quoteUpdatedAt } = useQuotes(asset ? [symbol] : [], 60_000);
+  const realtimeQuote = quotes.get(symbol.toUpperCase());
 
   useEffect(() => {
     let cancelled = false;
@@ -653,16 +741,34 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
     }
   }, [asset?.currency, asset?.fields.usdKrw]);
 
+  useEffect(() => {
+    if (!realtimeQuote) return;
+
+    const previous = previousRealtimePriceRef.current;
+    if (previous !== null && previous !== realtimeQuote.price) {
+      setIsPriceUpdating(true);
+      const timer = window.setTimeout(() => setIsPriceUpdating(false), 500);
+      previousRealtimePriceRef.current = realtimeQuote.price;
+      return () => window.clearTimeout(timer);
+    }
+
+    previousRealtimePriceRef.current = realtimeQuote.price;
+    return undefined;
+  }, [realtimeQuote?.price, realtimeQuote]);
+
   const displayName = asset?.displayName || asset?.nameKo || asset?.name || symbol;
   const canConvert = Boolean(asset && asset.currency !== "KRW");
-  const latest = formatMoney(asset?.latestPrice, asset, currencyMode);
+  const realtimePrice = realtimeQuote?.price ?? asset?.latestPrice ?? null;
+  const latest = formatMoney(realtimePrice, asset, currencyMode);
   const unit = getUnit(asset, currencyMode);
   const alternateMode: CurrencyMode = currencyMode === "krw" ? "native" : "krw";
   const alternatePrice =
     canConvert && asset
-      ? `${getUnit(asset, alternateMode)}${formatMoney(asset.latestPrice, asset, alternateMode)}`
+      ? `${getUnit(asset, alternateMode)}${formatMoney(realtimeQuote?.price ?? asset.latestPrice, asset, alternateMode)}`
       : "";
-  const convertedChange = convertValue(asset?.change, asset, currencyMode);
+  const effectiveChange = realtimeQuote?.change ?? asset?.change ?? null;
+  const effectiveChangePercent = realtimeQuote?.changePercent ?? asset?.changePercent ?? null;
+  const convertedChange = convertValue(effectiveChange, asset, currencyMode);
   const periodChange = useMemo(
     () => (asset ? getRangeChange(getDisplayChartData(asset.chart, period)) : { change: null, changePercent: null }),
     [asset, period],
@@ -697,7 +803,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
               ) : latest ? (
                 <>
                   {unit === "$" ? <span className="text-[40px] font-bold leading-none text-primary text-numeric">$</span> : null}
-                  <span className="text-[40px] font-bold leading-none text-primary text-numeric">
+                  <span className={`text-[40px] font-bold leading-none text-numeric transition-colors ${isPriceUpdating ? "text-brand" : "text-primary"}`}>
                     {latest}
                   </span>
                   {unit !== "$" ? <span className="text-lg font-semibold text-secondary">{unit}</span> : null}
@@ -712,15 +818,22 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
               )}
             </div>
 
-            {isFiniteNumber(asset?.changePercent) ? (
+            {isFiniteNumber(effectiveChangePercent) ? (
               <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
                 <Badge variant="neutral">전 거래일 대비</Badge>
-                <span className={`font-bold text-numeric ${getTrendClassName(asset?.changePercent)}`}>
-                  {formatSigned(convertedChange)} {unit} ({formatPercent(asset?.changePercent)})
+                <span className={`font-bold text-numeric ${getTrendClassName(effectiveChangePercent)}`}>
+                  {formatSigned(convertedChange)} {unit} ({formatPercent(effectiveChangePercent)})
                 </span>
                 {asset?.previousClose ? (
                   <span className="text-secondary">
                     전일종가 {formatMoney(asset.previousClose, asset, currencyMode)} {unit}
+                  </span>
+                ) : null}
+                {realtimeQuote ? (
+                  <span className="inline-flex items-center gap-1 text-secondary">
+                    <span className={`h-2 w-2 rounded-full ${realtimeQuote.marketState === "REGULAR" ? "animate-pulse bg-green-500" : "bg-secondary"}`} />
+                    {realtimeQuote.marketState === "REGULAR" ? "거래 중" : "장 마감"}
+                    {quoteUpdatedAt ? ` · ${formatClock(quoteUpdatedAt)} 기준` : ""}
                   </span>
                 ) : null}
               </div>
@@ -759,6 +872,8 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
           </div>
         </div>
       </Card>
+
+      {asset ? <AssetMetaCards asset={asset} currencyMode={currencyMode} /> : null}
 
       <div className="sticky top-16 z-20 -mx-4 border-b border-border bg-page/95 px-4 backdrop-blur sm:-mx-6 sm:px-6">
         <nav className="mx-auto flex max-w-5xl gap-6" aria-label="자산 상세 탭">

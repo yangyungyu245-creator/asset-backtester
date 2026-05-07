@@ -1,17 +1,12 @@
 import { NextResponse } from "next/server";
+import type { AssetMeta } from "@/lib/types/quotes";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
-type QuoteResult = {
-  symbol: string;
-  price: number;
-  previousClose: number;
-  change: number;
-  changePercent: number;
-  currency: string;
-  marketState: string;
-};
+const MAX_SYMBOLS = 100;
+const CHUNK_SIZE = 25;
 
 type YahooQuote = {
   symbol?: string;
@@ -21,13 +16,34 @@ type YahooQuote = {
   regularMarketChangePercent?: number;
   currency?: string;
   marketState?: string;
+  regularMarketDayHigh?: number;
+  regularMarketDayLow?: number;
+  fiftyTwoWeekHigh?: number;
+  fiftyTwoWeekLow?: number;
+  regularMarketVolume?: number;
+  averageDailyVolume3Month?: number;
+  marketCap?: number;
+  trailingPE?: number;
+  forwardPE?: number;
+  priceToBook?: number;
+  epsTrailingTwelveMonths?: number;
+  epsForward?: number;
+  trailingAnnualDividendRate?: number;
+  trailingAnnualDividendYield?: number;
+  dividendDate?: number;
+  exDividendDate?: number;
+  shortName?: string;
+  longName?: string;
+  exchange?: string;
+  quoteType?: string;
+  beta?: number;
 };
 
 function numberOrZero(value: unknown) {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
-function toQuoteResult(symbol: string, quote: YahooQuote): QuoteResult {
+function toAssetMeta(symbol: string, quote: YahooQuote): AssetMeta {
   const price = numberOrZero(quote.regularMarketPrice);
   const previousClose = numberOrZero(quote.regularMarketPreviousClose);
   const change =
@@ -49,10 +65,31 @@ function toQuoteResult(symbol: string, quote: YahooQuote): QuoteResult {
     changePercent,
     currency: quote.currency ?? "USD",
     marketState: quote.marketState ?? "CLOSED",
+    dayHigh: numberOrZero(quote.regularMarketDayHigh),
+    dayLow: numberOrZero(quote.regularMarketDayLow),
+    fiftyTwoWeekHigh: numberOrZero(quote.fiftyTwoWeekHigh),
+    fiftyTwoWeekLow: numberOrZero(quote.fiftyTwoWeekLow),
+    volume: numberOrZero(quote.regularMarketVolume),
+    averageDailyVolume3Month: numberOrZero(quote.averageDailyVolume3Month),
+    marketCap: numberOrZero(quote.marketCap),
+    trailingPE: numberOrZero(quote.trailingPE),
+    forwardPE: numberOrZero(quote.forwardPE),
+    priceToBook: numberOrZero(quote.priceToBook),
+    trailingEps: numberOrZero(quote.epsTrailingTwelveMonths),
+    forwardEps: numberOrZero(quote.epsForward),
+    trailingAnnualDividendRate: numberOrZero(quote.trailingAnnualDividendRate),
+    trailingAnnualDividendYield: numberOrZero(quote.trailingAnnualDividendYield) * 100,
+    dividendDate: numberOrZero(quote.dividendDate) || null,
+    exDividendDate: numberOrZero(quote.exDividendDate) || null,
+    shortName: quote.shortName ?? quote.symbol ?? symbol,
+    longName: quote.longName ?? quote.shortName ?? quote.symbol ?? symbol,
+    exchange: quote.exchange ?? "",
+    quoteType: quote.quoteType ?? "EQUITY",
+    beta: numberOrZero(quote.beta),
   };
 }
 
-async function fetchYahooQuotes(symbols: string[]): Promise<QuoteResult[]> {
+async function fetchYahooQuotes(symbols: string[]): Promise<AssetMeta[]> {
   const symbolStr = symbols.map((symbol) => encodeURIComponent(symbol)).join(",");
   const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbolStr}`;
 
@@ -79,11 +116,11 @@ async function fetchYahooQuotes(symbols: string[]): Promise<QuoteResult[]> {
     return fetchYahooQuotesFallback(symbols);
   }
 
-  return results.map((quote) => toQuoteResult(quote.symbol ?? "", quote));
+  return results.map((quote) => toAssetMeta(quote.symbol ?? "", quote));
 }
 
-async function fetchYahooQuotesFallback(symbols: string[]): Promise<QuoteResult[]> {
-  const results: QuoteResult[] = [];
+async function fetchYahooQuotesFallback(symbols: string[]): Promise<AssetMeta[]> {
+  const results: AssetMeta[] = [];
 
   await Promise.allSettled(
     symbols.map(async (symbol) => {
@@ -132,6 +169,27 @@ async function fetchYahooQuotesFallback(symbols: string[]): Promise<QuoteResult[
           changePercent: previousClose > 0 ? (change / previousClose) * 100 : 0,
           currency: meta.currency ?? "USD",
           marketState: meta.marketState ?? "CLOSED",
+          dayHigh: 0,
+          dayLow: 0,
+          fiftyTwoWeekHigh: 0,
+          fiftyTwoWeekLow: 0,
+          volume: 0,
+          averageDailyVolume3Month: 0,
+          marketCap: 0,
+          trailingPE: 0,
+          forwardPE: 0,
+          priceToBook: 0,
+          trailingEps: 0,
+          forwardEps: 0,
+          trailingAnnualDividendRate: 0,
+          trailingAnnualDividendYield: 0,
+          dividendDate: null,
+          exDividendDate: null,
+          shortName: meta.symbol ?? symbol,
+          longName: meta.symbol ?? symbol,
+          exchange: "",
+          quoteType: "EQUITY",
+          beta: 0,
         });
       } catch {
         // Skip failed symbols and return the quotes that did resolve.
@@ -140,6 +198,17 @@ async function fetchYahooQuotesFallback(symbols: string[]): Promise<QuoteResult[
   );
 
   return results;
+}
+
+async function fetchYahooQuotesInChunks(symbols: string[]) {
+  const chunks: string[][] = [];
+
+  for (let i = 0; i < symbols.length; i += CHUNK_SIZE) {
+    chunks.push(symbols.slice(i, i + CHUNK_SIZE));
+  }
+
+  const results = await Promise.all(chunks.map((chunk) => fetchYahooQuotes(chunk)));
+  return results.flat();
 }
 
 export async function GET(request: Request) {
@@ -155,10 +224,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ quotes: [], updatedAt: new Date().toISOString() });
   }
 
-  const limitedSymbols = Array.from(new Set(symbols)).slice(0, 20);
+  const limitedSymbols = Array.from(new Set(symbols)).slice(0, MAX_SYMBOLS);
 
   try {
-    const quotes = await fetchYahooQuotes(limitedSymbols);
+    const quotes = await fetchYahooQuotesInChunks(limitedSymbols);
     return NextResponse.json(
       {
         quotes,
@@ -166,7 +235,7 @@ export async function GET(request: Request) {
       },
       {
         headers: {
-          "Cache-Control": "s-maxage=60, stale-while-revalidate=120",
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=3600",
         },
       },
     );

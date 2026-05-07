@@ -1,20 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import type { AssetMeta } from "@/lib/types/quotes";
 
-export type Quote = {
-  symbol: string;
-  price: number;
-  previousClose: number;
-  change: number;
-  changePercent: number;
-  currency: string;
-  marketState: string;
-};
+export type Quote = AssetMeta;
 
 export function useQuotes(symbols: string[], intervalMs = 60_000) {
   const normalizedSymbols = useMemo(
-    () => Array.from(new Set(symbols.map((symbol) => symbol.trim().toUpperCase()).filter(Boolean))).slice(0, 20),
+    () => Array.from(new Set(symbols.map((symbol) => symbol.trim().toUpperCase()).filter(Boolean))).slice(0, 100),
     [symbols],
   );
   const symbolKey = normalizedSymbols.join(",");
