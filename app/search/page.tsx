@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { StockLogo } from "@/components/asset/StockLogo";
 import type { AssetLogoType } from "@/components/common/AssetLogo";
+import { useQuotes, type Quote } from "@/hooks/useQuotes";
 import { loadTickerIndex, type TickerMeta } from "@/lib/data/tickerIndex";
 import { createSearcher } from "@/lib/data/tickerSearch";
 
@@ -30,6 +31,37 @@ function getTickerAssetType(category: TickerMeta["category"]): AssetLogoType {
   if (category === "crypto") return "crypto";
   if (category.includes("stock")) return "stock";
   return "other";
+}
+
+function formatQuotePrice(quote: Quote) {
+  if (quote.currency === "KRW") {
+    return `${Math.round(quote.price).toLocaleString("ko-KR")}원`;
+  }
+
+  return `$${quote.price.toLocaleString("en-US", {
+    minimumFractionDigits: quote.price >= 100 ? 0 : 2,
+    maximumFractionDigits: quote.price >= 100 ? 2 : 2,
+  })}`;
+}
+
+function QuoteValue({ quote, loading }: { quote?: Quote; loading: boolean }) {
+  if (!quote && loading) {
+    return <div className="h-9 w-20 animate-pulse rounded-md bg-card" />;
+  }
+
+  if (!quote) return null;
+
+  const isUp = quote.changePercent >= 0;
+
+  return (
+    <div className="shrink-0 text-right">
+      <p className="text-sm font-bold tabular-nums text-primary">{formatQuotePrice(quote)}</p>
+      <p className={`mt-0.5 text-xs font-bold tabular-nums ${isUp ? "text-[#F04452]" : "text-[#3182F6]"}`}>
+        {isUp ? "+" : ""}
+        {quote.changePercent.toFixed(2)}%
+      </p>
+    </div>
+  );
 }
 
 export default function SearchPage() {
@@ -63,6 +95,16 @@ export default function SearchPage() {
       .slice(0, 24)
       .map((result) => result.item);
   }, [debouncedQuery, searcher, tickers]);
+  const quoteSymbols = useMemo(() => {
+    const symbols = popularTickers.map((ticker) => ticker.symbol);
+
+    if (debouncedQuery && results.length <= 10) {
+      symbols.push(...results.map((ticker) => ticker.ticker));
+    }
+
+    return Array.from(new Set(symbols)).slice(0, 20);
+  }, [debouncedQuery, results]);
+  const { quotes, loading: quotesLoading } = useQuotes(quoteSymbols, 60_000);
 
   return (
     <div className="grid gap-6 py-4 sm:py-8">
@@ -89,17 +131,21 @@ export default function SearchPage() {
 
         <section className="mt-5">
           <h2 className="mb-3 text-base font-bold text-primary">인기 종목</h2>
-          <div className="flex max-h-[112px] flex-wrap gap-2 overflow-hidden">
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {popularTickers.map((ticker) => (
               <Link
                 key={ticker.symbol}
                 href={`/asset/${encodeURIComponent(ticker.symbol)}`}
-                className="inline-flex min-w-0 items-center gap-2 rounded-lg bg-card-subtle px-3 py-2 transition hover:bg-brand-bg focus:outline-none focus:ring-2 focus:ring-brand/35"
+                className="flex min-w-0 items-center justify-between gap-3 rounded-lg bg-card-subtle px-3 py-3 transition hover:bg-brand-bg focus:outline-none focus:ring-2 focus:ring-brand/35"
               >
-                <StockLogo symbol={ticker.symbol} name={ticker.name} size="sm" />
-                <span className="max-w-[8.5rem] truncate text-sm font-bold text-primary">
-                  {ticker.name}
-                </span>
+                <div className="flex min-w-0 items-center gap-2">
+                  <StockLogo symbol={ticker.symbol} name={ticker.name} size="sm" />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-primary">{ticker.name}</p>
+                    <p className="mt-0.5 truncate text-xs text-secondary">{ticker.symbol}</p>
+                  </div>
+                </div>
+                <QuoteValue quote={quotes.get(ticker.symbol)} loading={quotesLoading} />
               </Link>
             ))}
           </div>
@@ -152,16 +198,20 @@ export default function SearchPage() {
                       assetType={getTickerAssetType(ticker.category)}
                     />
                     <div className="min-w-0">
-                    <p className="font-bold text-primary">{ticker.ticker}</p>
-                    <p className="mt-1 truncate text-sm text-primary">
-                      {ticker.name_ko || ticker.name}
-                    </p>
-                    <p className="mt-1 truncate text-xs text-secondary">
-                      {ticker.name}
-                    </p>
+                      <p className="font-bold text-primary">{ticker.name_ko || ticker.name}</p>
+                      <p className="mt-1 truncate text-sm text-secondary">
+                        {ticker.ticker}
+                      </p>
+                      <p className="mt-1 truncate text-xs text-secondary">
+                        {ticker.name}
+                      </p>
                     </div>
                   </div>
-                  <Badge variant="neutral">{ticker.exchange}</Badge>
+                  {debouncedQuery && results.length <= 10 && (quotesLoading || quotes.has(ticker.ticker)) ? (
+                    <QuoteValue quote={quotes.get(ticker.ticker)} loading={quotesLoading} />
+                  ) : (
+                    <Badge variant="neutral">{ticker.exchange}</Badge>
+                  )}
                 </div>
               </Link>
             ))}
