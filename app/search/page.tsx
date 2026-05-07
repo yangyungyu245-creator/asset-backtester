@@ -27,7 +27,7 @@ const popularTickers = [
   { symbol: "035420.KS", name: "NAVER" },
 ];
 
-const SEARCH_QUOTE_LIMIT = 15;
+const SEARCH_QUOTE_LIMIT = 100;
 
 function getTickerAssetType(category: TickerMeta["category"]): AssetLogoType {
   if (category.includes("etf")) return "etf";
@@ -131,7 +131,7 @@ export default function SearchPage() {
 
     return searcher
       .search(debouncedQuery)
-      .slice(0, 24)
+      .slice(0, 100)
       .map((result) => result.item);
   }, [debouncedQuery, searcher, tickers]);
   const quoteSymbols = useMemo(() => {
@@ -141,7 +141,7 @@ export default function SearchPage() {
       symbols.push(...results.slice(0, SEARCH_QUOTE_LIMIT).map((ticker) => ticker.ticker));
     }
 
-    return Array.from(new Set(symbols)).slice(0, 20);
+    return Array.from(new Set(symbols)).slice(0, 100);
   }, [debouncedQuery, results]);
   const { quotes, loading: quotesLoading } = useQuotes(quoteSymbols, 60_000);
 
