@@ -6,6 +6,7 @@ import type { User } from "@supabase/supabase-js";
 import { StockLogo } from "@/components/asset/StockLogo";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { useQuotes } from "@/hooks/useQuotes";
 import { createSearcher } from "@/lib/data/tickerSearch";
 import { loadTickerIndex, type TickerMeta } from "@/lib/data/tickerIndex";
 import {
@@ -39,6 +40,28 @@ type HoldingFormState = {
   currency: string;
 };
 
+type DisplayCurrency = "KRW" | "USD";
+
+type HoldingDisplayValues = {
+  currentPrice: number;
+  currentValue: number;
+  cost: number;
+  returnAmount: number;
+  returnPercent: number;
+  annualDividend: number;
+  monthlyDividend: number;
+  annualDividendPerShare: number;
+};
+
+type PortfolioDisplayValues = {
+  totalValue: number;
+  totalCost: number;
+  totalReturn: number;
+  totalReturnPercent: number;
+  annualDividend: number;
+  monthlyDividend: number;
+};
+
 const emptyPortfolioForm: PortfolioFormState = {
   name: "",
   description: "",
@@ -51,12 +74,25 @@ const emptyHoldingForm: HoldingFormState = {
   currency: "USD",
 };
 
-function formatCurrency(value: number, currency = "USD") {
+function formatDisplayCurrency(value: number, currency: DisplayCurrency) {
   return new Intl.NumberFormat("ko-KR", {
     style: "currency",
     currency,
     maximumFractionDigits: currency === "KRW" ? 0 : 2,
   }).format(Number.isFinite(value) ? value : 0);
+}
+
+function convertNativeAmount(
+  value: number,
+  nativeCurrency: string,
+  displayCurrency: DisplayCurrency,
+  exchangeRate: number,
+) {
+  if (displayCurrency === "KRW") {
+    return nativeCurrency === "KRW" ? value : value * exchangeRate;
+  }
+
+  return nativeCurrency === "KRW" ? value / exchangeRate : value;
 }
 
 function formatPercent(value: number) {
@@ -121,15 +157,70 @@ export function PortfolioManager() {
   const [editingPortfolio, setEditingPortfolio] = useState<Portfolio | null>(null);
   const [showHoldingModal, setShowHoldingModal] = useState(false);
   const [tickerQuery, setTickerQuery] = useState("");
+  const [displayCurrency, setDisplayCurrency] = useState<DisplayCurrency>("KRW");
 
   const selectedPortfolio =
     portfolios.find((portfolio) => portfolio.id === selectedId) ?? portfolios[0] ?? null;
+  const quoteSymbols = useMemo(
+    () => (selectedPortfolio ? [...selectedPortfolio.holdings.map((holding) => holding.symbol), "KRW=X"] : ["KRW=X"]),
+    [selectedPortfolio],
+  );
+  const { quotes } = useQuotes(quoteSymbols, 60_000);
+  const exchangeRate = quotes.get("KRW=X")?.price || 1380;
   const searcher = useMemo(() => createSearcher(tickers), [tickers]);
   const tickerResults = useMemo(() => {
     const query = tickerQuery.trim();
     if (!query) return tickers.filter((ticker) => ticker.category.includes("etf")).slice(0, 8);
     return searcher.search(query).slice(0, 8).map((result) => result.item);
   }, [searcher, tickerQuery, tickers]);
+
+  function getHoldingDisplayValues(holding: HoldingWithStats): HoldingDisplayValues {
+    const quote = quotes.get(holding.symbol);
+    const nativeCurrency = quote?.currency ?? holding.currency;
+    const currentPrice = quote?.price ?? holding.currentPrice;
+    const currentValue = holding.shares * currentPrice;
+    const cost = holding.shares * holding.avg_price;
+    const returnAmount = currentValue - cost;
+    const annualDividend = holding.annualDividend;
+
+    return {
+      currentPrice: convertNativeAmount(currentPrice, nativeCurrency, displayCurrency, exchangeRate),
+      currentValue: convertNativeAmount(currentValue, nativeCurrency, displayCurrency, exchangeRate),
+      cost: convertNativeAmount(cost, holding.currency, displayCurrency, exchangeRate),
+      returnAmount: convertNativeAmount(returnAmount, nativeCurrency, displayCurrency, exchangeRate),
+      returnPercent: cost > 0 ? (returnAmount / cost) * 100 : 0,
+      annualDividend: convertNativeAmount(annualDividend, holding.currency, displayCurrency, exchangeRate),
+      monthlyDividend: convertNativeAmount(annualDividend / 12, holding.currency, displayCurrency, exchangeRate),
+      annualDividendPerShare: convertNativeAmount(
+        holding.annualDividendPerShare,
+        holding.currency,
+        displayCurrency,
+        exchangeRate,
+      ),
+    };
+  }
+
+  function getPortfolioDisplayValues(portfolio: PortfolioWithStats): PortfolioDisplayValues {
+    const totals = portfolio.holdings.reduce(
+      (acc, holding) => {
+        const values = getHoldingDisplayValues(holding);
+        return {
+          totalValue: acc.totalValue + values.currentValue,
+          totalCost: acc.totalCost + values.cost,
+          annualDividend: acc.annualDividend + values.annualDividend,
+        };
+      },
+      { totalValue: 0, totalCost: 0, annualDividend: 0 },
+    );
+    const totalReturn = totals.totalValue - totals.totalCost;
+
+    return {
+      ...totals,
+      totalReturn,
+      totalReturnPercent: totals.totalCost > 0 ? (totalReturn / totals.totalCost) * 100 : 0,
+      monthlyDividend: totals.annualDividend / 12,
+    };
+  }
 
   async function refreshPortfolios(nextSelectedId?: string) {
     setLoading(true);
@@ -356,100 +447,128 @@ export function PortfolioManager() {
         <div className="grid gap-5 lg:grid-cols-[22rem_minmax(0,1fr)]">
           <div className="grid gap-3 self-start lg:sticky lg:top-24">
             {portfolios.map((portfolio) => (
-              <button
-                key={portfolio.id}
-                type="button"
-                onClick={() => setSelectedId(portfolio.id)}
-                className={`rounded-2xl border p-5 text-left shadow-subtle transition ${
-                  selectedPortfolio?.id === portfolio.id
-                    ? "border-brand bg-brand-bg"
-                    : "border-border bg-card hover:bg-card-subtle"
-                }`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-lg font-bold text-primary">
-                      {portfolio.name}
+              (() => {
+                const values = getPortfolioDisplayValues(portfolio);
+
+                return (
+                  <button
+                    key={portfolio.id}
+                    type="button"
+                    onClick={() => setSelectedId(portfolio.id)}
+                    className={`rounded-2xl border p-5 text-left shadow-subtle transition ${
+                      selectedPortfolio?.id === portfolio.id
+                        ? "border-brand bg-brand-bg"
+                        : "border-border bg-card hover:bg-card-subtle"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-lg font-bold text-primary">
+                          {portfolio.name}
+                        </p>
+                        <p className="mt-1 text-xs text-secondary">
+                          {portfolio.holdings.length}개 종목
+                        </p>
+                      </div>
+                      <span className="text-sm font-bold text-brand">상세</span>
+                    </div>
+                    <p className="mt-4 text-2xl font-bold tabular-nums text-primary">
+                      {formatDisplayCurrency(values.totalValue, displayCurrency)}
                     </p>
-                    <p className="mt-1 text-xs text-secondary">
-                      {portfolio.holdings.length}개 종목
-                    </p>
-                  </div>
-                  <span className="text-sm font-bold text-brand">상세</span>
-                </div>
-                <p className="mt-4 text-2xl font-bold tabular-nums text-primary">
-                  {formatCurrency(portfolio.totalValue)}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-3 text-sm font-bold">
-                  <span className={getReturnClass(portfolio.totalReturn)}>
-                    {formatCurrency(portfolio.totalReturn)} (
-                    {formatPercent(portfolio.totalReturnPercent)})
-                  </span>
-                  <span className="text-success">
-                    월 배당 {formatCurrency(portfolio.monthlyDividend)}
-                  </span>
-                </div>
-              </button>
+                    <div className="mt-3 flex flex-wrap gap-3 text-sm font-bold">
+                      <span className={getReturnClass(values.totalReturn)}>
+                        {formatDisplayCurrency(values.totalReturn, displayCurrency)} (
+                        {formatPercent(values.totalReturnPercent)})
+                      </span>
+                      <span className="text-success">
+                        월 배당 {formatDisplayCurrency(values.monthlyDividend, displayCurrency)}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })()
             ))}
           </div>
 
           {selectedPortfolio ? (
             <Card rounded="2xl" padding="lg">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-primary">
-                    {selectedPortfolio.name}
-                  </h2>
-                  {selectedPortfolio.description ? (
-                    <p className="mt-2 text-sm text-secondary">
-                      {selectedPortfolio.description}
-                    </p>
-                  ) : null}
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openEditPortfolio(selectedPortfolio)}
-                  >
-                    편집
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="danger"
-                    size="sm"
-                    disabled={saving}
-                    onClick={() => removePortfolio(selectedPortfolio)}
-                  >
-                    삭제
-                  </Button>
-                </div>
-              </div>
+              {(() => {
+                const selectedValues = getPortfolioDisplayValues(selectedPortfolio);
 
-              <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                <Metric label="총 자산" value={formatCurrency(selectedPortfolio.totalValue)} />
-                <Metric label="총 원금" value={formatCurrency(selectedPortfolio.totalCost)} />
-                <Metric
-                  label="총 수익"
-                  value={`${formatCurrency(selectedPortfolio.totalReturn)} (${formatPercent(
-                    selectedPortfolio.totalReturnPercent,
-                  )})`}
-                  valueClass={getReturnClass(selectedPortfolio.totalReturn)}
-                />
-              </div>
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <Metric
-                  label="예상 연간 배당"
-                  value={formatCurrency(selectedPortfolio.annualDividend)}
-                  valueClass="text-success"
-                />
-                <Metric
-                  label="예상 월 배당"
-                  value={formatCurrency(selectedPortfolio.monthlyDividend)}
-                  valueClass="text-success"
-                />
-              </div>
+                return (
+                  <>
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <h2 className="text-2xl font-bold text-primary">
+                          {selectedPortfolio.name}
+                        </h2>
+                        {selectedPortfolio.description ? (
+                          <p className="mt-2 text-sm text-secondary">
+                            {selectedPortfolio.description}
+                          </p>
+                        ) : null}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <div className="grid grid-cols-2 rounded-md border border-border bg-card-subtle p-0.5 text-xs font-black">
+                          {(["KRW", "USD"] as const).map((currency) => (
+                            <button
+                              key={currency}
+                              type="button"
+                              onClick={() => setDisplayCurrency(currency)}
+                              className={`h-8 rounded px-3 transition ${
+                                displayCurrency === currency ? "bg-card text-primary shadow-subtle" : "text-secondary"
+                              }`}
+                            >
+                              {currency === "KRW" ? "₩" : "$"}
+                            </button>
+                          ))}
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openEditPortfolio(selectedPortfolio)}
+                        >
+                          편집
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="danger"
+                          size="sm"
+                          disabled={saving}
+                          onClick={() => removePortfolio(selectedPortfolio)}
+                        >
+                          삭제
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                      <Metric label="총 자산" value={formatDisplayCurrency(selectedValues.totalValue, displayCurrency)} />
+                      <Metric label="총 원금" value={formatDisplayCurrency(selectedValues.totalCost, displayCurrency)} />
+                      <Metric
+                        label="총 수익"
+                        value={`${formatDisplayCurrency(selectedValues.totalReturn, displayCurrency)} (${formatPercent(
+                          selectedValues.totalReturnPercent,
+                        )})`}
+                        valueClass={getReturnClass(selectedValues.totalReturn)}
+                      />
+                    </div>
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                      <Metric
+                        label="예상 연간 배당"
+                        value={formatDisplayCurrency(selectedValues.annualDividend, displayCurrency)}
+                        valueClass="text-success"
+                      />
+                      <Metric
+                        label="예상 월 배당"
+                        value={formatDisplayCurrency(selectedValues.monthlyDividend, displayCurrency)}
+                        valueClass="text-success"
+                      />
+                    </div>
+                  </>
+                );
+              })()}
 
               <div className="mt-8 flex items-center justify-between gap-3">
                 <h3 className="text-lg font-bold text-primary">종목별 보유 현황</h3>
@@ -470,6 +589,8 @@ export function PortfolioManager() {
                     <HoldingRow
                       key={holding.id}
                       holding={holding}
+                      values={getHoldingDisplayValues(holding)}
+                      displayCurrency={displayCurrency}
                       onEdit={() => openEditHolding(holding)}
                       onDelete={() => removeHolding(holding)}
                     />
@@ -662,10 +783,14 @@ function Metric({
 
 function HoldingRow({
   holding,
+  values,
+  displayCurrency,
   onEdit,
   onDelete,
 }: {
   holding: HoldingWithStats;
+  values: HoldingDisplayValues;
+  displayCurrency: DisplayCurrency;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -688,19 +813,19 @@ function HoldingRow({
             </div>
             <p className="mt-1 text-sm text-secondary">
               {holding.shares.toLocaleString("ko-KR")}주 · 평균{" "}
-              {formatCurrency(holding.avg_price, holding.currency)}
+              {formatDisplayCurrency(values.cost / Math.max(holding.shares, 1), displayCurrency)}
             </p>
             <p className="mt-2 text-sm text-secondary">
-              현재가 {formatCurrency(holding.currentPrice, holding.currency)} · 평가{" "}
-              {formatCurrency(holding.currentValue, holding.currency)}
+              현재가 {formatDisplayCurrency(values.currentPrice, displayCurrency)} · 평가{" "}
+              {formatDisplayCurrency(values.currentValue, displayCurrency)}
             </p>
             <p className="mt-1 text-sm">
-              <span className={getReturnClass(holding.returnAmount)}>
-                {formatCurrency(holding.returnAmount, holding.currency)} (
-                {formatPercent(holding.returnPercent)})
+              <span className={getReturnClass(values.returnAmount)}>
+                {formatDisplayCurrency(values.returnAmount, displayCurrency)} (
+                {formatPercent(values.returnPercent)})
               </span>
               <span className="ml-2 text-success">
-                연 배당 {formatCurrency(holding.annualDividendPerShare, holding.currency)}
+                연 배당 {formatDisplayCurrency(values.annualDividendPerShare, displayCurrency)}
                 /주 · {formatPercent(holding.dividendYield)}
               </span>
             </p>
