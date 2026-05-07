@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { StockLogo } from "@/components/asset/StockLogo";
+import AssetChart, { type Period } from "@/components/charts/AssetChart";
 import { WatchlistButton } from "@/components/watchlist/WatchlistButton";
 import { formatCompactKRW, formatPercentValue } from "@/components/result/format";
 
@@ -70,7 +71,7 @@ type Tab = "chart" | "info" | "simulate";
 type ChartMode = "line" | "candle";
 type CurrencyMode = "native" | "krw";
 
-const periods = [
+const periods: Array<{ value: Period; label: string }> = [
   { value: "1d", label: "1일" },
   { value: "1w", label: "1주" },
   { value: "3m", label: "3달" },
@@ -578,7 +579,7 @@ function SimulationPanel({ symbol }: { symbol: string }) {
 }
 
 export function AssetDetailView({ symbol }: AssetDetailViewProps) {
-  const [period, setPeriod] = useState("1y");
+  const [period, setPeriod] = useState<Period>("1y");
   const [tab, setTab] = useState<Tab>("chart");
   const [chartMode, setChartMode] = useState<ChartMode>("line");
   const [currencyMode, setCurrencyMode] = useState<CurrencyMode>("native");
@@ -762,7 +763,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
               </p>
             </div>
             <div className="grid gap-2">
-              <div className="grid grid-cols-3 gap-1 rounded-lg bg-card-subtle p-1 sm:flex">
+              <div className="hidden">
                 {periods.map((item) => (
                   <button
                     key={item.value}
@@ -784,7 +785,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
                   </span>
                 </div>
               ) : null}
-              <div className="grid grid-cols-2 gap-1 rounded-lg bg-card-subtle p-1 sm:ml-auto sm:w-fit">
+              <div className="hidden">
                 {(["line", "candle"] as const).map((mode) => (
                   <button
                     key={mode}
@@ -801,18 +802,24 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
             </div>
           </div>
 
-          <div className="mt-5 h-[390px] overflow-hidden">
+          <div className="mt-5 overflow-hidden">
             {isLoading ? (
-              <div className="h-full animate-pulse rounded-xl bg-card-subtle" />
+              <div className="h-[280px] animate-pulse rounded-xl bg-card-subtle sm:h-[400px]" />
             ) : asset && asset.chart.length > 0 ? (
-              <AssetChartSvg
-                data={asset.chart}
-                asset={asset}
-                mode={chartMode}
-                currencyMode={currencyMode}
+              <AssetChart
+                data={asset.chart.map((point) => ({
+                  date: point.date,
+                  open: convertValue(point.open, asset, currencyMode) ?? point.open,
+                  high: convertValue(point.high, asset, currencyMode) ?? point.high,
+                  low: convertValue(point.low, asset, currencyMode) ?? point.low,
+                  close: convertValue(point.close, asset, currencyMode) ?? point.close,
+                  volume: point.volume,
+                }))}
+                currentPeriod={period}
+                onPeriodChange={setPeriod}
               />
             ) : (
-              <div className="grid h-full place-items-center rounded-xl bg-card-subtle text-sm text-secondary">
+              <div className="grid h-[280px] place-items-center rounded-xl bg-card-subtle text-sm text-secondary sm:h-[400px]">
                 차트 데이터 없음
               </div>
             )}
