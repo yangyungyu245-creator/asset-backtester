@@ -11,18 +11,18 @@ import { loadTickerIndex, type TickerMeta } from "@/lib/data/tickerIndex";
 import { createSearcher } from "@/lib/data/tickerSearch";
 
 const popularTickers = [
-  "AAPL",
-  "MSFT",
-  "NVDA",
-  "GOOGL",
-  "AMZN",
-  "005930.KS",
-  "000660.KS",
-  "005380.KS",
-  "035420.KS",
-  "035720.KS",
-  "SPY",
-  "QQQ",
+  { symbol: "NVDA", name: "NVIDIA" },
+  { symbol: "AAPL", name: "Apple" },
+  { symbol: "TSLA", name: "Tesla" },
+  { symbol: "GOOGL", name: "Alphabet" },
+  { symbol: "AMZN", name: "Amazon" },
+  { symbol: "MSFT", name: "Microsoft" },
+  { symbol: "META", name: "Meta" },
+  { symbol: "SPY", name: "S&P 500 ETF" },
+  { symbol: "QQQ", name: "NASDAQ ETF" },
+  { symbol: "005930.KS", name: "삼성전자" },
+  { symbol: "005380.KS", name: "현대자동차" },
+  { symbol: "035420.KS", name: "NAVER" },
 ];
 
 function getTickerAssetType(category: TickerMeta["category"]): AssetLogoType {
@@ -54,7 +54,7 @@ export default function SearchPage() {
   const searcher = useMemo(() => createSearcher(tickers), [tickers]);
   const results = useMemo(() => {
     if (!debouncedQuery) {
-      const popular = new Set(popularTickers);
+      const popular = new Set(popularTickers.map((ticker) => ticker.symbol));
       return tickers.filter((ticker) => popular.has(ticker.ticker)).slice(0, 12);
     }
 
@@ -86,6 +86,24 @@ export default function SearchPage() {
           placeholder="예: AAPL, 애플, 삼성전자"
           className="mt-2 h-12 w-full rounded-md border border-border bg-card px-4 text-base text-primary outline-none transition placeholder:text-secondary focus:ring-2 focus:ring-brand/30"
         />
+
+        <section className="mt-5">
+          <h2 className="mb-3 text-base font-bold text-primary">인기 종목</h2>
+          <div className="flex max-h-[112px] flex-wrap gap-2 overflow-hidden">
+            {popularTickers.map((ticker) => (
+              <Link
+                key={ticker.symbol}
+                href={`/asset/${encodeURIComponent(ticker.symbol)}`}
+                className="inline-flex min-w-0 items-center gap-2 rounded-lg bg-card-subtle px-3 py-2 transition hover:bg-brand-bg focus:outline-none focus:ring-2 focus:ring-brand/35"
+              >
+                <StockLogo symbol={ticker.symbol} name={ticker.name} size="sm" />
+                <span className="max-w-[8.5rem] truncate text-sm font-bold text-primary">
+                  {ticker.name}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
 
         <div className="mt-5 flex items-center justify-between gap-3">
           <p className="text-sm font-semibold text-secondary">
