@@ -123,6 +123,8 @@ export default function SearchPage() {
   }, [supabase]);
 
   const searcher = useMemo(() => createSearcher(tickers), [tickers]);
+  const trimmedQuery = query.trim();
+  const showPopular = trimmedQuery.length === 0;
   const results = useMemo(() => {
     if (!debouncedQuery) {
       const popular = new Set(popularTickers.map((ticker) => ticker.symbol));
@@ -135,14 +137,14 @@ export default function SearchPage() {
       .map((result) => result.item);
   }, [debouncedQuery, searcher, tickers]);
   const quoteSymbols = useMemo(() => {
-    const symbols = popularTickers.map((ticker) => ticker.symbol);
+    const symbols = showPopular ? popularTickers.map((ticker) => ticker.symbol) : [];
 
     if (debouncedQuery && results.length <= SEARCH_QUOTE_LIMIT) {
       symbols.push(...results.slice(0, SEARCH_QUOTE_LIMIT).map((ticker) => ticker.ticker));
     }
 
     return Array.from(new Set(symbols)).slice(0, 100);
-  }, [debouncedQuery, results]);
+  }, [debouncedQuery, results, showPopular]);
   const { quotes, loading: quotesLoading } = useQuotes(quoteSymbols, 60_000);
 
   async function toggleWatchlist(symbol: string) {
@@ -225,109 +227,111 @@ export default function SearchPage() {
           className="mt-2 h-12 w-full rounded-md border border-border bg-card px-4 text-base text-primary outline-none transition placeholder:text-secondary focus:ring-2 focus:ring-brand/30"
         />
 
-        <section className="mt-5">
-          <h2 className="mb-3 text-base font-bold text-primary">인기 종목</h2>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {popularTickers.map((ticker) => (
-              <div
-                key={ticker.symbol}
-                className="flex min-w-0 items-center justify-between gap-3 rounded-lg bg-card-subtle px-3 py-3 transition hover:bg-brand-bg focus:outline-none focus:ring-2 focus:ring-brand/35"
-              >
-                <Link
-                  href={`/asset/${encodeURIComponent(ticker.symbol)}`}
-                  className="flex min-w-0 flex-1 items-center gap-2 focus:outline-none"
+        {showPopular ? (
+          <section className="mt-5">
+            <h2 className="mb-3 text-base font-bold text-primary">인기 종목</h2>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {popularTickers.map((ticker) => (
+                <div
+                  key={ticker.symbol}
+                  className="flex min-w-0 items-center justify-between gap-3 rounded-lg bg-card-subtle px-3 py-3 transition hover:bg-brand-bg focus:outline-none focus:ring-2 focus:ring-brand/35"
                 >
-                  <StockLogo symbol={ticker.symbol} name={ticker.name} size="sm" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold text-primary">{ticker.name}</p>
-                    <p className="mt-0.5 truncate text-xs text-secondary">{ticker.symbol}</p>
-                  </div>
-                </Link>
-                <WatchHeart symbol={ticker.symbol} />
-                <QuoteValue quote={quotes.get(ticker.symbol)} loading={quotesLoading} />
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <div className="mt-5 flex items-center justify-between gap-3">
-          <p className="text-sm font-semibold text-secondary">검색 결과</p>
-          <Link
-            href={`/request${debouncedQuery ? `?ticker=${encodeURIComponent(debouncedQuery)}` : ""}`}
-            className="text-sm font-bold text-brand transition hover:text-brand-dark"
-          >
-            종목 추가 요청 →
-          </Link>
-        </div>
-
-        {!debouncedQuery ? (
-          <div className="mt-4 rounded-xl bg-card-subtle p-5 text-sm text-secondary">
-            종목명이나 티커를 입력하면 검색 결과가 표시됩니다.
-          </div>
-        ) : loading ? (
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {Array.from({ length: 6 }, (_, index) => (
-              <div
-                key={index}
-                className="h-[104px] animate-pulse rounded-xl bg-card-subtle"
-              />
-            ))}
-          </div>
-        ) : error ? (
-          <div className="mt-4 rounded-xl bg-card-subtle p-5 text-sm text-secondary">
-            {error}
-          </div>
-        ) : results.length === 0 ? (
-          <div className="mt-4 rounded-xl bg-card-subtle p-6 text-center">
-            <p className="text-sm text-secondary">
-              &quot;{debouncedQuery}&quot;에 대한 검색 결과가 없습니다.
-            </p>
-          </div>
-        ) : (
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {results.map((ticker) => (
-              <div
-                key={ticker.ticker}
-                className="rounded-xl bg-card-subtle p-4 transition hover:bg-brand-bg focus:outline-none focus:ring-2 focus:ring-brand/35"
-              >
-                <div className="flex items-start justify-between gap-3">
                   <Link
-                    href={`/asset/${encodeURIComponent(ticker.ticker)}`}
-                    className="flex min-w-0 flex-1 items-start gap-3 focus:outline-none"
+                    href={`/asset/${encodeURIComponent(ticker.symbol)}`}
+                    className="flex min-w-0 flex-1 items-center gap-2 focus:outline-none"
                   >
-                    <StockLogo
-                      symbol={ticker.ticker}
-                      name={ticker.name_ko || ticker.name}
-                      assetType={getTickerAssetType(ticker.category)}
-                    />
-                    <div className="min-w-0">
-                      <p className="font-bold text-primary">{ticker.name_ko || ticker.name}</p>
-                      <p className="mt-1 truncate text-sm text-secondary">
-                        {ticker.ticker}
-                      </p>
-                      <p className="mt-1 truncate text-xs text-secondary">
-                        {ticker.name}
-                      </p>
+                    <StockLogo symbol={ticker.symbol} name={ticker.name} size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold text-primary">{ticker.name}</p>
+                      <p className="mt-0.5 truncate text-xs text-secondary">{ticker.symbol}</p>
                     </div>
                   </Link>
-                  <div className="flex shrink-0 items-start gap-1">
-                    <WatchHeart symbol={ticker.ticker} />
-                    {results.length <= SEARCH_QUOTE_LIMIT ? (
-                      <QuoteValue quote={quotes.get(ticker.ticker)} loading={quotesLoading} />
-                    ) : (
-                      <Badge variant="neutral">{ticker.exchange}</Badge>
-                    )}
-                  </div>
+                  <WatchHeart symbol={ticker.symbol} />
+                  <QuoteValue quote={quotes.get(ticker.symbol)} loading={quotesLoading} />
                 </div>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {!showPopular ? (
+          <>
+            <div className="mt-5 flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-secondary">검색 결과</p>
+              <Link
+                href={`/request${trimmedQuery ? `?ticker=${encodeURIComponent(trimmedQuery)}` : ""}`}
+                className="text-sm font-bold text-brand transition hover:text-brand-dark"
+              >
+                종목 추가 요청 →
+              </Link>
+            </div>
+
+            {!debouncedQuery || loading ? (
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {Array.from({ length: 6 }, (_, index) => (
+                  <div
+                    key={index}
+                    className="h-[104px] animate-pulse rounded-xl bg-card-subtle"
+                  />
+                ))}
               </div>
-            ))}
-            {results.length > SEARCH_QUOTE_LIMIT ? (
-              <div className="rounded-xl bg-card-subtle p-4 text-sm font-semibold text-secondary sm:col-span-2">
-                검색 결과가 많아 가격 표시는 생략했습니다. 종목명이나 티커를 더 구체적으로 입력해 주세요.
+            ) : error ? (
+              <div className="mt-4 rounded-xl bg-card-subtle p-5 text-sm text-secondary">
+                {error}
               </div>
-            ) : null}
-          </div>
-        )}
+            ) : results.length === 0 ? (
+              <div className="mt-4 rounded-xl bg-card-subtle p-6 text-center">
+                <p className="text-sm text-secondary">
+                  &quot;{debouncedQuery}&quot;에 대한 검색 결과가 없습니다.
+                </p>
+              </div>
+            ) : (
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {results.map((ticker) => (
+                  <div
+                    key={ticker.ticker}
+                    className="rounded-xl bg-card-subtle p-4 transition hover:bg-brand-bg focus:outline-none focus:ring-2 focus:ring-brand/35"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <Link
+                        href={`/asset/${encodeURIComponent(ticker.ticker)}`}
+                        className="flex min-w-0 flex-1 items-start gap-3 focus:outline-none"
+                      >
+                        <StockLogo
+                          symbol={ticker.ticker}
+                          name={ticker.name_ko || ticker.name}
+                          assetType={getTickerAssetType(ticker.category)}
+                        />
+                        <div className="min-w-0">
+                          <p className="font-bold text-primary">{ticker.name_ko || ticker.name}</p>
+                          <p className="mt-1 truncate text-sm text-secondary">
+                            {ticker.ticker}
+                          </p>
+                          <p className="mt-1 truncate text-xs text-secondary">
+                            {ticker.name}
+                          </p>
+                        </div>
+                      </Link>
+                      <div className="flex shrink-0 items-start gap-1">
+                        <WatchHeart symbol={ticker.ticker} />
+                        {results.length <= SEARCH_QUOTE_LIMIT ? (
+                          <QuoteValue quote={quotes.get(ticker.ticker)} loading={quotesLoading} />
+                        ) : (
+                          <Badge variant="neutral">{ticker.exchange}</Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {results.length > SEARCH_QUOTE_LIMIT ? (
+                  <div className="rounded-xl bg-card-subtle p-4 text-sm font-semibold text-secondary sm:col-span-2">
+                    검색 결과가 많아 가격 표시는 생략했습니다. 종목명이나 티커를 더 구체적으로 입력해 주세요.
+                  </div>
+                ) : null}
+              </div>
+            )}
+          </>
+        ) : null}
       </Card>
 
       <Card rounded="2xl" className="bg-card-subtle">
