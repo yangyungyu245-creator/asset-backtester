@@ -10,6 +10,7 @@ import type { AssetLogoType } from "@/components/common/AssetLogo";
 import { useQuotes, type Quote } from "@/hooks/useQuotes";
 import { loadTickerIndex, type TickerMeta } from "@/lib/data/tickerIndex";
 import { createSearcher } from "@/lib/data/tickerSearch";
+import { createClient } from "@/lib/supabase/client";
 
 const popularTickers = [
   { symbol: "NVDA", name: "NVIDIA" },
@@ -70,6 +71,10 @@ export default function SearchPage() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [watchedSymbols, setWatchedSymbols] = useState<Set<string>>(new Set());
+  const [watchlistPending, setWatchlistPending] = useState<string | null>(null);
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     loadTickerIndex()
@@ -82,6 +87,38 @@ export default function SearchPage() {
     const timeout = window.setTimeout(() => setDebouncedQuery(query.trim()), 180);
     return () => window.clearTimeout(timeout);
   }, [query]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (cancelled) return;
+
+      setUserId(data.user?.id ?? null);
+      if (!data.user) return;
+
+      const { data: watchlist } = await supabase
+        .from("watchlist")
+        .select("symbol")
+        .eq("user_id", data.user.id);
+
+      if (!cancelled) {
+        setWatchedSymbols(new Set((watchlist ?? []).map((item) => String(item.symbol).toUpperCase())));
+      }
+    });
+
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserId(session?.user?.id ?? null);
+      if (!session?.user) {
+        setWatchedSymbols(new Set());
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      data.subscription.unsubscribe();
+    };
+  }, [supabase]);
 
   const searcher = useMemo(() => createSearcher(tickers), [tickers]);
   const results = useMemo(() => {
@@ -105,6 +142,63 @@ export default function SearchPage() {
     return Array.from(new Set(symbols)).slice(0, 20);
   }, [debouncedQuery, results]);
   const { quotes, loading: quotesLoading } = useQuotes(quoteSymbols, 60_000);
+
+  async function toggleWatchlist(symbol: string) {
+    if (!userId) return;
+
+    const normalized = symbol.toUpperCase();
+    const isWatched = watchedSymbols.has(normalized);
+    setWatchlistPending(normalized);
+
+    if (isWatched) {
+      const { error: deleteError } = await supabase
+        .from("watchlist")
+        .delete()
+        .eq("user_id", userId)
+        .eq("symbol", normalized);
+
+      if (!deleteError) {
+        setWatchedSymbols((current) => {
+          const next = new Set(current);
+          next.delete(normalized);
+          return next;
+        });
+      }
+    } else {
+      const { error: insertError } = await supabase
+        .from("watchlist")
+        .insert({ user_id: userId, symbol: normalized });
+
+      if (!insertError) {
+        setWatchedSymbols((current) => new Set(current).add(normalized));
+      }
+    }
+
+    setWatchlistPending(null);
+  }
+
+  function WatchHeart({ symbol }: { symbol: string }) {
+    if (!userId) return null;
+
+    const normalized = symbol.toUpperCase();
+    const watched = watchedSymbols.has(normalized);
+
+    return (
+      <button
+        type="button"
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          toggleWatchlist(normalized);
+        }}
+        disabled={watchlistPending === normalized}
+        aria-label={watched ? "관심종목 해제" : "관심종목 추가"}
+        className="mr-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-base transition hover:bg-card disabled:opacity-60"
+      >
+        <span aria-hidden="true">{watched ? "❤️" : "🤍"}</span>
+      </button>
+    );
+  }
 
   return (
     <div className="grid gap-6 py-4 sm:py-8">
@@ -133,28 +227,29 @@ export default function SearchPage() {
           <h2 className="mb-3 text-base font-bold text-primary">인기 종목</h2>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {popularTickers.map((ticker) => (
-              <Link
+              <div
                 key={ticker.symbol}
-                href={`/asset/${encodeURIComponent(ticker.symbol)}`}
                 className="flex min-w-0 items-center justify-between gap-3 rounded-lg bg-card-subtle px-3 py-3 transition hover:bg-brand-bg focus:outline-none focus:ring-2 focus:ring-brand/35"
               >
-                <div className="flex min-w-0 items-center gap-2">
+                <Link
+                  href={`/asset/${encodeURIComponent(ticker.symbol)}`}
+                  className="flex min-w-0 flex-1 items-center gap-2 focus:outline-none"
+                >
                   <StockLogo symbol={ticker.symbol} name={ticker.name} size="sm" />
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-bold text-primary">{ticker.name}</p>
                     <p className="mt-0.5 truncate text-xs text-secondary">{ticker.symbol}</p>
                   </div>
-                </div>
+                </Link>
+                <WatchHeart symbol={ticker.symbol} />
                 <QuoteValue quote={quotes.get(ticker.symbol)} loading={quotesLoading} />
-              </Link>
+              </div>
             ))}
           </div>
         </section>
 
         <div className="mt-5 flex items-center justify-between gap-3">
-          <p className="text-sm font-semibold text-secondary">
-            {debouncedQuery ? "검색 결과" : "인기 종목"}
-          </p>
+          <p className="text-sm font-semibold text-secondary">검색 결과</p>
           <Link
             href={`/request${debouncedQuery ? `?ticker=${encodeURIComponent(debouncedQuery)}` : ""}`}
             className="text-sm font-bold text-brand transition hover:text-brand-dark"
@@ -163,7 +258,11 @@ export default function SearchPage() {
           </Link>
         </div>
 
-        {loading ? (
+        {!debouncedQuery ? (
+          <div className="mt-4 rounded-xl bg-card-subtle p-5 text-sm text-secondary">
+            종목명이나 티커를 입력하면 검색 결과가 표시됩니다.
+          </div>
+        ) : loading ? (
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {Array.from({ length: 6 }, (_, index) => (
               <div
@@ -185,13 +284,15 @@ export default function SearchPage() {
         ) : (
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {results.map((ticker) => (
-              <Link
+              <div
                 key={ticker.ticker}
-                href={`/asset/${encodeURIComponent(ticker.ticker)}`}
                 className="rounded-xl bg-card-subtle p-4 transition hover:bg-brand-bg focus:outline-none focus:ring-2 focus:ring-brand/35"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex min-w-0 items-start gap-3">
+                  <Link
+                    href={`/asset/${encodeURIComponent(ticker.ticker)}`}
+                    className="flex min-w-0 flex-1 items-start gap-3 focus:outline-none"
+                  >
                     <StockLogo
                       symbol={ticker.ticker}
                       name={ticker.name_ko || ticker.name}
@@ -206,14 +307,17 @@ export default function SearchPage() {
                         {ticker.name}
                       </p>
                     </div>
+                  </Link>
+                  <div className="flex shrink-0 items-start gap-1">
+                    <WatchHeart symbol={ticker.ticker} />
+                    {results.length <= 10 && (quotesLoading || quotes.has(ticker.ticker)) ? (
+                      <QuoteValue quote={quotes.get(ticker.ticker)} loading={quotesLoading} />
+                    ) : (
+                      <Badge variant="neutral">{ticker.exchange}</Badge>
+                    )}
                   </div>
-                  {debouncedQuery && results.length <= 10 && (quotesLoading || quotes.has(ticker.ticker)) ? (
-                    <QuoteValue quote={quotes.get(ticker.ticker)} loading={quotesLoading} />
-                  ) : (
-                    <Badge variant="neutral">{ticker.exchange}</Badge>
-                  )}
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         )}
