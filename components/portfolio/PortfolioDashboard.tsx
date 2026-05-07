@@ -50,6 +50,22 @@ function getHeatColor(changePercent: number) {
   return `rgba(${rgb}, ${alpha})`;
 }
 
+function getTreemapFontSize(width: number, height: number) {
+  const area = width * height;
+
+  if (area > 30000) {
+    return { symbol: 24, percent: 16, value: 14 };
+  }
+  if (area > 15000) {
+    return { symbol: 20, percent: 14, value: 12 };
+  }
+  if (area > 6000) {
+    return { symbol: 16, percent: 12, value: 10 };
+  }
+
+  return { symbol: 14, percent: 10, value: 9 };
+}
+
 function useElementSize() {
   const [element, setElement] = useState<HTMLDivElement | null>(null);
   const [width, setWidth] = useState(0);
@@ -135,14 +151,16 @@ function PortfolioTreemap({ items }: { items: TreemapItem[] }) {
             const data = leaf.data as TreemapItem;
             const cellWidth = leaf.x1 - leaf.x0;
             const cellHeight = leaf.y1 - leaf.y0;
-            const showPercent = cellHeight > 38;
-            const showValue = cellWidth > 82 && cellHeight > 56;
+            const area = cellWidth * cellHeight;
+            const showPercent = area >= 6000;
+            const showValue = area >= 15000;
 
             return (
               <TreemapCell
                 key={data.symbol}
                 leaf={leaf}
                 sector={sector}
+                fontSize={getTreemapFontSize(cellWidth, cellHeight)}
                 showPercent={showPercent}
                 showValue={showValue}
               />
@@ -157,11 +175,13 @@ function PortfolioTreemap({ items }: { items: TreemapItem[] }) {
 function TreemapCell({
   leaf,
   sector,
+  fontSize,
   showPercent,
   showValue,
 }: {
   leaf: HierarchyRectangularNode<{ children: TreemapGroup[] } | TreemapGroup | TreemapItem>;
   sector: HierarchyRectangularNode<{ children: TreemapGroup[] } | TreemapGroup | TreemapItem>;
+  fontSize: { symbol: number; percent: number; value: number };
   showPercent: boolean;
   showValue: boolean;
 }) {
@@ -170,7 +190,7 @@ function TreemapCell({
   return (
     <Link
       href={`/asset/${encodeURIComponent(data.symbol)}`}
-      className="absolute flex min-w-0 flex-col justify-end overflow-hidden rounded-[3px] p-1.5 text-white transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-white/45"
+      className="absolute flex min-w-0 flex-col justify-end overflow-hidden rounded-[3px] p-2 text-white transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-white/45"
       style={{
         left: leaf.x0 - sector.x0,
         top: leaf.y0 - sector.y0,
@@ -179,14 +199,25 @@ function TreemapCell({
         backgroundColor: getHeatColor(data.changePercent),
       }}
     >
-      <span className="truncate text-sm font-black leading-tight">{data.symbol}</span>
+      <span
+        className="truncate font-black leading-tight"
+        style={{ fontSize: fontSize.symbol }}
+      >
+        {data.symbol}
+      </span>
       {showPercent && (
-        <span className="mt-0.5 truncate text-xs font-bold text-white/90">
+        <span
+          className="mt-0.5 truncate font-bold leading-tight text-white/90"
+          style={{ fontSize: fontSize.percent }}
+        >
           {formatPercent(data.changePercent)}
         </span>
       )}
       {showValue && (
-        <span className="mt-0.5 truncate text-[10px] font-semibold text-white/75">
+        <span
+          className="mt-0.5 truncate font-bold leading-tight text-white/75"
+          style={{ fontSize: fontSize.value }}
+        >
           {data.displayValue}
         </span>
       )}
