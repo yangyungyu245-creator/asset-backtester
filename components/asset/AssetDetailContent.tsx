@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { StockLogo } from "@/components/asset/StockLogo";
 import AssetChart, { type Period } from "@/components/charts/AssetChart";
+import { AddToPortfolioButton } from "@/components/portfolio/AddToPortfolioButton";
 import { WatchlistButton } from "@/components/watchlist/WatchlistButton";
 import { formatCompactKRW, formatPercentValue } from "@/components/result/format";
 
@@ -724,6 +725,11 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
               symbol={symbol}
               className="inline-flex h-10 items-center justify-center rounded-lg border border-border px-4 text-sm font-bold text-primary transition hover:bg-card-subtle focus:outline-none focus:ring-2 focus:ring-brand/35"
             />
+            <AddToPortfolioButton
+              symbol={symbol}
+              currentPrice={asset?.latestPrice}
+              currency={asset?.currency}
+            />
             <Button href={`/advanced/dates?asset=${encodeURIComponent(symbol)}`} className="hidden md:inline-flex">
               시뮬레이션 시작 →
             </Button>
@@ -885,6 +891,12 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
         <div className="mx-auto flex max-w-5xl gap-2">
           <WatchlistButton
             symbol={symbol}
+            className="inline-flex h-[52px] flex-1 items-center justify-center rounded-lg border border-border px-4 text-sm font-bold text-primary transition hover:bg-card-subtle"
+          />
+          <AddToPortfolioButton
+            symbol={symbol}
+            currentPrice={asset?.latestPrice}
+            currency={asset?.currency}
             className="inline-flex h-[52px] flex-1 items-center justify-center rounded-lg border border-border px-4 text-sm font-bold text-primary transition hover:bg-card-subtle"
           />
           <Button
