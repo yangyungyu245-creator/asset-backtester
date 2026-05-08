@@ -1,7 +1,25 @@
 {
-  "last_updated": "2026-05-08T00:05:20+00:00",
+  "last_updated": "2026-05-08T01:14:58+00:00",
   "added": [],
-  "rejected": [],
+  "rejected": [
+    {
+      "ticker": "USD",
+      "reason": "ticker already exists in tickers.json"
+    },
+    {
+      "ticker": "MAGX",
+      "reason": "KR ticker must look like 005930.KS or 035720.KQ."
+    }
+  ],
   "pending": [],
-  "invalid": []
+  "invalid": [
+    {
+      "ticker": "USD",
+      "reason": "ticker already exists in tickers.json"
+    },
+    {
+      "ticker": "MAGX",
+      "reason": "KR ticker must look like 005930.KS or 035720.KQ."
+    }
+  ]
 }
