@@ -15,6 +15,9 @@ jobs:
     permissions:
       contents: write
 
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -63,6 +66,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          find scripts -type d -name "__pycache__" -prune -exec rm -rf {} +
+          git restore --staged . || true
           git add public/data/ scripts/tickers.json
           git commit -m "chore: 주간 데이터 자동 갱신 ($(date -u +'%Y-%m-%d'))"
           git pull --rebase origin "${GITHUB_REF_NAME:-main}"

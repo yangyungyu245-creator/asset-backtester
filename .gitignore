@@ -15,4 +15,6 @@ pnpm-debug.log*
 *.log
 *.tsbuildinfo
 tsconfig.tsbuildinfo
+__pycache__/
+*.py[cod]
 scripts/phase*-screenshots/
