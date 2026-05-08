@@ -29,7 +29,7 @@ const statusConfig: Record<
 };
 
 export function RequestStatusBadge({ status }: { status: RequestStatus }) {
-  const normalized = (status || "pending").toLowerCase();
+  const normalized = (status || "pending").trim().toLowerCase();
   const config = statusConfig[normalized] ?? statusConfig.pending;
 
   return (

@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { RequestCard } from "@/components/request/RequestCard";
 import { RequestForm } from "@/components/request/RequestForm";
 import type { TickerRequest } from "@/components/request/types";
@@ -18,24 +19,42 @@ export function RequestBoard({
   initialTicker = "",
   csvConfigured,
 }: RequestBoardProps) {
+  const router = useRouter();
+  const [localRequests, setLocalRequests] = useState(requests);
   const [query, setQuery] = useState("");
   const [visibleCount, setVisibleCount] = useState(20);
   const [isFormOpen, setIsFormOpen] = useState(Boolean(initialTicker));
   const [formTicker, setFormTicker] = useState(initialTicker);
 
+  useEffect(() => {
+    setLocalRequests((previous) => {
+      const optimistic = previous.filter((request) => {
+        if (!request.id.startsWith("optimistic-")) return false;
+        return !requests.some(
+          (incoming) =>
+            incoming.ticker === request.ticker &&
+            incoming.nameKo === request.nameKo &&
+            incoming.category === request.category,
+        );
+      });
+
+      return [...optimistic, ...requests];
+    });
+  }, [requests]);
+
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     if (!normalized) {
-      return requests;
+      return localRequests;
     }
 
-    return requests.filter((request) => {
+    return localRequests.filter((request) => {
       return (
         request.ticker.toLowerCase().includes(normalized) ||
         request.nameKo.toLowerCase().includes(normalized)
       );
     });
-  }, [query, requests]);
+  }, [localRequests, query]);
 
   const visibleRequests = filtered.slice(0, visibleCount);
 
@@ -153,11 +172,11 @@ export function RequestBoard({
             </div>
             <RequestForm
               initialTicker={formTicker}
-              onSuccess={() => {
-                window.setTimeout(() => {
-                  closeForm();
-                  window.location.reload();
-                }, 700);
+              onSuccess={(request) => {
+                setLocalRequests((current) => [request, ...current]);
+                closeForm();
+                router.refresh();
+                window.setTimeout(() => router.refresh(), 1500);
               }}
             />
           </div>

@@ -39,14 +39,23 @@ function translateStatusMessage(message: string) {
   if (normalized.includes("already exists")) {
     return "이미 등록된 종목입니다.";
   }
+  if (normalized.includes("must look like")) {
+    return "한국 종목은 005930.KS 또는 035720.KQ 형식이어야 합니다.";
+  }
+  if (normalized.includes("must contain only")) {
+    return "미국 종목은 영문, 숫자, 하이픈, 점만 입력할 수 있습니다.";
+  }
+  if (normalized.includes("must end with -usd")) {
+    return "암호화폐 종목은 BTC-USD 형식이어야 합니다.";
+  }
   if (normalized.includes("added") || normalized.includes("success")) {
     return "종목이 추가되었습니다.";
   }
   if (normalized.includes("invalid")) {
     return "유효하지 않은 종목 코드입니다.";
   }
-  if (normalized.includes("not found")) {
-    return "종목을 찾을 수 없습니다.";
+  if (normalized.includes("not found") || normalized.includes("no 1-month history")) {
+    return "Yahoo Finance에서 최근 데이터를 찾을 수 없습니다.";
   }
   if (normalized.includes("processing")) {
     return "처리 중입니다.";

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import type { TickerRequest } from "@/components/request/types";
 
 const categoryOptions = [
   { value: "us_stock", label: "미국 주식" },
@@ -18,7 +19,7 @@ type SubmitState = "idle" | "submitting" | "success" | "error";
 
 type RequestFormProps = {
   initialTicker?: string;
-  onSuccess?: () => void;
+  onSuccess?: (request: TickerRequest) => void;
 };
 
 function translateStatusMessage(message: string) {
@@ -65,13 +66,25 @@ export function RequestForm({ initialTicker = "", onSuccess }: RequestFormProps)
       return;
     }
 
+    const submittedAt = new Date().toISOString();
+    const submittedRequest: TickerRequest = {
+      id: `optimistic-${submittedAt}-${ticker}`,
+      submittedAt,
+      ticker: ticker.toUpperCase(),
+      nameKo,
+      category,
+      reason,
+      status: "pending",
+      comment: "",
+    };
+
     setStatus("success");
     setMessage("요청이 저장되었습니다. 승인되면 주간 데이터 갱신 때 자동 반영됩니다.");
     setTicker("");
     setNameKo("");
     setReason("");
     setContact("");
-    onSuccess?.();
+    onSuccess?.(submittedRequest);
   }
 
   return (
