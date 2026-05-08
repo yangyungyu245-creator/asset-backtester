@@ -46,6 +46,18 @@ function toTimestamp(value: string) {
   return Number.isNaN(time) ? 0 : time;
 }
 
+function normalizeRequest(request: TickerRequest): TickerRequest {
+  if (request.ticker === "USD" && request.status === "pending") {
+    return {
+      ...request,
+      status: "rejected",
+      comment: request.comment || "이미 등록된 종목입니다.",
+    };
+  }
+
+  return request;
+}
+
 function getRequestCsvUrl() {
   return (
     process.env.NEXT_PUBLIC_REQUEST_CSV_URL?.trim() ||
@@ -85,6 +97,7 @@ export async function loadTickerRequests(): Promise<RequestLoadResult> {
         };
       })
       .filter((request) => request.ticker)
+      .map(normalizeRequest)
       .sort((a, b) => toTimestamp(b.submittedAt) - toTimestamp(a.submittedAt));
 
     return { requests, csvConfigured: true };
