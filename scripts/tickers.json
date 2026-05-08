@@ -1827,6 +1827,11 @@
       "category": "us_etf"
     },
     {
+      "ticker": "MAGX",
+      "name_ko": "라운드힐 M7 2배 롱 ETF",
+      "category": "us_etf"
+    },
+    {
       "ticker": "QLD",
       "name_ko": "Qld",
       "category": "us_etf"
