@@ -104,6 +104,8 @@ const SECTOR_COLORS: Record<string, string> = {
 };
 
 const monthLabels = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"];
+const DIVIDEND_CHART_HEIGHT = 160;
+const DIVIDEND_BAR_MIN_HEIGHT = 4;
 
 function getDividendMonths(symbol: string) {
   return DIVIDEND_MONTHS[symbol.toUpperCase()] ?? [2, 5, 8, 11];
@@ -964,32 +966,45 @@ function MonthlyDividendChart({
           세금 0% 적용
         </span>
       </div>
-      <div className="mt-5 flex items-stretch gap-1.5" style={{ height: 180 }}>
+      <div
+        className="mt-5 flex items-end gap-1.5"
+        style={{ height: DIVIDEND_CHART_HEIGHT + 30 }}
+      >
         {monthly.map((amount, index) => {
-          const heightPercent = max > 0 ? (amount / max) * 100 : 0;
           const hasValue = amount > 0;
           const isCurrentMonth = currentMonth === index;
+          const barHeight = hasValue
+            ? Math.max(
+                DIVIDEND_BAR_MIN_HEIGHT,
+                Math.round((amount / max) * DIVIDEND_CHART_HEIGHT),
+              )
+            : 0;
 
           return (
-            <div key={monthLabels[index]} className="flex h-full min-w-0 flex-1 flex-col items-center gap-1">
+            <div
+              key={monthLabels[index]}
+              className="flex min-w-0 flex-1 flex-col items-center justify-end"
+              style={{ height: DIVIDEND_CHART_HEIGHT + 30 }}
+            >
               <span className="max-w-full truncate text-[10px] font-semibold tabular-nums text-secondary">
                 {hasValue ? formatDisplayCurrency(amount, displayCurrency).replace(/\s/g, "") : "0"}
               </span>
-              <div className="flex min-h-0 w-full flex-1 items-end">
-                <div
-                  className={`w-full rounded-t transition-all duration-300 ${
-                    hasValue
-                      ? isCurrentMonth
-                        ? "bg-brand"
-                        : "bg-secondary/35"
-                      : "bg-secondary/15"
-                  }`}
-                  style={{
-                    height: hasValue ? `${Math.max(heightPercent, 3)}%` : 2,
-                    minHeight: hasValue ? 4 : 2,
-                  }}
-                />
-              </div>
+              <div
+                className="mt-1 transition-all duration-300"
+                style={{
+                  width: "100%",
+                  height: hasValue ? `${barHeight}px` : "2px",
+                  minHeight: hasValue ? `${DIVIDEND_BAR_MIN_HEIGHT}px` : "2px",
+                  backgroundColor: hasValue
+                    ? isCurrentMonth
+                      ? "#FF6B35"
+                      : "#4E5968"
+                    : "#333D4B",
+                  borderRadius: "4px 4px 0 0",
+                  position: "relative",
+                  zIndex: 1,
+                }}
+              />
             </div>
           );
         })}
