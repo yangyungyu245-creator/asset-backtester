@@ -12,6 +12,7 @@ const navItems = [
   { href: "/simple", label: "간단 모드" },
   { href: "/advanced/dates", label: "고급 모드", match: "/advanced" },
   { href: "/search", label: "종목 검색" },
+  { href: "/board", label: "게시판", match: "/board" },
   { href: "/about", label: "소개" },
 ];
 
