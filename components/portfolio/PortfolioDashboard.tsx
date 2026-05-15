@@ -251,7 +251,7 @@ export function PortfolioDashboard() {
   const [loading, setLoading] = useState(true);
   const [displayCurrency, setDisplayCurrency] = useState<DisplayCurrency>("KRW");
   const [isMasked, setIsMasked] = useState(false);
-  const [showDaily, setShowDaily] = useState(false);
+  const [showDaily, setShowDaily] = useState(true);
 
   useEffect(() => {
     let alive = true;
@@ -408,59 +408,46 @@ export function PortfolioDashboard() {
                 {portfolio.name}
               </Link>
             </div>
-            <Link href="/portfolio" className="mt-2 block h-[74px] min-w-0">
-              <div className="relative h-12 min-w-0">
-                <div
-                  className={`absolute inset-0 flex min-w-0 items-baseline gap-2 transition-opacity duration-700 ${
-                    showDaily ? "opacity-0" : "opacity-100"
-                  }`}
-                >
-                  <span className="min-w-0 truncate text-3xl font-black tracking-normal text-primary text-numeric sm:text-4xl">
-                    <MaskedValue masked={isMasked}>
-                      {formatDisplayMoney(displayedTotalValue, displayCurrency)}
-                    </MaskedValue>
-                  </span>
-                  <span className="shrink-0 text-base font-bold text-secondary">&gt;</span>
-                </div>
-
-                <div
-                  className={`absolute inset-0 flex min-w-0 flex-wrap items-baseline gap-x-2 transition-opacity duration-700 ${
-                    showDaily ? "opacity-100" : "opacity-0"
-                  }`}
-                >
-                  <span
-                    className={`min-w-0 truncate text-3xl font-black tracking-normal text-numeric sm:text-4xl ${
-                      isDailyPositive ? "text-up" : "text-down"
-                    }`}
-                  >
-                    {displayedDailyReturn >= 0 ? "+" : ""}
-                    <MaskedValue masked={isMasked}>
-                      {formatDisplayMoney(displayedDailyReturn, displayCurrency)}
-                    </MaskedValue>
-                  </span>
-                  <span
-                    className={`shrink-0 text-sm font-bold ${
-                      isDailyPositive ? "text-up" : "text-down"
-                    }`}
-                  >
-                    ({formatPercent(dashboardData.todayReturnPercent)})
-                  </span>
-                </div>
-              </div>
-              <span className="mt-1 block text-sm font-semibold text-secondary">
-                {showDaily ? "일간 수익" : "총 자산"}
-              </span>
-            </Link>
-            <p className="mt-1 text-sm font-semibold text-secondary">
-              총 수익{" "}
-              <span className={isTotalReturnPositive ? "text-up" : "text-down"}>
-                {displayedTotalReturn >= 0 ? "+" : ""}
+            <Link
+              href="/portfolio"
+              className="mt-2 flex min-w-0 items-baseline gap-2"
+            >
+              <span className="min-w-0 truncate text-3xl font-black tracking-normal text-primary text-numeric sm:text-4xl">
                 <MaskedValue masked={isMasked}>
-                  {formatDisplayMoney(displayedTotalReturn, displayCurrency)}
-                </MaskedValue>{" "}
-                ({formatPercent(dashboardData.totalReturnPercent)})
+                  {formatDisplayMoney(displayedTotalValue, displayCurrency)}
+                </MaskedValue>
               </span>
-            </p>
+              <span className="shrink-0 text-base font-bold text-secondary">&gt;</span>
+            </Link>
+            <div className="relative mt-1 h-6 min-w-0 text-sm font-semibold">
+              <div
+                className={`absolute inset-0 transition-opacity duration-700 ${
+                  showDaily ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                <span className={isDailyPositive ? "text-up" : "text-down"}>
+                  일간 수익 {displayedDailyReturn >= 0 ? "+" : "-"}
+                  <MaskedValue masked={isMasked}>
+                    {formatDisplayMoney(Math.abs(displayedDailyReturn), displayCurrency)}
+                  </MaskedValue>{" "}
+                  ({formatPercent(dashboardData.todayReturnPercent)})
+                </span>
+              </div>
+
+              <div
+                className={`absolute inset-0 transition-opacity duration-700 ${
+                  showDaily ? "opacity-0" : "opacity-100"
+                }`}
+              >
+                <span className={isTotalReturnPositive ? "text-up" : "text-down"}>
+                  총 수익 {displayedTotalReturn >= 0 ? "+" : "-"}
+                  <MaskedValue masked={isMasked}>
+                    {formatDisplayMoney(Math.abs(displayedTotalReturn), displayCurrency)}
+                  </MaskedValue>{" "}
+                  ({formatPercent(dashboardData.totalReturnPercent)})
+                </span>
+              </div>
+            </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <button
