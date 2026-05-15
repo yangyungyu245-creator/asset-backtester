@@ -251,6 +251,7 @@ export function PortfolioDashboard() {
   const [loading, setLoading] = useState(true);
   const [displayCurrency, setDisplayCurrency] = useState<DisplayCurrency>("KRW");
   const [isMasked, setIsMasked] = useState(false);
+  const [showDaily, setShowDaily] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -287,6 +288,14 @@ export function PortfolioDashboard() {
     };
   }, []);
 
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setShowDaily((value) => !value);
+    }, 3000);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
   const symbols = useMemo(
     () => (portfolio ? [...portfolio.holdings.map((holding) => holding.symbol), "KRW=X"] : []),
     [portfolio],
@@ -306,8 +315,10 @@ export function PortfolioDashboard() {
         const previousValue = holding.shares * previousClose;
         const change = quote ? holding.shares * quote.change : 0;
         const multiplier = holding.currency === "KRW" || quote?.currency === "KRW" ? 1 : krwPerUsd;
+        const costMultiplier = holding.currency === "KRW" ? 1 : krwPerUsd;
         const currentValueKrw = currentValue * multiplier;
         const previousValueKrw = previousValue * multiplier;
+        const costKrw = holding.shares * holding.avg_price * costMultiplier;
         const todayChangeKrw = change * multiplier;
         const annualDividendKrw = holding.annualDividend * multiplier;
 
@@ -316,6 +327,8 @@ export function PortfolioDashboard() {
           currentValue,
           currentValueKrw,
           currentValueUsd: currentValueKrw / krwPerUsd,
+          costKrw,
+          costUsd: costKrw / krwPerUsd,
           previousValueKrw,
           previousValueUsd: previousValueKrw / krwPerUsd,
           todayChangeKrw,
@@ -329,6 +342,11 @@ export function PortfolioDashboard() {
 
     const totalValueKrw = holdings.reduce((sum, holding) => sum + holding.currentValueKrw, 0);
     const totalValueUsd = totalValueKrw / krwPerUsd;
+    const totalCostKrw = holdings.reduce((sum, holding) => sum + holding.costKrw, 0);
+    const totalCostUsd = totalCostKrw / krwPerUsd;
+    const totalReturnKrw = totalValueKrw - totalCostKrw;
+    const totalReturnUsd = totalReturnKrw / krwPerUsd;
+    const totalReturnPercent = totalCostKrw > 0 ? (totalReturnKrw / totalCostKrw) * 100 : 0;
     const totalPreviousValueKrw = holdings.reduce((sum, holding) => sum + holding.previousValueKrw, 0);
     const todayReturnKrw = holdings.reduce((sum, holding) => sum + holding.todayChangeKrw, 0);
     const todayReturnUsd = todayReturnKrw / krwPerUsd;
@@ -352,6 +370,11 @@ export function PortfolioDashboard() {
     return {
       totalValueKrw,
       totalValueUsd,
+      totalCostKrw,
+      totalCostUsd,
+      totalReturnKrw,
+      totalReturnUsd,
+      totalReturnPercent,
       todayReturnKrw,
       todayReturnUsd,
       todayReturnPercent,
@@ -364,6 +387,14 @@ export function PortfolioDashboard() {
   if (loading || !portfolio || !dashboardData) return null;
 
   const month = new Date().getMonth() + 1;
+  const displayedTotalValue =
+    displayCurrency === "KRW" ? dashboardData.totalValueKrw : dashboardData.totalValueUsd;
+  const displayedDailyReturn =
+    displayCurrency === "KRW" ? dashboardData.todayReturnKrw : dashboardData.todayReturnUsd;
+  const displayedTotalReturn =
+    displayCurrency === "KRW" ? dashboardData.totalReturnKrw : dashboardData.totalReturnUsd;
+  const isDailyPositive = dashboardData.todayReturnKrw >= 0;
+  const isTotalReturnPositive = dashboardData.totalReturnKrw >= 0;
 
   return (
     <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-subtle">
@@ -377,29 +408,58 @@ export function PortfolioDashboard() {
                 {portfolio.name}
               </Link>
             </div>
-            <Link
-              href="/portfolio"
-              className={`mt-2 inline-flex items-baseline gap-2 text-4xl font-black tracking-normal ${
-                dashboardData.todayReturnPercent >= 0 ? "text-[#F04452]" : "text-[#3182F6]"
-              }`}
-            >
-              <MaskedValue masked={isMasked}>
-                {formatDisplayMoney(
-                  displayCurrency === "KRW" ? dashboardData.totalValueKrw : dashboardData.totalValueUsd,
-                  displayCurrency,
-                )}
-              </MaskedValue>
-              <span className="text-base font-bold text-secondary">&gt;</span>
+            <Link href="/portfolio" className="mt-2 block h-[74px] min-w-0">
+              <div className="relative h-12 min-w-0">
+                <div
+                  className={`absolute inset-0 flex min-w-0 items-baseline gap-2 transition-opacity duration-700 ${
+                    showDaily ? "opacity-0" : "opacity-100"
+                  }`}
+                >
+                  <span className="min-w-0 truncate text-3xl font-black tracking-normal text-primary text-numeric sm:text-4xl">
+                    <MaskedValue masked={isMasked}>
+                      {formatDisplayMoney(displayedTotalValue, displayCurrency)}
+                    </MaskedValue>
+                  </span>
+                  <span className="shrink-0 text-base font-bold text-secondary">&gt;</span>
+                </div>
+
+                <div
+                  className={`absolute inset-0 flex min-w-0 flex-wrap items-baseline gap-x-2 transition-opacity duration-700 ${
+                    showDaily ? "opacity-100" : "opacity-0"
+                  }`}
+                >
+                  <span
+                    className={`min-w-0 truncate text-3xl font-black tracking-normal text-numeric sm:text-4xl ${
+                      isDailyPositive ? "text-up" : "text-down"
+                    }`}
+                  >
+                    {displayedDailyReturn >= 0 ? "+" : ""}
+                    <MaskedValue masked={isMasked}>
+                      {formatDisplayMoney(displayedDailyReturn, displayCurrency)}
+                    </MaskedValue>
+                  </span>
+                  <span
+                    className={`shrink-0 text-sm font-bold ${
+                      isDailyPositive ? "text-up" : "text-down"
+                    }`}
+                  >
+                    ({formatPercent(dashboardData.todayReturnPercent)})
+                  </span>
+                </div>
+              </div>
+              <span className="mt-1 block text-sm font-semibold text-secondary">
+                {showDaily ? "일간 수익" : "총 자산"}
+              </span>
             </Link>
             <p className="mt-1 text-sm font-semibold text-secondary">
-              일간 수익 {dashboardData.todayReturnKrw >= 0 ? "+" : ""}
-              <MaskedValue masked={isMasked}>
-                {formatDisplayMoney(
-                  displayCurrency === "KRW" ? dashboardData.todayReturnKrw : dashboardData.todayReturnUsd,
-                  displayCurrency,
-                )}
-              </MaskedValue>{" "}
-              ({formatPercent(dashboardData.todayReturnPercent)})
+              총 수익{" "}
+              <span className={isTotalReturnPositive ? "text-up" : "text-down"}>
+                {displayedTotalReturn >= 0 ? "+" : ""}
+                <MaskedValue masked={isMasked}>
+                  {formatDisplayMoney(displayedTotalReturn, displayCurrency)}
+                </MaskedValue>{" "}
+                ({formatPercent(dashboardData.totalReturnPercent)})
+              </span>
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
