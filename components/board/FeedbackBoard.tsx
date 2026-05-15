@@ -1,18 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import type { User } from "@supabase/supabase-js";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { getPosts } from "@/lib/board/actions";
-import { isAuthConfigured } from "@/lib/auth/status";
-import { createClient } from "@/lib/supabase/client";
+import { getPostSummaries } from "@/lib/board/actions";
 import {
   CATEGORY_LABELS,
   VISIBILITY_LABELS,
   type BoardCategory,
-  type BoardPost,
+  type BoardPostSummary,
 } from "@/lib/types/board";
 
 const filters: Array<{ label: string; value: BoardCategory | "all" }> = [
@@ -33,26 +30,15 @@ function formatDate(value: string) {
 }
 
 export function FeedbackBoard() {
-  const [posts, setPosts] = useState<BoardPost[]>([]);
+  const [posts, setPosts] = useState<BoardPostSummary[]>([]);
   const [filter, setFilter] = useState<BoardCategory | "all">("all");
-  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  const supabase = useMemo(() => (isAuthConfigured() ? createClient() : null), []);
-
-  useEffect(() => {
-    if (!supabase) return;
-
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
-    });
-  }, [supabase]);
 
   useEffect(() => {
     setLoading(true);
     setError("");
-    getPosts(filter === "all" ? undefined : filter)
+    getPostSummaries(filter === "all" ? undefined : filter)
       .then(setPosts)
       .catch(() => {
         setError("게시판 데이터를 불러오지 못했습니다. Supabase SQL 실행 여부를 확인해주세요.");
@@ -107,44 +93,64 @@ export function FeedbackBoard() {
           </Card>
         ) : posts.length > 0 ? (
           posts.map((post) => {
-            const isMine = user?.id === post.user_id;
+            const isMine = post.is_mine;
+            const isLocked = post.visibility === "private" && !isMine;
+            const className =
+              "rounded-xl border border-border bg-card p-4 shadow-subtle transition sm:p-5";
+            const content = (
+              <article>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded bg-brand/10 px-2 py-1 text-xs font-bold text-brand">
+                    {CATEGORY_LABELS[post.category]}
+                  </span>
+                  {isLocked ? (
+                    <span className="rounded bg-card-subtle px-2 py-1 text-xs font-bold text-secondary">
+                      잠금
+                    </span>
+                  ) : null}
+                  {post.admin_reply ? (
+                    <span className="rounded bg-down-bg px-2 py-1 text-xs font-bold text-down">
+                      답변 완료 ✓
+                    </span>
+                  ) : null}
+                  {isMine ? (
+                    <span className="rounded bg-card-subtle px-2 py-1 text-xs font-bold text-secondary">
+                      내 글
+                    </span>
+                  ) : null}
+                </div>
+                <h2 className="mt-3 break-words text-lg font-bold text-primary">
+                  {post.title}
+                </h2>
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-secondary">
+                  <time>{formatDate(post.created_at)}</time>
+                  <span aria-hidden="true">·</span>
+                  <span>{VISIBILITY_LABELS[post.visibility]}</span>
+                </div>
+                {isLocked ? (
+                  <p className="mt-3 rounded-md bg-card-subtle px-3 py-2 text-sm text-secondary">
+                    비공개 글입니다. 작성자만 본문을 열람할 수 있습니다.
+                  </p>
+                ) : null}
+                {post.admin_reply ? (
+                  <p className="mt-3 line-clamp-2 rounded-md bg-card-subtle px-3 py-2 text-sm text-secondary">
+                    관리자: {post.admin_reply}
+                  </p>
+                ) : null}
+              </article>
+            );
 
-            return (
+            return isLocked ? (
+              <div key={post.id} className={className}>
+                {content}
+              </div>
+            ) : (
               <Link
                 key={post.id}
                 href={`/board/feedback/${post.id}`}
-                className="rounded-xl border border-border bg-card p-4 shadow-subtle transition hover:bg-card-subtle sm:p-5"
+                className={`${className} hover:bg-card-subtle`}
               >
-                <article>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded bg-brand/10 px-2 py-1 text-xs font-bold text-brand">
-                      {CATEGORY_LABELS[post.category]}
-                    </span>
-                    {post.admin_reply ? (
-                      <span className="rounded bg-down-bg px-2 py-1 text-xs font-bold text-down">
-                        답변 완료 ✓
-                      </span>
-                    ) : null}
-                    {isMine ? (
-                      <span className="rounded bg-card-subtle px-2 py-1 text-xs font-bold text-secondary">
-                        내 글
-                      </span>
-                    ) : null}
-                  </div>
-                  <h2 className="mt-3 break-words text-lg font-bold text-primary">
-                    {post.title}
-                  </h2>
-                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-secondary">
-                    <time>{formatDate(post.created_at)}</time>
-                    <span aria-hidden="true">·</span>
-                    <span>{VISIBILITY_LABELS[post.visibility]}</span>
-                  </div>
-                  {post.admin_reply ? (
-                    <p className="mt-3 line-clamp-2 rounded-md bg-card-subtle px-3 py-2 text-sm text-secondary">
-                      관리자: {post.admin_reply}
-                    </p>
-                  ) : null}
-                </article>
+                {content}
               </Link>
             );
           })

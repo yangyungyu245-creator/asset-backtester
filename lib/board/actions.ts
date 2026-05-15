@@ -4,13 +4,16 @@ import { createClient } from "@/lib/supabase/client";
 import type {
   BoardCategory,
   BoardPost,
+  BoardPostSummary,
   BoardVisibility,
 } from "@/lib/types/board";
 
-export async function getPosts(category?: BoardCategory): Promise<BoardPost[]> {
+export async function getPostSummaries(
+  category?: BoardCategory,
+): Promise<BoardPostSummary[]> {
   const supabase = createClient();
   let query = supabase
-    .from("board_posts")
+    .from("board_post_summaries")
     .select("*")
     .order("created_at", { ascending: false });
 
@@ -21,6 +24,18 @@ export async function getPosts(category?: BoardCategory): Promise<BoardPost[]> {
   const { data, error } = await query;
   if (error) throw error;
   return data || [];
+}
+
+export async function getPostSummary(id: string): Promise<BoardPostSummary | null> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("board_post_summaries")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) return null;
+  return data;
 }
 
 export async function getPost(id: string): Promise<BoardPost | null> {

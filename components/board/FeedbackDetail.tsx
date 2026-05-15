@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { deletePost, getPost } from "@/lib/board/actions";
+import { deletePost, getPost, getPostSummary } from "@/lib/board/actions";
 import { isAuthConfigured } from "@/lib/auth/status";
 import { createClient } from "@/lib/supabase/client";
 import {
   CATEGORY_LABELS,
   VISIBILITY_LABELS,
   type BoardPost,
+  type BoardPostSummary,
 } from "@/lib/types/board";
 
 function formatDate(value: string | null) {
@@ -29,6 +30,7 @@ function formatDate(value: string | null) {
 export function FeedbackDetail({ id }: { id: string }) {
   const router = useRouter();
   const [post, setPost] = useState<BoardPost | null>(null);
+  const [summary, setSummary] = useState<BoardPostSummary | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
@@ -45,10 +47,22 @@ export function FeedbackDetail({ id }: { id: string }) {
   }, [supabase]);
 
   useEffect(() => {
-    getPost(id)
-      .then(setPost)
-      .catch(() => setError("글을 불러오지 못했습니다."))
-      .finally(() => setLoading(false));
+    async function loadPost() {
+      try {
+        const fullPost = await getPost(id);
+        setPost(fullPost);
+
+        if (!fullPost) {
+          setSummary(await getPostSummary(id));
+        }
+      } catch {
+        setError("글을 불러오지 못했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadPost();
   }, [id]);
 
   async function remove() {
@@ -78,6 +92,60 @@ export function FeedbackDetail({ id }: { id: string }) {
   }
 
   if (!post) {
+    if (summary) {
+      return (
+        <section className="mx-auto grid max-w-3xl gap-6 py-4 sm:py-8">
+          <Button href="/board/feedback" variant="ghost" className="w-fit">
+            목록으로
+          </Button>
+
+          <article className="rounded-2xl border border-border bg-card p-5 shadow-subtle sm:p-7">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded bg-brand/10 px-2 py-1 text-xs font-bold text-brand">
+                {CATEGORY_LABELS[summary.category]}
+              </span>
+              <span className="rounded bg-card-subtle px-2 py-1 text-xs font-bold text-secondary">
+                잠금
+              </span>
+              <span className="rounded bg-card-subtle px-2 py-1 text-xs font-bold text-secondary">
+                {VISIBILITY_LABELS[summary.visibility]}
+              </span>
+              {summary.admin_reply ? (
+                <span className="rounded bg-down-bg px-2 py-1 text-xs font-bold text-down">
+                  답변 완료 ✓
+                </span>
+              ) : null}
+            </div>
+
+            <h1 className="mt-4 break-words text-2xl font-bold leading-tight text-primary sm:text-3xl">
+              {summary.title}
+            </h1>
+            <time className="mt-3 block text-sm font-semibold text-secondary">
+              {formatDate(summary.created_at)}
+            </time>
+
+            <div className="mt-6 rounded-xl border border-border bg-card-subtle p-4 text-sm leading-7 text-secondary">
+              비공개 글입니다. 작성자만 본문을 열람할 수 있습니다.
+            </div>
+
+            {summary.admin_reply ? (
+              <section className="mt-6 rounded-xl bg-card-subtle p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-sm font-bold text-primary">관리자 답변</h2>
+                  <time className="text-xs font-semibold text-secondary">
+                    {formatDate(summary.admin_reply_at)}
+                  </time>
+                </div>
+                <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-7 text-secondary">
+                  {summary.admin_reply}
+                </p>
+              </section>
+            ) : null}
+          </article>
+        </section>
+      );
+    }
+
     return (
       <section className="mx-auto max-w-3xl py-8">
         <Card rounded="2xl" className="p-8 text-center">
