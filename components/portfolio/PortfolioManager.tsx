@@ -119,6 +119,20 @@ function formatDisplayCurrency(value: number, currency: DisplayCurrency) {
   }).format(Number.isFinite(value) ? value : 0);
 }
 
+function formatDividendAmount(value: number, currency: DisplayCurrency) {
+  if (value === 0) return "0";
+
+  if (currency === "KRW") {
+    if (value >= 10000) return `₩${(value / 10000).toFixed(1)}만`;
+    if (value >= 1000) return `₩${(Math.round(value / 100) * 100).toLocaleString("ko-KR")}`;
+    return `₩${Math.round(value).toLocaleString("ko-KR")}`;
+  }
+
+  if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
+  if (value >= 100) return `$${Math.round(value).toLocaleString("en-US")}`;
+  return `$${value.toFixed(value >= 10 ? 1 : 2)}`;
+}
+
 function formatNativePrice(value: number, currency: string) {
   if (currency === "KRW" || currency === "USD") {
     return formatDisplayCurrency(value, currency);
@@ -245,11 +259,11 @@ export function PortfolioManager() {
       cost: convertNativeAmount(cost, holding.currency, displayCurrency, exchangeRate),
       returnAmount: convertNativeAmount(returnAmount, nativeCurrency, displayCurrency, exchangeRate),
       returnPercent: cost > 0 ? (returnAmount / cost) * 100 : 0,
-      annualDividend: convertNativeAmount(annualDividend, holding.currency, displayCurrency, exchangeRate),
-      monthlyDividend: convertNativeAmount(annualDividend / 12, holding.currency, displayCurrency, exchangeRate),
+      annualDividend: convertNativeAmount(annualDividend, nativeCurrency, displayCurrency, exchangeRate),
+      monthlyDividend: convertNativeAmount(annualDividend / 12, nativeCurrency, displayCurrency, exchangeRate),
       annualDividendPerShare: convertNativeAmount(
         holding.annualDividendPerShare,
-        holding.currency,
+        nativeCurrency,
         displayCurrency,
         exchangeRate,
       ),
@@ -986,8 +1000,8 @@ function MonthlyDividendChart({
               className="flex min-w-0 flex-1 flex-col items-center justify-end"
               style={{ height: DIVIDEND_CHART_HEIGHT + 30 }}
             >
-              <span className="max-w-full truncate text-[10px] font-semibold tabular-nums text-secondary">
-                {hasValue ? formatDisplayCurrency(amount, displayCurrency).replace(/\s/g, "") : "0"}
+              <span className="overflow-visible whitespace-nowrap text-[10px] font-semibold tabular-nums text-secondary">
+                {formatDividendAmount(amount, displayCurrency)}
               </span>
               <div
                 className="mt-1 transition-all duration-300"
