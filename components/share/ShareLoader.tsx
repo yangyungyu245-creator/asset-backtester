@@ -26,6 +26,7 @@ function ShareLoaderContent() {
         startDate: scenario.startDate,
         endDate: scenario.endDate,
         selectedTickers: scenario.selectedTickers,
+        allocationMode: scenario.allocationMode,
         initialAmount: scenario.initialAmount,
         contributionFrequency: scenario.contributionFrequency,
         contributionSchedule: scenario.contributionSchedule,

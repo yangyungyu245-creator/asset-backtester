@@ -109,6 +109,7 @@ export function ResultActions() {
     startDate,
     endDate,
     selectedTickers,
+    allocationMode,
     initialAmount,
     contributionSchedule,
     contributionFrequency,
@@ -123,6 +124,7 @@ export function ResultActions() {
       startDate,
       endDate,
       selectedTickers,
+      allocationMode,
       initialAmount,
       contributionFrequency,
       contributionSchedule: contributionSchedule.map(

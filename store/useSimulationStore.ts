@@ -17,7 +17,10 @@ export type ContributionPeriod = {
 export type SelectedTicker = {
   ticker: string;
   weight: number;
+  amount?: number;
 };
+
+export type AllocationMode = "percent" | "amount";
 
 export type AdvancedOptions = {
   reinvestDividends: boolean;
@@ -31,6 +34,7 @@ type SimulationState = {
   startDate: string;
   endDate: string;
   selectedTickers: SelectedTicker[];
+  allocationMode: AllocationMode;
   initialAmount: number;
   contributionSchedule: ContributionPeriod[];
   contributionFrequency: InvestmentFrequency;
@@ -44,9 +48,12 @@ export type SimulationStore = SimulationState & {
   setEndDate: (date: string) => void;
   addTicker: (ticker: string) => void;
   setSelectedTickers: (tickers: SelectedTicker[]) => void;
+  setAllocationMode: (mode: AllocationMode) => void;
   removeTicker: (ticker: string) => void;
   updateWeight: (ticker: string, weight: number) => void;
+  updateAllocationAmount: (ticker: string, amount: number) => void;
   distributeWeightsEqually: () => void;
+  distributeAmountsEqually: (totalAmount: number) => void;
   setInitialAmount: (amount: number) => void;
   setContributionFrequency: (frequency: InvestmentFrequency) => void;
   addContributionPeriod: () => void;
@@ -60,6 +67,7 @@ export type SimulationStore = SimulationState & {
     startDate: string;
     endDate: string;
     selectedTickers: SelectedTicker[];
+    allocationMode?: AllocationMode;
     initialAmount: number;
     contributionSchedule: Omit<ContributionPeriod, "id">[];
     contributionFrequency?: InvestmentFrequency;
@@ -135,6 +143,7 @@ function createDefaultState(): SimulationState {
     startDate,
     endDate,
     selectedTickers: [],
+    allocationMode: "percent",
     initialAmount: 0,
     contributionSchedule: [createPeriod(startDate, endDate)],
     contributionFrequency: "monthly",
@@ -206,14 +215,15 @@ export const useSimulationStore = create<SimulationStore>()(
             return state;
           }
 
-          const tickers = [...state.selectedTickers, { ticker, weight: 0 }];
+          const tickers = [...state.selectedTickers, { ticker, weight: 0, amount: 0 }];
           const weights = equalWeights(tickers.length);
 
           return {
             selectedTickers: tickers.map((item, index) => ({
               ...item,
-              weight: weights[index],
-            })),
+            weight: weights[index],
+            amount: item.amount ?? 0,
+          })),
           };
         }),
       setSelectedTickers: (tickers) =>
@@ -221,6 +231,7 @@ export const useSimulationStore = create<SimulationStore>()(
           selectedTickers: tickers.slice(0, 10).map((item) => ({
             ticker: item.ticker.trim().toUpperCase(),
             weight: clampWeight(item.weight),
+            amount: Math.min(100_000_000, Math.max(0, item.amount ?? 0)),
           })),
           simulationResult: null,
           simulationError: null,
@@ -245,6 +256,18 @@ export const useSimulationStore = create<SimulationStore>()(
             item.ticker === ticker ? { ...item, weight: clampWeight(weight) } : item,
           ),
         })),
+      setAllocationMode: (allocationMode) => set({ allocationMode }),
+      updateAllocationAmount: (ticker, amount) =>
+        set((state) => ({
+          selectedTickers: state.selectedTickers.map((item) =>
+            item.ticker === ticker
+              ? {
+                  ...item,
+                  amount: Math.min(100_000_000, Math.max(0, amount)),
+                }
+              : item,
+          ),
+        })),
       distributeWeightsEqually: () =>
         set((state) => {
           const weights = equalWeights(state.selectedTickers.length);
@@ -253,6 +276,23 @@ export const useSimulationStore = create<SimulationStore>()(
             selectedTickers: state.selectedTickers.map((item, index) => ({
               ...item,
               weight: weights[index],
+            })),
+          };
+        }),
+      distributeAmountsEqually: (totalAmount) =>
+        set((state) => {
+          if (state.selectedTickers.length === 0) {
+            return state;
+          }
+
+          const safeTotal = Math.max(0, totalAmount);
+          const base = Math.floor(safeTotal / state.selectedTickers.length);
+          const remainder = safeTotal - base * state.selectedTickers.length;
+
+          return {
+            selectedTickers: state.selectedTickers.map((item, index) => ({
+              ...item,
+              amount: index === state.selectedTickers.length - 1 ? base + remainder : base,
             })),
           };
         }),
@@ -329,6 +369,7 @@ export const useSimulationStore = create<SimulationStore>()(
           startDate: scenario.startDate,
           endDate: scenario.endDate,
           selectedTickers: scenario.selectedTickers,
+          allocationMode: scenario.allocationMode ?? "percent",
           initialAmount: scenario.initialAmount,
           contributionFrequency: scenario.contributionFrequency ?? "monthly",
           contributionSchedule: scenario.contributionSchedule.map((period, index) => ({

@@ -34,6 +34,7 @@ export default function AdvancedResultPage() {
     startDate,
     endDate,
     selectedTickers,
+    allocationMode,
     initialAmount,
     contributionSchedule,
     contributionFrequency,
@@ -130,6 +131,7 @@ export default function AdvancedResultPage() {
             startDate,
             endDate,
             selectedTickers,
+            allocationMode,
             initialAmount,
             contributionFrequency,
             contributionSchedule: contributionSchedule.map(

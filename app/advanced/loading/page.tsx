@@ -18,6 +18,7 @@ export default function AdvancedLoadingPage() {
     startDate,
     endDate,
     selectedTickers,
+    allocationMode,
     initialAmount,
     contributionSchedule,
     contributionFrequency,
@@ -28,8 +29,20 @@ export default function AdvancedLoadingPage() {
   const [countdown, setCountdown] = useState(5);
   const [isSimulating, setIsSimulating] = useState(true);
 
-  const input = useMemo(
-    () => ({
+  const input = useMemo(() => {
+    const amountTotal = selectedTickers.reduce(
+      (sum, item) => sum + (item.amount ?? 0),
+      0,
+    );
+    const portfolio =
+      allocationMode === "amount"
+        ? selectedTickers.map(({ ticker, amount = 0 }) => ({
+            ticker,
+            weight: amountTotal > 0 ? (amount / amountTotal) * 100 : 0,
+          }))
+        : selectedTickers.map(({ ticker, weight }) => ({ ticker, weight }));
+
+    return {
       startDate,
       endDate,
       initialAmount,
@@ -41,10 +54,12 @@ export default function AdvancedLoadingPage() {
           monthlyAmount,
         }),
       ),
-      portfolio: selectedTickers.map(({ ticker, weight }) => ({ ticker, weight })),
+      portfolio,
       options,
-    }),
+    };
+  },
     [
+      allocationMode,
       contributionSchedule,
       contributionFrequency,
       endDate,

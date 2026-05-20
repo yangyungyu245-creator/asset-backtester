@@ -63,18 +63,22 @@ export default function AdvancedSetupPage() {
     startDate,
     endDate,
     selectedTickers,
+    allocationMode,
     initialAmount,
     contributionSchedule,
     contributionFrequency,
     options,
     setInitialAmount,
+    setAllocationMode,
     setContributionFrequency,
     addContributionPeriod,
     removeContributionPeriod,
     updateContributionPeriod,
     updateWeight,
+    updateAllocationAmount,
     setSelectedTickers,
     distributeWeightsEqually,
+    distributeAmountsEqually,
     updateOptions,
     setSimulationResult,
   } = useSimulationStore();
@@ -198,11 +202,21 @@ export default function AdvancedSetupPage() {
     endDate.slice(0, 7),
   );
   const initialAmountValid = initialAmount >= 0 && initialAmount <= 10_000_000_000;
+  const targetAllocationAmount = contributionSchedule[0]?.monthlyAmount ?? 0;
+  const totalAllocatedAmount = selectedTickers.reduce(
+    (sum, item) => sum + (item.amount ?? 0),
+    0,
+  );
+  const amountAllocationValid =
+    allocationMode === "percent" ||
+    (targetAllocationAmount > 0 &&
+      Math.abs(totalAllocatedAmount - targetAllocationAmount) <= 1);
   const canSubmit =
     selectedTickers.length > 0 &&
     initialAmountValid &&
     contributionValidation.valid &&
-    isWeightSumValid(selectedTickers);
+    amountAllocationValid &&
+    (allocationMode === "amount" || isWeightSumValid(selectedTickers));
 
   function handleSubmit() {
     if (!canSubmit) {
@@ -277,8 +291,13 @@ export default function AdvancedSetupPage() {
         <WeightSlider
           selectedTickers={selectedTickers}
           tickerMap={tickerMap}
+          allocationMode={allocationMode}
+          targetAmount={targetAllocationAmount}
+          onModeChange={setAllocationMode}
           onChange={updateWeight}
+          onAmountChange={updateAllocationAmount}
           onDistribute={distributeWeightsEqually}
+          onDistributeAmounts={() => distributeAmountsEqually(targetAllocationAmount)}
         />
 
         <Card rounded="2xl" padding="lg">

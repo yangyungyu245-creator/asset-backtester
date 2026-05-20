@@ -1,4 +1,5 @@
 import type {
+  AllocationMode,
   AdvancedOptions,
   ContributionPeriod,
   SelectedTicker,
@@ -10,6 +11,7 @@ export type ShareScenario = {
   startDate: string;
   endDate: string;
   selectedTickers: SelectedTicker[];
+  allocationMode?: AllocationMode;
   initialAmount: number;
   contributionSchedule: Omit<ContributionPeriod, "id">[];
   contributionFrequency?: InvestmentFrequency;
