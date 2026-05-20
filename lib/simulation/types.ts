@@ -66,6 +66,8 @@ export type ContributionPeriod = {
   monthlyAmount: number;
 };
 
+export type InvestmentFrequency = "daily" | "weekly" | "monthly";
+
 export type SimpleContributionPeriod = {
   id: string;
   durationYears: number;
@@ -99,6 +101,7 @@ export type AdvancedSimulationInput = {
   endDate: string;
   initialAmount: number;
   contributionSchedule: ContributionPeriod[];
+  contributionFrequency: InvestmentFrequency;
   portfolio: PortfolioItem[];
   options: AdvancedOptions;
 };

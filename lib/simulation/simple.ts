@@ -1,4 +1,7 @@
-import type { SimpleContributionPeriod } from "@/lib/simulation/types";
+import type {
+  InvestmentFrequency,
+  SimpleContributionPeriod,
+} from "@/lib/simulation/types";
 
 export type CompoundFrequency = "monthly" | "quarterly" | "annually";
 
@@ -6,6 +9,7 @@ export type SimpleSimulationInput = {
   initialAmount: number;
   annualRatePercent: number;
   compoundFrequency: CompoundFrequency;
+  contributionFrequency: InvestmentFrequency;
   contributionSchedule: SimpleContributionPeriod[];
 };
 
@@ -37,6 +41,12 @@ const monthsByFrequency: Record<CompoundFrequency, number> = {
   annually: 12,
 };
 
+const contributionPeriodsPerYear: Record<InvestmentFrequency, number> = {
+  daily: 252,
+  weekly: 52,
+  monthly: 12,
+};
+
 function addMonths(date: Date, months: number) {
   const next = new Date(date);
   next.setMonth(next.getMonth() + months);
@@ -52,6 +62,8 @@ function formatYearMonth(date: Date) {
 export function simulateSimple(input: SimpleSimulationInput): SimpleSimulationResult {
   const monthsPerPeriod = monthsByFrequency[input.compoundFrequency];
   const periodicRate = input.annualRatePercent / 100 / (12 / monthsPerPeriod);
+  const contributionFrequency = input.contributionFrequency ?? "monthly";
+  const contributionsPerMonth = contributionPeriodsPerYear[contributionFrequency] / 12;
   const startDate = new Date();
   const schedule =
     input.contributionSchedule.length > 0
@@ -88,10 +100,11 @@ export function simulateSimple(input: SimpleSimulationInput): SimpleSimulationRe
         interest = value - beforeInterest;
       }
 
-      value += contributionPeriod.monthlyAmount;
-      totalContributions += contributionPeriod.monthlyAmount;
+      const contributionAmount = contributionPeriod.monthlyAmount * contributionsPerMonth;
+      value += contributionAmount;
+      totalContributions += contributionAmount;
       yearInterest += interest;
-      yearContributions += contributionPeriod.monthlyAmount;
+      yearContributions += contributionAmount;
 
       const date = addMonths(startDate, currentMonth);
       timeSeries.push({

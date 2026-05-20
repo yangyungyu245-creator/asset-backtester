@@ -21,6 +21,7 @@ const defaultInput: SimpleSimulationInput = {
   initialAmount: 0,
   annualRatePercent: 0,
   compoundFrequency: "monthly",
+  contributionFrequency: "monthly",
   contributionSchedule: [
     {
       id: "default-period",
@@ -47,8 +48,8 @@ export default function SimplePage() {
       const saved = window.localStorage.getItem("firelife.simpleSavedConfig");
       if (saved) {
         try {
-          const parsed = JSON.parse(saved) as SimpleSimulationInput;
-          setInput(parsed);
+          const parsed = JSON.parse(saved) as Partial<SimpleSimulationInput>;
+          setInput({ ...defaultInput, ...parsed });
           setPhase("result");
           window.localStorage.removeItem("firelife.simpleSavedConfig");
         } catch {

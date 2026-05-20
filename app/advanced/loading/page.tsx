@@ -20,6 +20,7 @@ export default function AdvancedLoadingPage() {
     selectedTickers,
     initialAmount,
     contributionSchedule,
+    contributionFrequency,
     options,
     setSimulationResult,
     setSimulationError,
@@ -32,6 +33,7 @@ export default function AdvancedLoadingPage() {
       startDate,
       endDate,
       initialAmount,
+      contributionFrequency,
       contributionSchedule: contributionSchedule.map(
         ({ startYearMonth, endYearMonth, monthlyAmount }) => ({
           startYearMonth,
@@ -44,6 +46,7 @@ export default function AdvancedLoadingPage() {
     }),
     [
       contributionSchedule,
+      contributionFrequency,
       endDate,
       initialAmount,
       options,

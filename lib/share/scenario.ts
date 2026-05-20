@@ -3,6 +3,7 @@ import type {
   ContributionPeriod,
   SelectedTicker,
 } from "@/store/useSimulationStore";
+import type { InvestmentFrequency } from "@/lib/simulation/types";
 
 export type ShareScenario = {
   v: 1;
@@ -11,6 +12,7 @@ export type ShareScenario = {
   selectedTickers: SelectedTicker[];
   initialAmount: number;
   contributionSchedule: Omit<ContributionPeriod, "id">[];
+  contributionFrequency?: InvestmentFrequency;
   options: AdvancedOptions;
 };
 

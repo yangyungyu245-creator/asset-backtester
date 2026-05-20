@@ -36,6 +36,7 @@ export default function AdvancedResultPage() {
     selectedTickers,
     initialAmount,
     contributionSchedule,
+    contributionFrequency,
     options,
     simulationResult,
     simulationError,
@@ -92,6 +93,7 @@ export default function AdvancedResultPage() {
         selectedTickers={selectedTickers}
         initialAmount={initialAmount}
         contributionSchedule={contributionSchedule}
+        contributionFrequency={contributionFrequency}
         options={options}
       />
       {futureProjection ? (
@@ -129,6 +131,7 @@ export default function AdvancedResultPage() {
             endDate,
             selectedTickers,
             initialAmount,
+            contributionFrequency,
             contributionSchedule: contributionSchedule.map(
               ({ startYearMonth, endYearMonth, monthlyAmount }) => ({
                 startYearMonth,

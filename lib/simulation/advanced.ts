@@ -3,6 +3,7 @@ import { findNextTradingDay, lookupValue } from "@/lib/data/lookup";
 import { loadMultipleTickers } from "@/lib/data/priceLoader";
 import type {
   AdvancedSimulationInput,
+  InvestmentFrequency,
   PortfolioItem,
   PortfolioSnapshot,
   SimulationResult,
@@ -81,20 +82,98 @@ function getContributionForMonth(
   return period?.monthlyAmount ?? 0;
 }
 
+function getContributionForDate(
+  date: string,
+  schedule: AdvancedSimulationInput["contributionSchedule"],
+) {
+  return getContributionForMonth(dateToYearMonth(date), schedule);
+}
+
+function getISOWeekKey(date: Date) {
+  const d = new Date(date.getTime());
+  d.setUTCHours(0, 0, 0, 0);
+  d.setUTCDate(d.getUTCDate() + 3 - ((d.getUTCDay() + 6) % 7));
+  const weekYear = d.getUTCFullYear();
+  const week1 = new Date(Date.UTC(weekYear, 0, 4));
+  const week =
+    1 +
+    Math.round(
+      ((d.getTime() - week1.getTime()) / 86_400_000 -
+        3 +
+        ((week1.getUTCDay() + 6) % 7)) /
+        7,
+    );
+
+  return `${weekYear}-${week}`;
+}
+
+function shouldInvest(
+  date: string,
+  previousInvestmentDate: string | null,
+  frequency: InvestmentFrequency,
+) {
+  if (!previousInvestmentDate) {
+    return true;
+  }
+
+  if (frequency === "daily") {
+    return true;
+  }
+
+  const current = new Date(`${date}T00:00:00Z`);
+  const previous = new Date(`${previousInvestmentDate}T00:00:00Z`);
+
+  if (frequency === "weekly") {
+    return getISOWeekKey(current) !== getISOWeekKey(previous);
+  }
+
+  return (
+    current.getUTCFullYear() !== previous.getUTCFullYear() ||
+    current.getUTCMonth() !== previous.getUTCMonth()
+  );
+}
+
+function getPortfolioTradingDates(
+  portfolio: ReturnType<typeof normalizePortfolio>,
+  tickerMap: Map<string, TickerData>,
+  startDate: string,
+  endDate: string,
+) {
+  const dates = new Set<string>();
+
+  for (const item of portfolio) {
+    const tickerData = tickerMap.get(item.ticker);
+    tickerData?.prices.forEach(([date]) => {
+      if (startDate <= date && date <= endDate) {
+        dates.add(date);
+      }
+    });
+  }
+
+  return Array.from(dates).sort();
+}
+
 function getFutureContributionForMonth(
   yearMonth: string,
   schedule: AdvancedSimulationInput["contributionSchedule"],
+  frequency: InvestmentFrequency = "monthly",
 ) {
   const exact = getContributionForMonth(yearMonth, schedule);
+  const multiplier = {
+    daily: 21,
+    weekly: 4.33,
+    monthly: 1,
+  }[frequency];
+
   if (exact > 0) {
-    return exact;
+    return exact * multiplier;
   }
 
   const sorted = [...schedule].sort((a, b) =>
     a.startYearMonth.localeCompare(b.startYearMonth),
   );
   const lastStarted = sorted.findLast((item) => item.startYearMonth <= yearMonth);
-  return lastStarted?.monthlyAmount ?? 0;
+  return (lastStarted?.monthlyAmount ?? 0) * multiplier;
 }
 
 function isRebalanceMonth(
@@ -605,49 +684,84 @@ export async function simulateAdvanced(
     dataIssues,
   );
 
-  let yearMonth = dateToYearMonth(input.startDate);
-  const endYearMonth = dateToYearMonth(input.endDate);
+  const tradingDates = getPortfolioTradingDates(
+    portfolio,
+    tickerMap,
+    input.startDate,
+    input.endDate,
+  );
+  const contributionFrequency = input.contributionFrequency ?? "monthly";
+  let previousInvestmentDate: string | null = null;
+  let recordedYearMonth = "";
 
-  while (yearMonth <= endYearMonth) {
-    const contribution = getContributionForMonth(yearMonth, input.contributionSchedule);
-    const targetDate =
-      yearMonth === dateToYearMonth(input.startDate)
-        ? input.startDate
-        : monthStart(yearMonth);
+  for (let index = 0; index < tradingDates.length; index += 1) {
+    const tradingDate = tradingDates[index];
+    const yearMonth = dateToYearMonth(tradingDate);
+    const nextTradingDate = tradingDates[index + 1];
+    const isLastTradingDayOfMonth =
+      !nextTradingDate || dateToYearMonth(nextTradingDate) !== yearMonth;
 
-    const invested = buyPortfolio(
-      contribution,
-      targetDate,
-      portfolio,
-      tickerMap,
-      fxMap,
-      holdings,
-      warnings,
-      dataIssues,
-      input.endDate,
-      tickerContributions,
-    );
-
-    totalContributions += invested;
-
-    const valuationDate = yearMonth === endYearMonth ? input.endDate : monthEnd(yearMonth);
-
-    if (isRebalanceMonth(yearMonth, input.options.rebalance)) {
-      rebalanceHoldings(
-        valuationDate,
+    if (shouldInvest(tradingDate, previousInvestmentDate, contributionFrequency)) {
+      const contribution = getContributionForDate(
+        tradingDate,
+        input.contributionSchedule,
+      );
+      const invested = buyPortfolio(
+        contribution,
+        tradingDate,
         portfolio,
-        holdings,
         tickerMap,
         fxMap,
+        holdings,
         warnings,
         dataIssues,
+        input.endDate,
+        tickerContributions,
       );
+
+      totalContributions += invested;
+      previousInvestmentDate = tradingDate;
     }
 
+    if (isLastTradingDayOfMonth && recordedYearMonth !== yearMonth) {
+      const valuationDate =
+        yearMonth === dateToYearMonth(input.endDate)
+          ? input.endDate
+          : monthEnd(yearMonth);
+
+      if (isRebalanceMonth(yearMonth, input.options.rebalance)) {
+        rebalanceHoldings(
+          valuationDate,
+          portfolio,
+          holdings,
+          tickerMap,
+          fxMap,
+          warnings,
+          dataIssues,
+        );
+      }
+
+      timeSeries.push({
+        date: valuationDate,
+        value: evaluateHoldings(
+          valuationDate,
+          holdings,
+          tickerMap,
+          fxMap,
+          warnings,
+          dataIssues,
+        ),
+        contributions: totalContributions,
+      });
+      recordedYearMonth = yearMonth;
+    }
+  }
+
+  if (timeSeries.length === 0) {
     timeSeries.push({
-      date: valuationDate,
+      date: input.endDate,
       value: evaluateHoldings(
-        valuationDate,
+        input.endDate,
         holdings,
         tickerMap,
         fxMap,
@@ -656,8 +770,6 @@ export async function simulateAdvanced(
       ),
       contributions: totalContributions,
     });
-
-    yearMonth = addMonths(yearMonth, 1);
   }
 
   const finalValue =
@@ -736,6 +848,7 @@ function simulateFutureCompounding({
   startDate,
   endDate,
   contributionSchedule,
+  contributionFrequency,
   annualRate,
 }: {
   startValue: number;
@@ -743,6 +856,7 @@ function simulateFutureCompounding({
   startDate: string;
   endDate: string;
   contributionSchedule: AdvancedSimulationInput["contributionSchedule"];
+  contributionFrequency: InvestmentFrequency;
   annualRate: number;
 }) {
   const monthlyRate = annualRate / 12;
@@ -759,6 +873,7 @@ function simulateFutureCompounding({
     const monthlyAmount = getFutureContributionForMonth(
       yearMonth,
       contributionSchedule,
+      contributionFrequency,
     );
 
     value = value * (1 + monthlyRate) + monthlyAmount;
@@ -830,6 +945,7 @@ export async function simulateAdvancedWithFuture(
     startDate: today,
     endDate: input.endDate,
     contributionSchedule: input.contributionSchedule,
+    contributionFrequency: input.contributionFrequency ?? "monthly",
     annualRate: portfolioCAGR,
   });
   const mergedTimeSeries = [...realResult.timeSeries, ...futureSeries];

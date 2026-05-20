@@ -3,6 +3,7 @@ import type {
   ContributionPeriod,
   SelectedTicker,
 } from "@/store/useSimulationStore";
+import type { InvestmentFrequency } from "@/lib/simulation/types";
 
 const compactKrwFormatter = new Intl.NumberFormat("ko-KR", {
   maximumFractionDigits: 1,
@@ -61,14 +62,21 @@ export function formatScenarioSummary({
   selectedTickers,
   initialAmount,
   contributionSchedule,
+  contributionFrequency = "monthly",
 }: {
   startDate: string;
   endDate: string;
   selectedTickers: SelectedTicker[];
   initialAmount: number;
   contributionSchedule: ContributionPeriod[];
+  contributionFrequency?: InvestmentFrequency;
 }) {
   const { years, months } = getMonthSpan(startDate, endDate);
+  const frequencyLabel = {
+    daily: "일",
+    weekly: "주",
+    monthly: "월",
+  }[contributionFrequency];
   const activeSchedules = contributionSchedule.filter(
     (period) => period.monthlyAmount > 0,
   );
@@ -76,10 +84,10 @@ export function formatScenarioSummary({
     activeSchedules.length === 0
       ? "적립 없음"
       : activeSchedules.length === 1
-        ? `월 ${formatCompactKRW(activeSchedules[0].monthlyAmount)}`
+        ? `${frequencyLabel} ${formatCompactKRW(activeSchedules[0].monthlyAmount)}`
         : `적립 ${activeSchedules.length}개 구간`;
 
-  return `${startDate} ~ ${endDate} (${years}년 ${months}개월) · 종목 ${selectedTickers.length}개 · 초기 ${formatCompactKRW(initialAmount)} + ${contributionText}`;
+  return `${startDate} ~ ${endDate} (${years}년 ${months}개월) · 종목 ${selectedTickers.length}개 · 적립 주기 ${frequencyLabel} · 초기 ${formatCompactKRW(initialAmount)} + ${contributionText}`;
 }
 
 export function formatContributionBreakdown(

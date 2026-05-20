@@ -2,7 +2,10 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { SimulationResult } from "@/lib/simulation/types";
+import type {
+  InvestmentFrequency,
+  SimulationResult,
+} from "@/lib/simulation/types";
 
 export type ContributionPeriod = {
   id: string;
@@ -30,6 +33,7 @@ type SimulationState = {
   selectedTickers: SelectedTicker[];
   initialAmount: number;
   contributionSchedule: ContributionPeriod[];
+  contributionFrequency: InvestmentFrequency;
   options: AdvancedOptions;
   simulationResult: SimulationResult | null;
   simulationError: string | null;
@@ -44,6 +48,7 @@ export type SimulationStore = SimulationState & {
   updateWeight: (ticker: string, weight: number) => void;
   distributeWeightsEqually: () => void;
   setInitialAmount: (amount: number) => void;
+  setContributionFrequency: (frequency: InvestmentFrequency) => void;
   addContributionPeriod: () => void;
   removeContributionPeriod: (id: string) => void;
   updateContributionPeriod: (
@@ -57,6 +62,7 @@ export type SimulationStore = SimulationState & {
     selectedTickers: SelectedTicker[];
     initialAmount: number;
     contributionSchedule: Omit<ContributionPeriod, "id">[];
+    contributionFrequency?: InvestmentFrequency;
     options: AdvancedOptions;
   }) => void;
   setSimulationResult: (result: SimulationResult | null) => void;
@@ -131,6 +137,7 @@ function createDefaultState(): SimulationState {
     selectedTickers: [],
     initialAmount: 0,
     contributionSchedule: [createPeriod(startDate, endDate)],
+    contributionFrequency: "monthly",
     options: {
       reinvestDividends: true,
       applyExchangeRate: true,
@@ -251,6 +258,8 @@ export const useSimulationStore = create<SimulationStore>()(
         }),
       setInitialAmount: (amount) =>
         set({ initialAmount: Math.min(10_000_000_000, Math.max(0, amount)) }),
+      setContributionFrequency: (contributionFrequency) =>
+        set({ contributionFrequency }),
       addContributionPeriod: () =>
         set((state) => {
           const periods = [...state.contributionSchedule];
@@ -321,6 +330,7 @@ export const useSimulationStore = create<SimulationStore>()(
           endDate: scenario.endDate,
           selectedTickers: scenario.selectedTickers,
           initialAmount: scenario.initialAmount,
+          contributionFrequency: scenario.contributionFrequency ?? "monthly",
           contributionSchedule: scenario.contributionSchedule.map((period, index) => ({
             ...period,
             id: `shared-${index}-${period.startYearMonth}`,
@@ -339,7 +349,7 @@ export const useSimulationStore = create<SimulationStore>()(
     }),
     {
       name: "investment-simulation-store",
-      version: 2,
+      version: 3,
     },
   ),
 );

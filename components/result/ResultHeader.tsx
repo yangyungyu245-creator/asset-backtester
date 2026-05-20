@@ -5,6 +5,7 @@ import type {
   ContributionPeriod,
   SelectedTicker,
 } from "@/store/useSimulationStore";
+import type { InvestmentFrequency } from "@/lib/simulation/types";
 import { formatScenarioSummary, getOptionBadges } from "./format";
 
 type ResultHeaderProps = {
@@ -13,6 +14,7 @@ type ResultHeaderProps = {
   selectedTickers: SelectedTicker[];
   initialAmount: number;
   contributionSchedule: ContributionPeriod[];
+  contributionFrequency: InvestmentFrequency;
   options: AdvancedOptions;
 };
 
@@ -22,6 +24,7 @@ export function ResultHeader({
   selectedTickers,
   initialAmount,
   contributionSchedule,
+  contributionFrequency,
   options,
 }: ResultHeaderProps) {
   const summary = formatScenarioSummary({
@@ -30,6 +33,7 @@ export function ResultHeader({
     selectedTickers,
     initialAmount,
     contributionSchedule,
+    contributionFrequency,
   });
   const badges = getOptionBadges(options);
 

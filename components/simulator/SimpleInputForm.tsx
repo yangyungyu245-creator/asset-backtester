@@ -9,6 +9,7 @@ import {
   type CompoundFrequency,
   type SimpleSimulationInput,
 } from "@/lib/simulation/simple";
+import type { InvestmentFrequency } from "@/lib/simulation/types";
 
 const periodSchema = z.object({
   id: z.string(),
@@ -33,6 +34,7 @@ const inputSchema = z
       .min(-50, "최소 -50%까지 입력할 수 있습니다.")
       .max(100, "최대 100%까지 입력할 수 있습니다."),
     compoundFrequency: z.enum(["monthly", "quarterly", "annually"]),
+    contributionFrequency: z.enum(["daily", "weekly", "monthly"]).default("monthly"),
     contributionSchedule: z.array(periodSchema).min(1),
   })
   .refine(
@@ -58,6 +60,21 @@ const frequencyOptions: { value: CompoundFrequency; label: string }[] = [
   { value: "quarterly", label: "분기" },
   { value: "annually", label: "연" },
 ];
+
+const contributionFrequencyOptions: Array<{
+  value: InvestmentFrequency;
+  label: string;
+}> = [
+  { value: "daily", label: "매일" },
+  { value: "weekly", label: "매주" },
+  { value: "monthly", label: "매월" },
+];
+
+const contributionAmountLabel: Record<InvestmentFrequency, string> = {
+  daily: "일 적립액",
+  weekly: "주 적립액",
+  monthly: "월 적립액",
+};
 
 function createPeriod() {
   return {
@@ -124,7 +141,7 @@ export function SimpleInputForm({ input, onChange, onSubmit }: SimpleInputFormPr
       <Card rounded="2xl" padding="lg" className="grid gap-5">
         <div className="rounded-xl bg-card-subtle p-4 text-sm leading-6 text-secondary">
           <p>지금부터 {totalYears}년 동안의 적립 시나리오를 시뮬레이션합니다.</p>
-          <p>각 구간별로 다른 월 적립액을 설정할 수 있습니다.</p>
+          <p>각 구간별로 다른 적립액을 설정할 수 있습니다.</p>
         </div>
 
         <NumberInput
@@ -142,7 +159,7 @@ export function SimpleInputForm({ input, onChange, onSubmit }: SimpleInputFormPr
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-lg font-bold text-primary">
-                월 적립 일정
+                적립 일정
               </h2>
               <p className="mt-1 text-sm text-secondary">
                 예: 1년 100만 → 3년 150만 → 5년 200만
@@ -156,6 +173,34 @@ export function SimpleInputForm({ input, onChange, onSubmit }: SimpleInputFormPr
               + 구간 추가
             </button>
           </div>
+
+          <fieldset className="mt-4">
+            <legend className="text-sm font-bold text-primary">
+              적립 주기
+            </legend>
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {contributionFrequencyOptions.map((option) => (
+                <label
+                  key={option.value}
+                  className={`flex h-10 cursor-pointer items-center justify-center rounded-md border text-sm transition ${
+                    input.contributionFrequency === option.value
+                      ? "border-brand bg-brand text-white"
+                      : "border-border text-secondary hover:bg-card-subtle hover:text-primary"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="contributionFrequency"
+                    value={option.value}
+                    checked={input.contributionFrequency === option.value}
+                    onChange={() => update("contributionFrequency", option.value)}
+                    className="sr-only"
+                  />
+                  {option.label}
+                </label>
+              ))}
+            </div>
+          </fieldset>
 
           <div className="mt-3 grid gap-3">
             {input.contributionSchedule.map((period, index) => (
@@ -177,7 +222,7 @@ export function SimpleInputForm({ input, onChange, onSubmit }: SimpleInputFormPr
                 />
                 <NumberInput
                   id={`monthlyAmount-${period.id}`}
-                  label="월 적립액"
+                  label={contributionAmountLabel[input.contributionFrequency ?? "monthly"]}
                   value={period.monthlyAmount}
                   onChange={(monthlyAmount) =>
                     updatePeriod(period.id, { monthlyAmount })

@@ -27,6 +27,7 @@ function ShareLoaderContent() {
         endDate: scenario.endDate,
         selectedTickers: scenario.selectedTickers,
         initialAmount: scenario.initialAmount,
+        contributionFrequency: scenario.contributionFrequency,
         contributionSchedule: scenario.contributionSchedule,
         options: scenario.options,
       });

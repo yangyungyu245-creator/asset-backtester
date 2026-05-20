@@ -111,6 +111,7 @@ export function ResultActions() {
     selectedTickers,
     initialAmount,
     contributionSchedule,
+    contributionFrequency,
     options,
     simulationResult,
   } = useSimulationStore();
@@ -123,6 +124,7 @@ export function ResultActions() {
       endDate,
       selectedTickers,
       initialAmount,
+      contributionFrequency,
       contributionSchedule: contributionSchedule.map(
         ({ startYearMonth, endYearMonth, monthlyAmount }) => ({
           startYearMonth,

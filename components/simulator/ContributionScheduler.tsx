@@ -4,20 +4,37 @@ import { NumberInput } from "@/components/ui/NumberInput";
 import { Card } from "@/components/ui/Card";
 import { validateContributionPeriods } from "@/lib/utils/validation";
 import type { ContributionPeriod } from "@/store/useSimulationStore";
+import type { InvestmentFrequency } from "@/lib/simulation/types";
 
 type ContributionSchedulerProps = {
   periods: ContributionPeriod[];
+  frequency: InvestmentFrequency;
   startDate: string;
   endDate: string;
+  onFrequencyChange: (frequency: InvestmentFrequency) => void;
   onAdd: () => void;
   onRemove: (id: string) => void;
   onUpdate: (id: string, patch: Partial<ContributionPeriod>) => void;
 };
 
+const frequencyOptions: Array<{ value: InvestmentFrequency; label: string }> = [
+  { value: "daily", label: "매일" },
+  { value: "weekly", label: "매주" },
+  { value: "monthly", label: "매월" },
+];
+
+const amountLabel: Record<InvestmentFrequency, string> = {
+  daily: "일 적립액",
+  weekly: "주 적립액",
+  monthly: "월 적립액",
+};
+
 export function ContributionScheduler({
   periods,
+  frequency,
   startDate,
   endDate,
+  onFrequencyChange,
   onAdd,
   onRemove,
   onUpdate,
@@ -33,7 +50,7 @@ export function ContributionScheduler({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-[22px] font-bold text-primary">
-            월 적립액 (기간별)
+            적립액 (기간별)
           </h2>
           <p className="mt-1 text-sm text-secondary">
             시뮬레이션 기간 전체가 빈틈없이 이어져야 합니다.
@@ -49,6 +66,26 @@ export function ContributionScheduler({
         >
           + 구간 추가
         </button>
+      </div>
+
+      <div className="mt-5">
+        <p className="text-sm font-bold text-primary">적립 주기</p>
+        <div className="mt-2 grid grid-cols-3 gap-2 sm:flex">
+          {frequencyOptions.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => onFrequencyChange(option.value)}
+              className={`h-10 rounded-lg px-4 text-sm font-bold transition ${
+                frequency === option.value
+                  ? "bg-brand text-white"
+                  : "bg-card-subtle text-secondary hover:text-primary"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="mt-5 grid gap-3">
@@ -81,7 +118,7 @@ export function ContributionScheduler({
             </label>
             <NumberInput
               id={`monthlyAmount-${period.id}`}
-              label="월 적립액"
+              label={amountLabel[frequency]}
               value={period.monthlyAmount}
               onChange={(monthlyAmount) => onUpdate(period.id, { monthlyAmount })}
               min={0}

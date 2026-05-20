@@ -65,8 +65,10 @@ export default function AdvancedSetupPage() {
     selectedTickers,
     initialAmount,
     contributionSchedule,
+    contributionFrequency,
     options,
     setInitialAmount,
+    setContributionFrequency,
     addContributionPeriod,
     removeContributionPeriod,
     updateContributionPeriod,
@@ -263,8 +265,10 @@ export default function AdvancedSetupPage() {
 
         <ContributionScheduler
           periods={contributionSchedule}
+          frequency={contributionFrequency}
           startDate={startDate}
           endDate={endDate}
+          onFrequencyChange={setContributionFrequency}
           onAdd={addContributionPeriod}
           onRemove={removeContributionPeriod}
           onUpdate={updateContributionPeriod}
