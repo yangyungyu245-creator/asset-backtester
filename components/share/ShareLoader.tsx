@@ -28,6 +28,8 @@ function ShareLoaderContent() {
         selectedTickers: scenario.selectedTickers,
         allocationMode: scenario.allocationMode,
         initialAmount: scenario.initialAmount,
+        customInitialAlloc: scenario.customInitialAlloc,
+        initialAllocations: scenario.initialAllocations,
         contributionFrequency: scenario.contributionFrequency,
         contributionSchedule: scenario.contributionSchedule,
         options: scenario.options,

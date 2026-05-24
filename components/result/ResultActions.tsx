@@ -111,6 +111,8 @@ export function ResultActions() {
     selectedTickers,
     allocationMode,
     initialAmount,
+    customInitialAlloc,
+    initialAllocations,
     contributionSchedule,
     contributionFrequency,
     options,
@@ -126,6 +128,8 @@ export function ResultActions() {
       selectedTickers,
       allocationMode,
       initialAmount,
+      customInitialAlloc,
+      initialAllocations,
       contributionFrequency,
       contributionSchedule: contributionSchedule.map(
         ({ startYearMonth, endYearMonth, monthlyAmount }) => ({

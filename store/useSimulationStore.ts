@@ -21,6 +21,7 @@ export type SelectedTicker = {
 };
 
 export type AllocationMode = "percent" | "amount";
+export type InitialAllocations = Record<string, number>;
 
 export type AdvancedOptions = {
   reinvestDividends: boolean;
@@ -36,6 +37,8 @@ type SimulationState = {
   selectedTickers: SelectedTicker[];
   allocationMode: AllocationMode;
   initialAmount: number;
+  customInitialAlloc: boolean;
+  initialAllocations: InitialAllocations;
   contributionSchedule: ContributionPeriod[];
   contributionFrequency: InvestmentFrequency;
   options: AdvancedOptions;
@@ -55,6 +58,9 @@ export type SimulationStore = SimulationState & {
   distributeWeightsEqually: () => void;
   distributeAmountsEqually: (totalAmount: number) => void;
   setInitialAmount: (amount: number) => void;
+  setCustomInitialAlloc: (enabled: boolean) => void;
+  updateInitialAllocation: (ticker: string, amount: number) => void;
+  distributeInitialAllocationsEqually: () => void;
   setContributionFrequency: (frequency: InvestmentFrequency) => void;
   addContributionPeriod: () => void;
   removeContributionPeriod: (id: string) => void;
@@ -69,6 +75,8 @@ export type SimulationStore = SimulationState & {
     selectedTickers: SelectedTicker[];
     allocationMode?: AllocationMode;
     initialAmount: number;
+    customInitialAlloc?: boolean;
+    initialAllocations?: InitialAllocations;
     contributionSchedule: Omit<ContributionPeriod, "id">[];
     contributionFrequency?: InvestmentFrequency;
     options: AdvancedOptions;
@@ -145,6 +153,8 @@ function createDefaultState(): SimulationState {
     selectedTickers: [],
     allocationMode: "percent",
     initialAmount: 0,
+    customInitialAlloc: false,
+    initialAllocations: {},
     contributionSchedule: [createPeriod(startDate, endDate)],
     contributionFrequency: "monthly",
     options: {
@@ -221,20 +231,33 @@ export const useSimulationStore = create<SimulationStore>()(
           return {
             selectedTickers: tickers.map((item, index) => ({
               ...item,
-            weight: weights[index],
-            amount: item.amount ?? 0,
-          })),
+              weight: weights[index],
+              amount: item.amount ?? 0,
+            })),
           };
         }),
       setSelectedTickers: (tickers) =>
-        set({
-          selectedTickers: tickers.slice(0, 10).map((item) => ({
+        set((state) => {
+          const normalizedTickers = tickers.slice(0, 10).map((item) => ({
             ticker: item.ticker.trim().toUpperCase(),
             weight: clampWeight(item.weight),
             amount: Math.min(100_000_000, Math.max(0, item.amount ?? 0)),
-          })),
-          simulationResult: null,
-          simulationError: null,
+          }));
+          const allowedTickers = new Set(
+            normalizedTickers.map((item) => item.ticker),
+          );
+          const initialAllocations = Object.fromEntries(
+            Object.entries(state.initialAllocations).filter(([ticker]) =>
+              allowedTickers.has(ticker),
+            ),
+          );
+
+          return {
+            selectedTickers: normalizedTickers,
+            initialAllocations,
+            simulationResult: null,
+            simulationError: null,
+          };
         }),
       removeTicker: (ticker) =>
         set((state) => {
@@ -243,11 +266,19 @@ export const useSimulationStore = create<SimulationStore>()(
           );
           const weights = equalWeights(tickers.length);
 
+          const remainingTickers = new Set(tickers.map((item) => item.ticker));
+          const initialAllocations = Object.fromEntries(
+            Object.entries(state.initialAllocations).filter(([symbol]) =>
+              remainingTickers.has(symbol),
+            ),
+          );
+
           return {
             selectedTickers: tickers.map((item, index) => ({
               ...item,
               weight: weights[index] ?? 0,
             })),
+            initialAllocations,
           };
         }),
       updateWeight: (ticker, weight) =>
@@ -298,6 +329,34 @@ export const useSimulationStore = create<SimulationStore>()(
         }),
       setInitialAmount: (amount) =>
         set({ initialAmount: Math.min(10_000_000_000, Math.max(0, amount)) }),
+      setCustomInitialAlloc: (customInitialAlloc) => set({ customInitialAlloc }),
+      updateInitialAllocation: (ticker, amount) =>
+        set((state) => ({
+          initialAllocations: {
+            ...state.initialAllocations,
+            [ticker]: Math.min(10_000_000_000, Math.max(0, amount)),
+          },
+        })),
+      distributeInitialAllocationsEqually: () =>
+        set((state) => {
+          if (state.selectedTickers.length === 0) {
+            return state;
+          }
+
+          const safeTotal = Math.max(0, state.initialAmount);
+          const base = Math.floor(safeTotal / state.selectedTickers.length);
+          const remainder = safeTotal - base * state.selectedTickers.length;
+          const initialAllocations = Object.fromEntries(
+            state.selectedTickers.map((item, index) => [
+              item.ticker,
+              index === state.selectedTickers.length - 1
+                ? base + remainder
+                : base,
+            ]),
+          );
+
+          return { initialAllocations };
+        }),
       setContributionFrequency: (contributionFrequency) =>
         set({ contributionFrequency }),
       addContributionPeriod: () =>
@@ -365,23 +424,41 @@ export const useSimulationStore = create<SimulationStore>()(
       updateOptions: (patch) =>
         set((state) => ({ options: { ...state.options, ...patch } })),
       loadScenario: (scenario) =>
-        set({
-          startDate: scenario.startDate,
-          endDate: scenario.endDate,
-          selectedTickers: scenario.selectedTickers,
-          allocationMode: scenario.allocationMode ?? "percent",
-          initialAmount: scenario.initialAmount,
-          contributionFrequency: scenario.contributionFrequency ?? "monthly",
-          contributionSchedule: scenario.contributionSchedule.map((period, index) => ({
-            ...period,
-            id: `shared-${index}-${period.startYearMonth}`,
-          })),
-          options: {
-            ...defaultState.options,
-            ...scenario.options,
-          },
-          simulationResult: null,
-          simulationError: null,
+        set(() => {
+          const selectedTickers = scenario.selectedTickers.slice(0, 10).map((item) => ({
+            ticker: item.ticker.trim().toUpperCase(),
+            weight: clampWeight(item.weight),
+            amount: Math.min(100_000_000, Math.max(0, item.amount ?? 0)),
+          }));
+          const allowedTickers = new Set(
+            selectedTickers.map((item) => item.ticker),
+          );
+          const initialAllocations = Object.fromEntries(
+            Object.entries(scenario.initialAllocations ?? {}).filter(([ticker]) =>
+              allowedTickers.has(ticker),
+            ),
+          );
+
+          return {
+            startDate: scenario.startDate,
+            endDate: scenario.endDate,
+            selectedTickers,
+            allocationMode: scenario.allocationMode ?? "percent",
+            initialAmount: scenario.initialAmount,
+            customInitialAlloc: scenario.customInitialAlloc ?? false,
+            initialAllocations,
+            contributionFrequency: scenario.contributionFrequency ?? "monthly",
+            contributionSchedule: scenario.contributionSchedule.map((period, index) => ({
+              ...period,
+              id: `shared-${index}-${period.startYearMonth}`,
+            })),
+            options: {
+              ...defaultState.options,
+              ...scenario.options,
+            },
+            simulationResult: null,
+            simulationError: null,
+          };
         }),
       setSimulationResult: (result) =>
         set({ simulationResult: result, simulationError: null }),
@@ -390,7 +467,7 @@ export const useSimulationStore = create<SimulationStore>()(
     }),
     {
       name: "investment-simulation-store",
-      version: 3,
+      version: 4,
     },
   ),
 );

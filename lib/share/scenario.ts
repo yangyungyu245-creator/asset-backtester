@@ -2,6 +2,7 @@ import type {
   AllocationMode,
   AdvancedOptions,
   ContributionPeriod,
+  InitialAllocations,
   SelectedTicker,
 } from "@/store/useSimulationStore";
 import type { InvestmentFrequency } from "@/lib/simulation/types";
@@ -13,6 +14,8 @@ export type ShareScenario = {
   selectedTickers: SelectedTicker[];
   allocationMode?: AllocationMode;
   initialAmount: number;
+  customInitialAlloc?: boolean;
+  initialAllocations?: InitialAllocations;
   contributionSchedule: Omit<ContributionPeriod, "id">[];
   contributionFrequency?: InvestmentFrequency;
   options: AdvancedOptions;

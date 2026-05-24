@@ -6,6 +6,10 @@ import { useRouter } from "next/navigation";
 import { AdvancedOptionsPanel } from "@/components/simulator/AdvancedOptionsPanel";
 import { AdvancedStepper } from "@/components/simulator/AdvancedStepper";
 import { ContributionScheduler } from "@/components/simulator/ContributionScheduler";
+import {
+  InitialAllocationCard,
+  isInitialAllocationBalanced,
+} from "@/components/simulator/InitialAllocationCard";
 import { WeightSlider } from "@/components/simulator/WeightSlider";
 import { SaveActionButton } from "@/components/saved/SaveActionButton";
 import { Button } from "@/components/ui/Button";
@@ -65,6 +69,8 @@ export default function AdvancedSetupPage() {
     selectedTickers,
     allocationMode,
     initialAmount,
+    customInitialAlloc,
+    initialAllocations,
     contributionSchedule,
     contributionFrequency,
     options,
@@ -79,6 +85,9 @@ export default function AdvancedSetupPage() {
     setSelectedTickers,
     distributeWeightsEqually,
     distributeAmountsEqually,
+    setCustomInitialAlloc,
+    updateInitialAllocation,
+    distributeInitialAllocationsEqually,
     updateOptions,
     setSimulationResult,
   } = useSimulationStore();
@@ -188,6 +197,12 @@ export default function AdvancedSetupPage() {
     }
   }, [user, portfolios]);
 
+  useEffect(() => {
+    if (initialAmount <= 0 && customInitialAlloc) {
+      setCustomInitialAlloc(false);
+    }
+  }, [customInitialAlloc, initialAmount, setCustomInitialAlloc]);
+
   const tickerMap = useMemo(
     () => new Map(tickers.map((ticker) => [ticker.ticker, ticker])),
     [tickers],
@@ -211,9 +226,14 @@ export default function AdvancedSetupPage() {
     allocationMode === "percent" ||
     (targetAllocationAmount > 0 &&
       Math.abs(totalAllocatedAmount - targetAllocationAmount) <= 1);
+  const initialAllocationValid =
+    !customInitialAlloc ||
+    (initialAmount > 0 &&
+      isInitialAllocationBalanced(initialAmount, initialAllocations));
   const canSubmit =
     selectedTickers.length > 0 &&
     initialAmountValid &&
+    initialAllocationValid &&
     contributionValidation.valid &&
     amountAllocationValid &&
     (allocationMode === "amount" || isWeightSumValid(selectedTickers));
@@ -277,6 +297,16 @@ export default function AdvancedSetupPage() {
           />
         </Card>
 
+        <InitialAllocationCard
+          selectedTickers={selectedTickers}
+          initialAmount={initialAmount}
+          customInitialAlloc={customInitialAlloc}
+          initialAllocations={initialAllocations}
+          onToggle={setCustomInitialAlloc}
+          onAmountChange={updateInitialAllocation}
+          onDistribute={distributeInitialAllocationsEqually}
+        />
+
         <ContributionScheduler
           periods={contributionSchedule}
           frequency={contributionFrequency}
@@ -329,6 +359,11 @@ export default function AdvancedSetupPage() {
           결과 보기
         </Button>
       </div>
+      {customInitialAlloc && !initialAllocationValid ? (
+        <p className="mt-2 text-sm font-bold text-up sm:text-right">
+          초기 투자금을 종목별로 모두 배분해 주세요.
+        </p>
+      ) : null}
 
       {showPortfolioPicker ? (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/45 px-4 py-6">

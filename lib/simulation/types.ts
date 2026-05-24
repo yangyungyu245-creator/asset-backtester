@@ -79,6 +79,11 @@ export type PortfolioItem = {
   weight: number;
 };
 
+export type InitialAllocation = {
+  ticker: string;
+  amount: number;
+};
+
 export type PortfolioSnapshot = {
   ticker: string;
   name: string;
@@ -100,6 +105,7 @@ export type AdvancedSimulationInput = {
   startDate: string;
   endDate: string;
   initialAmount: number;
+  initialAllocations?: InitialAllocation[];
   contributionSchedule: ContributionPeriod[];
   contributionFrequency: InvestmentFrequency;
   portfolio: PortfolioItem[];

@@ -36,6 +36,8 @@ export default function AdvancedResultPage() {
     selectedTickers,
     allocationMode,
     initialAmount,
+    customInitialAlloc,
+    initialAllocations,
     contributionSchedule,
     contributionFrequency,
     options,
@@ -121,6 +123,44 @@ export default function AdvancedResultPage() {
         initialAmount={initialAmount}
         inflationAdjusted={options.inflationAdjusted}
       />
+      {customInitialAlloc && initialAmount > 0 ? (
+        <div className="rounded-lg border border-border bg-card p-4">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-base font-bold text-primary">
+                초기 투자금 종목별 배분
+              </h2>
+              <p className="mt-1 text-sm text-secondary">
+                초기 {formatCompactKRW(initialAmount)}은 적립 비중과 별도로 투입했습니다.
+              </p>
+            </div>
+            <p className="text-xs font-bold text-secondary">
+              적립 원금{" "}
+              {formatCompactKRW(
+                Math.max(0, simulationResult.totalContributions - initialAmount),
+              )}
+            </p>
+          </div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {selectedTickers.map((item) => {
+              const amount = initialAllocations[item.ticker] ?? 0;
+              const percent = initialAmount > 0 ? (amount / initialAmount) * 100 : 0;
+
+              return (
+                <div
+                  key={item.ticker}
+                  className="flex items-center justify-between gap-3 rounded-lg bg-card-subtle px-3 py-2 text-sm"
+                >
+                  <span className="font-bold text-primary">{item.ticker}</span>
+                  <span className="text-right text-secondary">
+                    {formatCompactKRW(amount)} ({percent.toFixed(1)}%)
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
       <div className="flex min-w-0 justify-end">
         <SaveSimulationButton
           className="inline-flex h-10 w-full items-center justify-center rounded-lg border border-border px-4 text-sm font-bold text-primary transition hover:bg-card-subtle focus:outline-none focus:ring-2 focus:ring-brand/35 disabled:opacity-60 sm:w-auto"
@@ -133,6 +173,8 @@ export default function AdvancedResultPage() {
             selectedTickers,
             allocationMode,
             initialAmount,
+            customInitialAlloc,
+            initialAllocations,
             contributionFrequency,
             contributionSchedule: contributionSchedule.map(
               ({ startYearMonth, endYearMonth, monthlyAmount }) => ({

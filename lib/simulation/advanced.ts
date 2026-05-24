@@ -242,6 +242,25 @@ function normalizePortfolio(portfolio: PortfolioItem[]) {
   }));
 }
 
+function createInitialPortfolio(input: AdvancedSimulationInput) {
+  const allocations = input.initialAllocations?.filter(
+    (item) => item.amount > 0,
+  );
+  const allocationTotal =
+    allocations?.reduce((sum, item) => sum + item.amount, 0) ?? 0;
+
+  if (!allocations?.length || allocationTotal <= 0 || input.initialAmount <= 0) {
+    return normalizePortfolio(input.portfolio);
+  }
+
+  return normalizePortfolio(
+    allocations.map((item) => ({
+      ticker: item.ticker,
+      weight: (item.amount / allocationTotal) * 100,
+    })),
+  );
+}
+
 function valueHolding(
   ticker: string,
   shares: number,
@@ -662,11 +681,12 @@ export async function simulateAdvanced(
   const tickerContributions: TickerContributions = new Map();
   const timeSeries: SimulationResult["timeSeries"] = [];
   let totalContributions = 0;
+  const initialPortfolioTarget = createInitialPortfolio(input);
 
   totalContributions += buyPortfolio(
     input.initialAmount,
     input.startDate,
-    portfolio,
+    initialPortfolioTarget,
     tickerMap,
     fxMap,
     holdings,

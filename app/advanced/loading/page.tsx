@@ -20,6 +20,8 @@ export default function AdvancedLoadingPage() {
     selectedTickers,
     allocationMode,
     initialAmount,
+    customInitialAlloc,
+    initialAllocations,
     contributionSchedule,
     contributionFrequency,
     options,
@@ -46,6 +48,13 @@ export default function AdvancedLoadingPage() {
       startDate,
       endDate,
       initialAmount,
+      initialAllocations:
+        customInitialAlloc && initialAmount > 0
+          ? selectedTickers.map(({ ticker }) => ({
+              ticker,
+              amount: initialAllocations[ticker] ?? 0,
+            }))
+          : undefined,
       contributionFrequency,
       contributionSchedule: contributionSchedule.map(
         ({ startYearMonth, endYearMonth, monthlyAmount }) => ({
@@ -60,10 +69,12 @@ export default function AdvancedLoadingPage() {
   },
     [
       allocationMode,
+      customInitialAlloc,
       contributionSchedule,
       contributionFrequency,
       endDate,
       initialAmount,
+      initialAllocations,
       options,
       selectedTickers,
       startDate,
