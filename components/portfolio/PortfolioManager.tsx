@@ -847,8 +847,8 @@ export function PortfolioManager() {
                 })}
               </div>
             ) : null}
-            <div className="flex flex-col gap-3 md:flex-row">
-              <label className="grid min-w-0 flex-1 gap-2 text-sm font-bold text-primary">
+            <div className="grid gap-4">
+              <label className="grid gap-2 text-sm font-bold text-primary">
                 보유 주수
                 <input
                   type="number"
@@ -858,10 +858,10 @@ export function PortfolioManager() {
                   onChange={(event) =>
                     setHoldingForm((form) => ({ ...form, shares: event.target.value }))
                   }
-                  className="h-11 rounded-md border border-border bg-card px-3 text-base font-medium outline-none focus:ring-2 focus:ring-brand/30"
+                  className="h-11 w-full rounded-md border border-border bg-card px-3 text-base font-medium outline-none focus:ring-2 focus:ring-brand/30"
                 />
               </label>
-              <label className="grid min-w-0 flex-1 gap-2 text-sm font-bold text-primary">
+              <label className="grid gap-2 text-sm font-bold text-primary">
                 평균 매수가
                 <span className="flex min-w-0 gap-2">
                   <input
@@ -883,13 +883,13 @@ export function PortfolioManager() {
                         avgPrice: selectedHoldingQuote ? String(selectedHoldingQuote.price) : form.avgPrice,
                       }))
                     }
-                    className="h-11 shrink-0 rounded-md border border-border px-3 text-xs font-bold text-primary transition hover:bg-card-subtle disabled:opacity-40"
+                    className="h-11 shrink-0 whitespace-nowrap rounded-md border border-border px-3 text-xs font-bold text-primary transition hover:bg-card-subtle disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     현재가 입력
                   </button>
                 </span>
                 {selectedHoldingQuote ? (
-                  <span className="text-xs font-semibold text-secondary">
+                  <span className="mt-1 text-xs font-semibold text-secondary">
                     현재가: {formatNativePrice(selectedHoldingQuote.price, selectedHoldingQuote.currency)}
                   </span>
                 ) : null}
