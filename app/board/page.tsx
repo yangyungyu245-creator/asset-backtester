@@ -21,6 +21,22 @@ export default async function BoardPage() {
       </div>
 
       <div className="grid gap-3">
+        <Link href="/board/free" className="block rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand/35">
+          <Card rounded="2xl" padding="lg" className="transition hover:bg-card-subtle">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold text-primary">자유게시판</h2>
+                <p className="mt-2 text-sm leading-6 text-secondary">
+                  투자 이야기와 서비스 사용 팁을 익명으로 자유롭게 나눠보세요.
+                </p>
+              </div>
+              <span className="text-2xl font-bold text-secondary" aria-hidden="true">
+                →
+              </span>
+            </div>
+          </Card>
+        </Link>
+
         <Link href="/board/feedback" className="block rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand/35">
           <Card rounded="2xl" padding="lg" className="transition hover:bg-card-subtle">
             <div className="flex items-center justify-between gap-4">
