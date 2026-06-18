@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { encodeScenario } from "@/lib/share/encodeScenario";
 import type { SimulationPoint } from "@/lib/simulation/types";
+import type { ComparisonSeries } from "@/lib/types/comparison";
+import { useComparisonExportStore } from "@/store/useComparisonExportStore";
 import { useSimulationStore } from "@/store/useSimulationStore";
 import { formatCompactKRW, formatPercentValue } from "./format";
 
@@ -35,12 +37,18 @@ function drawLineChart(
   y: number,
   width: number,
   height: number,
+  comparisons: ComparisonSeries[] = [],
 ) {
   if (data.length < 2) {
     return;
   }
 
-  const values = data.flatMap((point) => [point.value, point.contributions]);
+  const values = [
+    ...data.flatMap((point) => [point.value, point.contributions]),
+    ...comparisons.flatMap((comparison) =>
+      comparison.timeSeries.map((point) => point.value),
+    ),
+  ];
   const minValue = Math.min(...values);
   const maxValue = Math.max(...values);
   const range = Math.max(1, maxValue - minValue);
@@ -91,6 +99,35 @@ function drawLineChart(
   drawSeries("value", "#FF6B35");
   drawSeries("contributions", "#8B95A1", true);
 
+  comparisons.forEach((comparison) => {
+    const valuesByDate = new Map(
+      comparison.timeSeries.map((point) => [point.date, point.value]),
+    );
+    context.beginPath();
+    context.strokeStyle = comparison.color;
+    context.lineWidth = 3;
+    context.setLineDash([10, 8]);
+
+    let hasPoint = false;
+    data.forEach((point, index) => {
+      const value = valuesByDate.get(point.date);
+      if (value === undefined) return;
+
+      const pointX = chartX + (chartWidth * index) / (data.length - 1);
+      const pointY = chartY + chartHeight - ((value - minValue) / range) * chartHeight;
+
+      if (!hasPoint) {
+        context.moveTo(pointX, pointY);
+        hasPoint = true;
+      } else {
+        context.lineTo(pointX, pointY);
+      }
+    });
+
+    context.stroke();
+    context.setLineDash([]);
+  });
+
   const maxLabel = formatCompactKRW(maxValue);
   const minLabel = formatCompactKRW(minValue);
   context.font = "18px sans-serif";
@@ -119,6 +156,7 @@ export function ResultActions() {
     simulationResult,
   } = useSimulationStore();
   const [message, setMessage] = useState<string | null>(null);
+  const comparisonSeries = useComparisonExportStore((state) => state.series);
 
   async function handleShare() {
     const encoded = encodeScenario({
@@ -237,7 +275,15 @@ export function ResultActions() {
     context.setLineDash([]);
     context.fillText("원금", 1082, 466);
 
-    drawLineChart(context, simulationResult.timeSeries, 104, 482, 1010, 250);
+    drawLineChart(
+      context,
+      simulationResult.timeSeries,
+      104,
+      482,
+      1010,
+      250,
+      comparisonSeries,
+    );
 
     context.fillStyle = "#B0B8C1";
     context.font = "22px sans-serif";

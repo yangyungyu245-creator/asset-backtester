@@ -15,6 +15,7 @@ import {
 import type { TooltipProps } from "recharts";
 import type { Props as LegendContentProps } from "recharts/types/component/DefaultLegendContent";
 import type { SimulationPoint } from "@/lib/simulation/types";
+import type { ComparisonSeries } from "@/lib/types/comparison";
 import {
   formatCompactKRW,
   formatPercentValue,
@@ -24,6 +25,7 @@ import {
 type AssetChartProps = {
   data: SimulationPoint[];
   futureStartDate?: string;
+  comparisons?: ComparisonSeries[];
 };
 
 type ChartPoint = SimulationPoint & {
@@ -31,6 +33,7 @@ type ChartPoint = SimulationPoint & {
   futureValue: number | null;
   downValueSoft: number | null;
   downValueStrong: number | null;
+  [key: `comparison${number}`]: number | null;
 };
 
 function formatXAxis(date: string, index: number, dataLength: number) {
@@ -94,11 +97,14 @@ function renderTooltip({ active, payload, label }: TooltipProps<number, string>)
 
 function renderLegend({ payload }: LegendContentProps) {
   const entries =
-    payload?.filter((entry) =>
-      ["actualValue", "futureValue", "contributions", "benchmarkValue"].includes(
-        String(entry.dataKey),
-      ),
-    ) ?? [];
+    payload?.filter((entry) => {
+      const dataKey = String(entry.dataKey);
+      return (
+        ["actualValue", "futureValue", "contributions", "benchmarkValue"].includes(
+          dataKey,
+        ) || dataKey.startsWith("comparison")
+      );
+    }) ?? [];
 
   if (entries.length === 0) {
     return null;
@@ -107,8 +113,11 @@ function renderLegend({ payload }: LegendContentProps) {
   return (
     <ul className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-secondary">
       {entries.map((entry) => {
+        const dataKey = String(entry.dataKey);
         const dashed =
-          entry.dataKey === "contributions" || entry.dataKey === "futureValue";
+          dataKey === "contributions" ||
+          dataKey === "futureValue" ||
+          dataKey.startsWith("comparison");
 
         return (
           <li key={String(entry.dataKey)} className="inline-flex items-center gap-2">
@@ -128,9 +137,14 @@ function renderLegend({ payload }: LegendContentProps) {
   );
 }
 
-export function AssetChart({ data, futureStartDate }: AssetChartProps) {
+export function AssetChart({ data, futureStartDate, comparisons = [] }: AssetChartProps) {
   let downStreak = 0;
   const firstFutureIndex = data.findIndex((point) => point.isFuture);
+  const enabledComparisons = comparisons.filter((comparison) => comparison.enabled);
+  const comparisonMaps = enabledComparisons.map(
+    (comparison) =>
+      new Map(comparison.timeSeries.map((point) => [point.date, point.value])),
+  );
   const chartData: ChartPoint[] = data.map((point, index) => {
     const previous = data[index - 1];
     const isDown = Boolean(previous && point.value < previous.value && !point.isFuture);
@@ -143,6 +157,12 @@ export function AssetChart({ data, futureStartDate }: AssetChartProps) {
       futureValue: point.isFuture || bridgeToFuture ? point.value : null,
       downValueSoft: isDown ? point.value : null,
       downValueStrong: downStreak >= 3 ? point.value : null,
+      ...Object.fromEntries(
+        comparisonMaps.map((values, comparisonIndex) => [
+          `comparison${comparisonIndex}`,
+          values.get(point.date) ?? null,
+        ]),
+      ),
     };
   });
   const hasBenchmark = chartData.some(
@@ -283,6 +303,19 @@ export function AssetChart({ data, futureStartDate }: AssetChartProps) {
                 connectNulls={false}
               />
             ) : null}
+            {enabledComparisons.map((comparison, comparisonIndex) => (
+              <Line
+                key={comparison.id}
+                name={comparison.name}
+                type="monotone"
+                dataKey={`comparison${comparisonIndex}`}
+                stroke={comparison.color}
+                strokeDasharray="6 4"
+                strokeWidth={2}
+                dot={false}
+                connectNulls={false}
+              />
+            ))}
             {hasFuture && futureStartDate ? (
               <ReferenceLine
                 x={futureStartDate}

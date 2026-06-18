@@ -1,6 +1,6 @@
 "use client";
 
-import { AssetChart } from "@/components/result/AssetChart";
+import { AssetChartComparisonPanel } from "@/components/result/AssetChartComparisonPanel";
 import { DataWarnings } from "@/components/result/DataWarnings";
 import { MetricGrid } from "@/components/result/MetricGrid";
 import { PortfolioComparison } from "@/components/result/PortfolioComparison";
@@ -87,6 +87,39 @@ export default function AdvancedResultPage() {
   }
 
   const futureProjection = simulationResult.futureProjection;
+  const amountTotal = selectedTickers.reduce(
+    (sum, item) => sum + (item.amount ?? 0),
+    0,
+  );
+  const portfolio =
+    allocationMode === "amount"
+      ? selectedTickers.map(({ ticker, amount = 0 }) => ({
+          ticker,
+          weight: amountTotal > 0 ? (amount / amountTotal) * 100 : 0,
+        }))
+      : selectedTickers.map(({ ticker, weight }) => ({ ticker, weight }));
+  const baseInput = {
+    startDate,
+    endDate,
+    initialAmount,
+    initialAllocations:
+      customInitialAlloc && initialAmount > 0
+        ? selectedTickers.map(({ ticker }) => ({
+            ticker,
+            amount: initialAllocations[ticker] ?? 0,
+          }))
+        : undefined,
+    contributionFrequency,
+    contributionSchedule: contributionSchedule.map(
+      ({ startYearMonth, endYearMonth, monthlyAmount }) => ({
+        startYearMonth,
+        endYearMonth,
+        monthlyAmount,
+      }),
+    ),
+    portfolio,
+    options,
+  };
 
   return (
     <section className="grid min-w-0 gap-6 overflow-hidden py-4 sm:py-6">
@@ -187,9 +220,10 @@ export default function AdvancedResultPage() {
           }}
         />
       </div>
-      <AssetChart
+      <AssetChartComparisonPanel
         data={simulationResult.timeSeries}
         futureStartDate={futureProjection?.startDate}
+        baseInput={baseInput}
       />
       <PortfolioComparison
         initialPortfolio={simulationResult.initialPortfolio ?? []}
