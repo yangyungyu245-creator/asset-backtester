@@ -1832,6 +1832,11 @@
       "category": "us_etf"
     },
     {
+      "ticker": "PAVS",
+      "name_ko": "파라노부스 엔터테인먼트 테크놀로지",
+      "category": "us_stock"
+    },
+    {
       "ticker": "QLD",
       "name_ko": "Qld",
       "category": "us_etf"
@@ -1849,6 +1854,11 @@
     {
       "ticker": "RKLB",
       "name_ko": "로켓랩",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "RXRX",
+      "name_ko": "Recursion Pharmaceuticals, Inc.",
       "category": "us_stock"
     },
     {
