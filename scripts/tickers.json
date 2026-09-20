@@ -1872,6 +1872,11 @@
       "category": "us_stock"
     },
     {
+      "ticker": "UPRO",
+      "name_ko": "sp500 3배",
+      "category": "us_stock"
+    },
+    {
       "ticker": "USD",
       "name_ko": "usd",
       "category": "us_etf"
