@@ -1857,8 +1857,18 @@
       "category": "us_stock"
     },
     {
+      "ticker": "ROM",
+      "name_ko": "기술주",
+      "category": "us_stock"
+    },
+    {
       "ticker": "RXRX",
       "name_ko": "Recursion Pharmaceuticals, Inc.",
+      "category": "us_stock"
+    },
+    {
+      "ticker": "SSO",
+      "name_ko": "Sp500",
       "category": "us_stock"
     },
     {

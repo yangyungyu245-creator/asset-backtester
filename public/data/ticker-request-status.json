@@ -1,7 +1,20 @@
 {
-  "last_updated": "2026-10-25T20:38:34+00:00",
-  "added": [],
-  "rejected": [],
+  "last_updated": "2026-11-01T21:52:53+00:00",
+  "added": [
+    "ROM",
+    "SSO"
+  ],
+  "rejected": [
+    {
+      "ticker": "SSO",
+      "reason": "ticker already exists in tickers.json"
+    }
+  ],
   "pending": [],
-  "invalid": []
+  "invalid": [
+    {
+      "ticker": "SSO",
+      "reason": "ticker already exists in tickers.json"
+    }
+  ]
 }
